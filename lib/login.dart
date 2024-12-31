@@ -1,4 +1,5 @@
 import 'package:NCSC/admin/admin_portal.dart';
+import 'package:NCSC/registration.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,8 +107,10 @@ class _loginState extends State<login> {
                                   ),
                                 )
                             ),
-                            TextButton(onPressed: (){}, child:
-                                Text("Click Here to Student Registration",style:
+                            TextButton(onPressed: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context)=>regestration()));
+                            }, child:
+                                Text("Click Here for Registration",style:
                                   TextStyle(
                                     color: Colors.black
                                   ),
