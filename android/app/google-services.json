@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "135962169739",
+    "project_id": "ncsc-db",
+    "storage_bucket": "ncsc-db.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:135962169739:android:a82c4ea363cebd55e8df8e",
+        "android_client_info": {
+          "package_name": "com.usm.ncsc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3xGW3xuby51a8WultfQR6SlX6k8ufLzA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
