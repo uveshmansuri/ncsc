@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:NCSC/admin/admin_portal.dart';
+import 'package:NCSC/faculty/faculty_home.dart';
 import 'package:NCSC/login.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +17,18 @@ class _splashState extends State<splash> {
     Timer(Duration(seconds: 4),() async {
       final SharedPreferences prefs =await SharedPreferences.getInstance();
       if(prefs.getBool("login_flag")==true){
+        //print(prefs.getString("role"));
         if(prefs.getString("role")=="admin"){
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context)=>admin_portal()
+              )
+          );
+        }
+        if(prefs.getString("role")=="faculty"){
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context)=>faculty_home()
               )
           );
         }

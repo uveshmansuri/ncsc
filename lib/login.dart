@@ -1,4 +1,5 @@
 import 'package:NCSC/admin/admin_portal.dart';
+import 'package:NCSC/faculty/faculty_home.dart';
 import 'package:NCSC/registration.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -164,6 +165,13 @@ class _loginState extends State<login> {
               await prefs.setString('role', "admin");
               //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>));
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>admin_portal()));
+            }
+            if(sp.child("role").value.toString()=="faculty"){
+              final SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('login_flag', true);
+              await prefs.setString('uname', username);
+              await prefs.setString('role', "faculty");
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>faculty_home()));
             }
           }else{
             flag=1;
