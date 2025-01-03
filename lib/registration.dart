@@ -27,8 +27,22 @@ class _regestrationState extends State<regestration> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Color(0xffF0F9F0),
-          title: Text("Registration"),
-          bottom: TabBar(tabs:[Tab(text: "Faculty",),Tab(text: "Student",)]),
+          title: Text("Registration",
+            style: TextStyle(
+              color:Color(0xff0033ff),
+              fontSize: 25,
+              fontWeight: FontWeight.bold
+            ),
+          ),
+          bottom: TabBar(
+              indicatorColor: Colors.blue,
+              labelStyle: TextStyle(fontSize: 20.0,color: Colors.lightBlue),
+              unselectedLabelStyle: TextStyle(fontSize: 15.0,color: Colors.grey),
+              tabs: [
+                Tab(text: "Faculty",),
+                Tab(text: "Student",)
+              ]
+          ),
         ),
         body: Container(
           height: double.infinity,
@@ -45,195 +59,199 @@ class _regestrationState extends State<regestration> {
           ),
           child: TabBarView(
             children: [
-              SingleChildScrollView(
-                child: Center(
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                        child: Card(
-                          color: Color(0xfff0f9f0),
-                          elevation: 20,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10,),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(height: 30,),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset("assets/images/faculty_icon.png",height: 75,width: 75,),
-                                    SizedBox(width: 30,),
-                                    Text("Faculty\nRegistration",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontSize: 30,fontWeight: FontWeight.bold,color: Color(0xff0000f0)
+              Center(
+                child: SingleChildScrollView(
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                          child: Card(
+                            color: Color(0xfff0f9f0),
+                            elevation: 20,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10,),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(height: 30,),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.asset("assets/images/faculty_icon.png",height: 75,width: 75,),
+                                      SizedBox(width: 30,),
+                                      Text("Faculty\nRegistration",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontSize: 30,fontWeight: FontWeight.bold,color: Color(0xff0000f0)
+                                        ),
                                       ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 20,),
+                                  TextFormField(
+                                    controller: user_textcontrol,
+                                    decoration: InputDecoration(
+                                        labelText: "Enter Faculty Id",
+                                        prefixIcon: Icon(Icons.person),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                          borderSide: BorderSide(width: 1.5),
+                                        )
                                     ),
-                                  ],
-                                ),
-                                SizedBox(height: 10,),
-                                TextFormField(
-                                  controller: user_textcontrol,
-                                  decoration: InputDecoration(
-                                      labelText: "Enter Faculty Id",
-                                      prefixIcon: Icon(Icons.person),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(width: 1.5),
-                                      )
                                   ),
-                                ),
-                                SizedBox(height: 10,),
-                                TextFormField(
-                                  obscureText: password_visibility,
-                                  controller: pass_textcontrol,
-                                  decoration: InputDecoration(
-                                      labelText: "Enter Password",
-                                      prefixIcon: Icon(Icons.lock),
-                                      suffixIcon: IconButton(onPressed: (){
-                                        setState(() {
-                                          password_visibility=!password_visibility;
-                                        });
-                                      }, icon: password_visibility ? Icon(Icons.visibility) : Icon(Icons.visibility_off),),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(width: 1.5),
-                                      )
+                                  SizedBox(height: 10,),
+                                  TextFormField(
+                                    obscureText: password_visibility,
+                                    controller: pass_textcontrol,
+                                    decoration: InputDecoration(
+                                        labelText: "Enter Password",
+                                        prefixIcon: Icon(Icons.lock),
+                                        suffixIcon: IconButton(onPressed: (){
+                                          setState(() {
+                                            password_visibility=!password_visibility;
+                                          });
+                                        }, icon: password_visibility ? Icon(Icons.visibility) : Icon(Icons.visibility_off),),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                          borderSide: BorderSide(width: 1.5),
+                                        )
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 10,),
-                                TextFormField(
-                                  obscureText: con_pass_visibility,
-                                  controller: confirm_pass_textcontrol,
-                                  decoration: InputDecoration(
-                                      labelText: "Confirm Password",
-                                      prefixIcon: Icon(Icons.lock),
-                                      suffixIcon: IconButton(onPressed: (){
-                                        setState(() {
-                                          con_pass_visibility=!con_pass_visibility;
-                                        });
-                                      }, icon: con_pass_visibility ? Icon(Icons.visibility) : Icon(Icons.visibility_off),),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(width: 1.5),
-                                      )
+                                  SizedBox(height: 10,),
+                                  TextFormField(
+                                    obscureText: con_pass_visibility,
+                                    controller: confirm_pass_textcontrol,
+                                    decoration: InputDecoration(
+                                        labelText: "Confirm Password",
+                                        prefixIcon: Icon(Icons.lock),
+                                        suffixIcon: IconButton(onPressed: (){
+                                          setState(() {
+                                            con_pass_visibility=!con_pass_visibility;
+                                          });
+                                        }, icon: con_pass_visibility ? Icon(Icons.visibility) : Icon(Icons.visibility_off),),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                          borderSide: BorderSide(width: 1.5),
+                                        )
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 10,),
-                                ElevatedButton(
-                                    onPressed:faculty_reg, child:
-                                Text(
-                                  "Register",
-                                  style: TextStyle(
-                                      fontSize: 20,color: Color(0xff0000f0)
+                                  SizedBox(height: 10,),
+                                  ElevatedButton(
+                                      onPressed:faculty_reg, child:
+                                  Text(
+                                    "Register",
+                                    style: TextStyle(
+                                        fontSize: 20,color: Color(0xff0000f0)
+                                    ),
+                                  )
                                   ),
-                                )
-                                ),
-                                SizedBox(height: 20,)
-                              ],
+                                  SizedBox(height: 20,)
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-              SingleChildScrollView(
-                child: Center(
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                        child: Card(
-                          color: Color(0xfff0f9f0),
-                          elevation: 20,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(height: 30,),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset("assets/images/student_profile.png",height: 75,width: 75,),
-                                    SizedBox(width: 30,),
-                                    Text("Student\nRegistration",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontSize: 30,fontWeight: FontWeight.bold,color: Color(0xff0000f0)
+              Center(
+                child: SingleChildScrollView(
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                          child: Card(
+                            color: Color(0xfff0f9f0),
+                            elevation: 20,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(height: 30,),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.asset("assets/images/student_profile.png",height: 75,width: 75,),
+                                      SizedBox(width: 30,),
+                                      Text("Student\nRegistration",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontSize: 30,fontWeight: FontWeight.bold,color: Color(0xff0000f0)
+                                        ),
                                       ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 20,),
+                                  TextFormField(
+                                    controller: user_textcontrol,
+                                    decoration: InputDecoration(
+                                        labelText: "Enter Student Id",
+                                        prefixIcon: Icon(Icons.person),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                          borderSide: BorderSide(width: 1.5),
+                                        )
                                     ),
-                                  ],
-                                ),
-                                SizedBox(height: 10,),
-                                TextFormField(
-                                  controller: user_textcontrol,
-                                  decoration: InputDecoration(
-                                      labelText: "Enter Student Id",
-                                      prefixIcon: Icon(Icons.person),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(width: 1.5),
-                                      )
                                   ),
-                                ),
-                                SizedBox(height: 10,),
-                                TextFormField(
-                                  obscureText: password_visibility,
-                                  controller: pass_textcontrol,
-                                  decoration: InputDecoration(
-                                      labelText: "Enter Password",
-                                      prefixIcon: Icon(Icons.lock),
-                                      suffixIcon: IconButton(onPressed: (){
-                                        setState(() {
-                                          password_visibility=!password_visibility;
-                                        });
-                                      }, icon: password_visibility ? Icon(Icons.visibility) : Icon(Icons.visibility_off),),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(width: 1.5),
-                                      )
+                                  SizedBox(height: 10,),
+                                  TextFormField(
+                                    obscureText: password_visibility,
+                                    controller: pass_textcontrol,
+                                    decoration: InputDecoration(
+                                        labelText: "Enter Password",
+                                        prefixIcon: Icon(Icons.lock),
+                                        suffixIcon: IconButton(onPressed: (){
+                                          setState(() {
+                                            password_visibility=!password_visibility;
+                                          });
+                                        }, icon: password_visibility ? Icon(Icons.visibility) : Icon(Icons.visibility_off),),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                          borderSide: BorderSide(width: 1.5),
+                                        )
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 10,),
-                                TextFormField(
-                                  obscureText: con_pass_visibility,
-                                  controller: confirm_pass_textcontrol,
-                                  decoration: InputDecoration(
-                                      labelText: "Confirm Password",
-                                      prefixIcon: Icon(Icons.lock),
-                                      suffixIcon: IconButton(onPressed: (){
-                                        setState(() {
-                                          con_pass_visibility=!con_pass_visibility;
-                                        });
-                                      }, icon: con_pass_visibility ? Icon(Icons.visibility) : Icon(Icons.visibility_off),),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(width: 1.5),
-                                      )
+                                  SizedBox(height: 10,),
+                                  TextFormField(
+                                    obscureText: con_pass_visibility,
+                                    controller: confirm_pass_textcontrol,
+                                    decoration: InputDecoration(
+                                        labelText: "Confirm Password",
+                                        prefixIcon: Icon(Icons.lock),
+                                        suffixIcon: IconButton(onPressed: (){
+                                          setState(() {
+                                            con_pass_visibility=!con_pass_visibility;
+                                          });
+                                        }, icon: con_pass_visibility ? Icon(Icons.visibility) : Icon(Icons.visibility_off),),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                          borderSide: BorderSide(width: 1.5),
+                                        )
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 10,),
-                                ElevatedButton(
-                                    onPressed: (){}, child:
-                                Text(
-                                  "Register",
-                                  style: TextStyle(
-                                      fontSize: 20,color: Color(0xff0000f0)
+                                  SizedBox(height: 10,),
+                                  ElevatedButton(
+                                      onPressed: (){}, child:
+                                  Text(
+                                    "Register",
+                                    style: TextStyle(
+                                        fontSize: 20,color: Color(0xff0000f0)
+                                    ),
+                                  )
                                   ),
-                                )
-                                ),
-                                SizedBox(height: 20,)
-                              ],
+                                  SizedBox(height: 20,)
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               )

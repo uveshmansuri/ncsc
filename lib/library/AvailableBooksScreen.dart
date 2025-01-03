@@ -1,17 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
-class LibrarianApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Librarian Module',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: LibrarianDashboard(),
-    );
-  }
-}
-
 class LibrarianDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
