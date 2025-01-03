@@ -1,5 +1,6 @@
 import 'package:NCSC/admin/create_faculty.dart';
 import 'package:NCSC/splash.dart';
+import 'package:NCSC/library/AvailableBooksScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -19,12 +20,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'NCSC',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: splash(),
+      home: LibrarianApp(),
       //home:FacultyPage(),
       //home: DepartmentPage(),
     );
