@@ -1,3 +1,4 @@
+import 'package:NCSC/email_verification.dart';
 import 'package:NCSC/splash.dart';
 import 'package:NCSC/admin/create_faculty.dart';
 import 'package:NCSC/library/AvailableBooksScreen.dart';

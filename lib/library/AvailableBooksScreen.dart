@@ -57,6 +57,7 @@ class _ManageBooksScreenState extends State<ManageBooksScreen> {
   String book_id = '';
   int availableCopies = 0;
 
+  
   void _addBook() async{
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -71,7 +72,6 @@ class _ManageBooksScreenState extends State<ManageBooksScreen> {
         fr_db.child("books").child(book_id).set(books).then((_){
           print("Added");
         });
-
       });
       Navigator.pop(context);
     }
