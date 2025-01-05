@@ -12,8 +12,8 @@ class admin_portal extends StatefulWidget{
 class _admin_portalState extends State<admin_portal> {
   @override
   Widget build(BuildContext context) {
-    double sc_width=MediaQuery.of(context).size.width;
-    double sc_height=MediaQuery.of(context).size.width;
+    // double sc_width=MediaQuery.of(context).size.width;
+    // double sc_height=MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title:

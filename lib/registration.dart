@@ -1,4 +1,5 @@
 import 'package:NCSC/admin/admin_portal.dart';
+import 'package:NCSC/email_verification.dart';
 import 'package:NCSC/faculty/faculty_home.dart';
 import 'package:NCSC/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,6 +20,10 @@ class _regestrationState extends State<regestration> {
 
   var password_visibility=true;
   var con_pass_visibility=true;
+
+  var user_cred;
+
+  final _auth=FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -254,7 +259,7 @@ class _regestrationState extends State<regestration> {
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         )
@@ -263,42 +268,37 @@ class _regestrationState extends State<regestration> {
   }
 
   void faculty_reg() async{
+    String email,pass;
     bool flag=false;
     final fr_db=FirebaseDatabase.instance.ref().child("Faculties");
     DataSnapshot snapshot=await fr_db.get();
     if(validate_input()){
       for(DataSnapshot sp in snapshot.children){
         if(sp.child("faculty_id").value.toString()==user_textcontrol.text) {
-          flag = true;
-          FirebaseAuth _auth=FirebaseAuth.instance;
-          try {
-            final user_cred=await _auth.createUserWithEmailAndPassword(
-                email: sp.child("email").value.toString(),
-                password: pass_textcontrol.text.toString()
-            );
-            //Fluttertoast.showToast(msg: "Registration Successful");
-            await FirebaseDatabase.instance.ref().child("Users").child(user_textcontrol.text).set({
-              "user_name":user_textcontrol.text,
-              "password":pass_textcontrol.text.toString(),
-              "role":"faculty"
-            }).then((_){
-              Fluttertoast.showToast(msg: "Registration Successful!!!");
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => faculty_home()),
-                    (route) => false, // Remove all previous routes
-              );
-            });
-          } on FirebaseAuthException catch (e) {
-            Fluttertoast.showToast(msg: "${e.message}");
-          }finally{
-          }
+          flag=true;
+          email=sp.child("email").value.toString();
+          pass=pass_textcontrol.text;
+          await _auth.createUserWithEmailAndPassword(email: email, password: pass)
+              .then((_) {
+                send_email(email,user_textcontrol.text,pass,"faculty");
+          })
+              .catchError((error){
+                Fluttertoast.showToast(msg: error.toString());
+          });
         }
       }
       if(!flag){
-        Fluttertoast.showToast(msg: "Invalid Faculty Id");
+        Fluttertoast.showToast(msg: "Invalid User Id");
       }
-    }else{
+    }
+  }
+
+  void send_email(email,user_name,pass,role) async{
+    try{
+      await _auth.currentUser?.sendEmailVerification();
+      Navigator.push(context, MaterialPageRoute(builder: (context)=>email_verification(email,user_name,pass,role)));
+    }catch(e){
+      Fluttertoast.showToast(msg: e.toString());
     }
   }
 
