@@ -1,4 +1,5 @@
 import 'package:NCSC/email_verification.dart';
+import 'package:NCSC/faculty/profile_page.dart';
 import 'package:NCSC/splash.dart';
 import 'package:NCSC/admin/create_faculty.dart';
 import 'package:NCSC/library/AvailableBooksScreen.dart';
@@ -27,14 +28,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'NCSC',
-
       theme: ThemeData(
-
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: FacultyMain(),
-      //home:FacultyPage(),
+      home: splash(),
+      //home:FacultyPge(),
       //home: DepartmentPage(),
     );
   }

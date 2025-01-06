@@ -1,5 +1,6 @@
 import 'package:NCSC/admin/admin_portal.dart';
 import 'package:NCSC/faculty/faculty_home.dart';
+import 'package:NCSC/faculty/main_faculty.dart';
 import 'package:NCSC/registration.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -169,7 +170,7 @@ class _loginState extends State<login> {
               await prefs.setBool('login_flag', true);
               await prefs.setString('uname', username);
               await prefs.setString('role', "faculty");
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>faculty_home()));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>FacultyMain()));
             }
           }else{
             flag=1;

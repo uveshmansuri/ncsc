@@ -11,15 +11,12 @@ class FacultyMain extends StatefulWidget {
 
 class _FacultyMainState extends State<FacultyMain> {
   int _currentIndex = 1;
-
   final List<Widget> _pages = [
     UpdatesPage(),
     HomePage(),
     ProfilePage(),
   ];
-
   final PageController _pageController = PageController(initialPage: 1);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
