@@ -293,6 +293,7 @@ class _regestrationState extends State<regestration> {
     }
   }
 
+
   void send_email(email,user_name,pass,role) async{
     try{
       await _auth.currentUser?.sendEmailVerification();
