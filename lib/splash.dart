@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:NCSC/admin/admin_portal.dart';
 import 'package:NCSC/faculty/faculty_home.dart';
+import 'package:NCSC/faculty/main_faculty.dart';
 import 'package:NCSC/login.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +29,7 @@ class _splashState extends State<splash> {
         if(prefs.getString("role")=="faculty"){
           Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context)=>faculty_home()
+              MaterialPageRoute(builder: (context)=>FacultyMain()
               )
           );
         }
