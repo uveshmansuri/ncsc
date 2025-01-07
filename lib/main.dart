@@ -11,7 +11,6 @@ import 'firebase_options.dart';
 import 'login.dart';
 
 void main() async{
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -27,13 +26,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'NCSC',
-      theme: AppTheme.light,       // Light theme
-      themeMode: ThemeMode.system, // Automatically follow system theme
+      // theme: AppTheme.light,       // Light theme
+      // themeMode: ThemeMode.system, // Automatically follow system theme
       home:  splash(),
       // Your login screen
     );
   }
 }
-
-
-

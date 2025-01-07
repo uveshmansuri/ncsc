@@ -274,18 +274,6 @@ class _create_facultyState extends State<create_faculty> {
     );
   }
 
-  void _create_faculty() async{
-    final db_ref=await FirebaseDatabase.instance.ref();
-    if(faculty_role==null){
-    Fluttertoast.showToast(msg: "Select Role of Faculty");
-    }
-    else if(img_encode==null){
-      Fluttertoast.showToast(msg: "Upload image of Faculty");
-    }else{
-      showFacultyDialog(context);
-    }
-  }
-
   Future<void> _pickImage() async {
     final pickedFile = await _img_picker.pickImage(source: ImageSource.gallery);
     if(pickedFile!=null){
@@ -297,31 +285,17 @@ class _create_facultyState extends State<create_faculty> {
     }
   }
 
-  // void showFacultyDialog(BuildContext context){
-  //   showDialog(context: context,
-  //     builder: (BuildContext context)=>
-  //         AlertDialog(
-  //           title: Text("Confirm Logout"),
-  //           content: Column(
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               Text("Are you sure you want to logout?"),
-  //             ],
-  //           ),
-  //           actions: [
-  //             TextButton(onPressed:
-  //                 () {
-  //               Navigator.of(context).pop();
-  //             },
-  //                 child: Text("Cancel")
-  //             ),
-  //             TextButton(onPressed:(){},
-  //               child: Text("Logout"),
-  //             ),
-  //           ],
-  //         ),
-  //   );
-  // }
+  void _create_faculty() async{
+    final db_ref=await FirebaseDatabase.instance.ref();
+    if(faculty_role==null){
+    Fluttertoast.showToast(msg: "Select Role of Faculty");
+    }
+    else if(img_encode==null){
+      Fluttertoast.showToast(msg: "Upload image of Faculty");
+    }else{
+      showFacultyDialog(context);
+    }
+  }
 
   void showFacultyDialog(BuildContext context){
     String faculty_id=txt_fid.text.toString();
@@ -380,9 +354,8 @@ class _create_facultyState extends State<create_faculty> {
                   child:Text("Edit")
               ),
               TextButton(
-                  onPressed: (){
+                  onPressed: () {
                     add_to_firebase();
-                    Navigator.pop(context);
                   },
                   child:Text("Add")
               )
@@ -399,20 +372,22 @@ class _create_facultyState extends State<create_faculty> {
       Fluttertoast.showToast(msg: "FacultyID is already exists");
       return;
     }
-    // db_ref2.child("Faculties").child(txt_fid.text.toString()).set({
-    //   "faculty_id": txt_fid.text.toString(),
-    //   "name": txt_fname.text.toString(),
-    //   "qualification": txt_fq.text.toString(),
-    //   "email": txt_mail.text.toString(),
-    //   "department": dept,
-    //   "post": faculty_role,
-    //   "img":img_encode
-    // }).then((_){
-    //   Fluttertoast.showToast(msg: "Faculty added");
-    //   Navigator.pop(context);
-    // }).catchError((error){
-    //   Fluttertoast.showToast(msg: "Error:$error");
-    // });
+    db_ref2.child("Faculties").child(txt_fid.text.toString()).set({
+      "faculty_id": txt_fid.text.toString(),
+      "name": txt_fname.text.toString(),
+      "qualification": txt_fq.text.toString(),
+      "email": txt_mail.text.toString(),
+      "department": dept,
+      "post": faculty_role,
+      "img":img_encode
+    }).then((_){
+      Fluttertoast.showToast(msg: "Faculty added");
+      Navigator.pop(context);
+      Navigator.pop(context, true);
+    }).catchError((error){
+      Fluttertoast.showToast(msg: "Error:$error");
+      Navigator.pop(context);
+    });
   }
   // bool show_alert_msg(){
   //   int flag=0;
