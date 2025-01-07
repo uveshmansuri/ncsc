@@ -30,7 +30,7 @@ class _DashboardPageState extends State<DashboardPage> {
           Padding(
             padding: EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
-              backgroundImage: AssetImage('assets/images/profile.jpg'),
+              backgroundImage: AssetImage('assets/images/faculty_icon.png'),
             ),
           ),
         ],

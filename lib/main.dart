@@ -20,21 +20,16 @@ void main() async{
   runApp(const MyApp());
 }
 
-
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'NCSC',
       theme: AppTheme.light,       // Light theme
-      darkTheme: AppTheme.dark,    // Dark theme
       themeMode: ThemeMode.system, // Automatically follow system theme
-     // home: login(),
-        home:  DashboardPage(),
+      home:  splash(),
       // Your login screen
     );
   }

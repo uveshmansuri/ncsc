@@ -36,24 +36,7 @@ class _LibrarianManageBooksState extends State<LibrarianManageBooks> {
             if (data == null) {
               return Center(child: Text('No books available.'));
             }
-
             List<Widget> bookWidgets = [];
-            data.forEach((key, value) {
-              String title = value['title'];
-              String status = value['status'];
-              bookWidgets.add(ListTile(
-                title: Text(title),
-                subtitle: Text(status),
-                trailing: IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () {
-                    String newStatus = status == 'available' ? 'checked out' : 'available';
-                    _updateBookStatus(key, newStatus);
-                  },
-                ),
-              ));
-            });
-
             return ListView(children: bookWidgets);
           }
 
