@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:NCSC/login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -170,7 +172,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Card(
                     elevation: 30,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 7,vertical: 7),
+                      padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 7),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -188,6 +190,26 @@ class _ProfilePageState extends State<ProfilePage> {
                           buildRichText("Department", dept!),
                           buildRichText("Post", post!),
                           buildRichText("Qualifications", "${quali!}"),
+                          ElevatedButton(
+                            onPressed: logout,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.logout,color: Colors.white,),
+                                SizedBox(width: 7,),
+                                Text("Logout",
+                                  style: TextStyle(color: Colors.white,fontSize: 20),
+                                ),
+                              ],
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              shadowColor: Colors.black,
+                              elevation: 2,
+                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            )
+                          ),
+                          SizedBox(height: 10,),
                         ],
                       ),
                     ),
@@ -199,6 +221,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+
   Widget buildRichText(String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -230,5 +253,13 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
+  }
+
+  void logout() async{
+    await FirebaseAuth.instance.signOut();
+    SharedPreferences pref=await SharedPreferences.getInstance();
+    pref.clear();
+    pref.commit();
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
   }
 }

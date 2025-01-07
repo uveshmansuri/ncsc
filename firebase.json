@@ -1,1 +1,25 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"ncsc-db","appId":"1:135962169739:android:a82c4ea363cebd55e8df8e","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"ncsc-db","configurations":{"android":"1:135962169739:android:a82c4ea363cebd55e8df8e","ios":"1:135962169739:ios:704f1ff2d85e4558e8df8e","macos":"1:135962169739:ios:704f1ff2d85e4558e8df8e","web":"1:135962169739:web:25556ee626651953e8df8e","windows":"1:135962169739:web:c21f9bc04709c97ce8df8e"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "ncsc-db",
+          "appId": "1:135962169739:android:a82c4ea363cebd55e8df8e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "ncsc-db",
+          "configurations": {
+            "android": "1:135962169739:android:a82c4ea363cebd55e8df8e",
+            "ios": "1:135962169739:ios:704f1ff2d85e4558e8df8e",
+            "macos": "1:135962169739:ios:704f1ff2d85e4558e8df8e",
+            "web": "1:135962169739:web:25556ee626651953e8df8e",
+            "windows": "1:135962169739:web:c21f9bc04709c97ce8df8e"
+          }
+        }
+      }
+    }
+  }
+}

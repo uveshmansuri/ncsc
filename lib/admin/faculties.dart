@@ -124,8 +124,13 @@ class _FacultyPageState extends State<FacultyPage> {
           ),
         ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>create_faculty()));
+        onPressed: () async{
+          bool res=await Navigator.of(context).push(MaterialPageRoute(builder: (context)=>create_faculty()));
+          if(res){
+            _faculties.clear();
+            _fetch_faculty();
+          }
+          print(res);
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.blue,
