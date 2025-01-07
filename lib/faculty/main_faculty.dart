@@ -19,33 +19,45 @@ class _FacultyMainState extends State<FacultyMain> {
   final PageController _pageController = PageController(initialPage: 1);
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
+    return WillPopScope(
+      onWillPop: () async{
+        if(_currentIndex!=1){
           setState(() {
-            _currentIndex = index;
+            _currentIndex=1;
+            _pageController.jumpToPage(1);
           });
-        },
-        children: _pages,
-      ),
-      bottomNavigationBar: CurvedNavigationBar(
-        index: _currentIndex,
-        backgroundColor: Colors.transparent,
-        color: Colors.blue,
-        buttonBackgroundColor: Colors.white,
-        height: 60,
-        items: <Widget>[
-          Icon(Icons.update, size: 30, color: _currentIndex == 0 ? Colors.blue : Colors.white),
-          Icon(Icons.home, size: 30, color: _currentIndex == 1 ? Colors.blue : Colors.white),
-          Icon(Icons.person, size: 30, color: _currentIndex == 2 ? Colors.blue : Colors.white),
-        ],
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-            _pageController.jumpToPage(index);
-          });
-        },
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          children: _pages,
+        ),
+        bottomNavigationBar: CurvedNavigationBar(
+          index: _currentIndex,
+          backgroundColor: Color(0xffd1fbff),
+          color: Colors.blue,
+          buttonBackgroundColor:  Colors.white,
+          height: 50,
+          items: <Widget>[
+            Icon(Icons.update, size: 25, color: _currentIndex == 0 ? Colors.blue : Colors.white),
+            Icon(Icons.home, size: 25, color: _currentIndex == 1 ? Colors.blue : Colors.white),
+            Icon(Icons.person, size: 25, color: _currentIndex == 2 ? Colors.blue : Colors.white),
+          ],
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+              _pageController.jumpToPage(index);
+            });
+          },
+        ),
       ),
     );
   }

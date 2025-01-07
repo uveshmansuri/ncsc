@@ -50,6 +50,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.2
   getwidget: ^5.0.0
   firebase_auth: ^5.3.4
+  provider: ^6.1.2
 #
 #  flutter_screenutil: ^5.9.3
 
