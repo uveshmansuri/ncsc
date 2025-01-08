@@ -41,15 +41,28 @@ class _FacultyMainState extends State<FacultyMain> {
           children: _pages,
         ),
         bottomNavigationBar: CurvedNavigationBar(
+
           index: _currentIndex,
           backgroundColor: Color(0xffd1fbff),
           color: Colors.blue,
           buttonBackgroundColor:  Colors.white,
           height: 50,
           items: <Widget>[
-            Icon(Icons.update, size: 25, color: _currentIndex == 0 ? Colors.blue : Colors.white),
-            Icon(Icons.home, size: 25, color: _currentIndex == 1 ? Colors.blue : Colors.white),
-            Icon(Icons.person, size: 25, color: _currentIndex == 2 ? Colors.blue : Colors.white),
+            Tooltip(
+              message: 'Updates',
+              child: Icon(Icons.update, size: 25, color: _currentIndex == 0 ? Colors.blue : Colors.white),
+            ),
+            Tooltip(
+              message: 'Home',
+              child: Icon(Icons.home, size: 25, color: _currentIndex == 1 ? Colors.blue : Colors.white),
+            ),
+            Tooltip(
+              message: 'Profile',
+              child: Icon(Icons.person, size: 25, color: _currentIndex == 2 ? Colors.blue : Colors.white),
+            ),
+            // Icon(Icons.update, size: 25, color: _currentIndex == 0 ? Colors.blue : Colors.white),
+            // Icon(Icons.home, size: 25, color: _currentIndex == 1 ? Colors.blue : Colors.white),
+            // Icon(Icons.person, size: 25, color: _currentIndex == 2 ? Colors.blue : Colors.white),
           ],
           onTap: (index) {
             setState(() {

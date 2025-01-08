@@ -6,6 +6,7 @@ import 'package:NCSC/student/main_student.dart';
 import 'package:NCSC/themes/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'admin/faculties.dart';
 import 'faculty/main_faculty.dart';
 import 'firebase_options.dart';
 import 'login.dart';
@@ -29,7 +30,6 @@ class MyApp extends StatelessWidget {
       // theme: AppTheme.light,       // Light theme
       // themeMode: ThemeMode.system, // Automatically follow system theme
       home:  splash(),
-      // Your login screen
     );
   }
 }
