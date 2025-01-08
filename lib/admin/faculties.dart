@@ -18,6 +18,7 @@ class _FacultyPageState extends State<FacultyPage> {
     super.initState();
     _fetch_faculty();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -130,7 +131,7 @@ class _FacultyPageState extends State<FacultyPage> {
             _faculties.clear();
             _fetch_faculty();
           }
-          print(res);
+          //print(res);
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.blue,
@@ -149,6 +150,17 @@ class _FacultyPageState extends State<FacultyPage> {
     );
   }
   void _fetch_faculty() async{
+    // print("Fetching....");
+    // try {
+    //   final database = FirebaseDatabase.instance;
+    //   database.ref(".info/connected").onValue.listen((event) {
+    //     final connected = event.snapshot.value as bool? ?? false;
+    //     if (connected) {
+    //       print("Connected to Firebase Realtime Database");
+    //     } else {
+    //       print("Not connected to Firebase Realtime Database");
+    //     }
+    //   });
     final snapshot=await db_ref.get();
     if(snapshot.exists){
       for(DataSnapshot sp in snapshot.children){
