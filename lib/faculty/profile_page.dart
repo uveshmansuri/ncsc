@@ -276,15 +276,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(360),
                     side: BorderSide(
                       color: Colors.cyan, // Border color
-                      width: 1.5,         // Border width
+                      width: 2,         // Border width
                     ),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(360),
                     child: Image.memory(
                       base64Decode(img_encode),
-                      height: 100,
-                      width: 100,
+                      height: 150,
+                      width: 150,
                       fit: BoxFit.fill,
                     ),
                   ),
