@@ -50,15 +50,15 @@ class _FacultyMainState extends State<FacultyMain> {
           items: <Widget>[
             Tooltip(
               message: 'Updates',
-              child: Icon(Icons.update, size: 25, color: _currentIndex == 0 ? Colors.blue : Colors.white),
+              child: Icon(Icons.update, size: 30, color: _currentIndex == 0 ? Colors.blue : Colors.white),
             ),
             Tooltip(
               message: 'Home',
-              child: Icon(Icons.home, size: 25, color: _currentIndex == 1 ? Colors.blue : Colors.white),
+              child: Icon(Icons.home, size: 30, color: _currentIndex == 1 ? Colors.blue : Colors.white),
             ),
             Tooltip(
               message: 'Profile',
-              child: Icon(Icons.person, size: 25, color: _currentIndex == 2 ? Colors.blue : Colors.white),
+              child: Icon(Icons.person, size: 30, color: _currentIndex == 2 ? Colors.blue : Colors.white),
             ),
             // Icon(Icons.update, size: 25, color: _currentIndex == 0 ? Colors.blue : Colors.white),
             // Icon(Icons.home, size: 25, color: _currentIndex == 1 ? Colors.blue : Colors.white),

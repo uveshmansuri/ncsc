@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:NCSC/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -12,8 +14,11 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String? uid,name,email,quali,dept,post;
-  var img_encode;
+  String? uid,name,email,quali,dept,post,address,phone;
+  var img_encode,temProfileImageBase64;
+
+  final TextEditingController phonebox = TextEditingController();
+  final TextEditingController addbox = TextEditingController();
 
   @override
   void initState() {
@@ -34,6 +39,8 @@ class _ProfilePageState extends State<ProfilePage> {
           quali = sp.child("qualification").value?.toString();
           dept = sp.child("department").value?.toString();
           post = sp.child("post").value?.toString();
+          phone = sp.child("phone").value?.toString();
+          address = sp.child("address").value?.toString();
           img_encode=sp.child("img").value;
         });
       } catch (e) {
@@ -42,6 +49,180 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       //print("UID is null");
     }
+  }
+  Future<void> _saveChanges() async {
+    var dbRef = FirebaseDatabase.instance.ref("Faculties");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    uid = prefs.getString('uname');
+    if(temProfileImageBase64!=null){
+      img_encode = temProfileImageBase64;
+    }
+    if (uid != null) {
+      try {
+        await dbRef.child(uid!)?.update({
+          "phone": phonebox.text,
+          "address": addbox.text,
+          "img": img_encode,
+        });
+        setState(() {
+          if(phonebox.text!=null){
+            phone=phonebox.text;
+          }
+          if(addbox.text!=null){
+            address=addbox.text;
+          }
+          if(temProfileImageBase64!=null){
+            img_encode = temProfileImageBase64;
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Profile Updated Successfully")),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error updating profile: $e")),
+        );
+      }
+    }
+  }
+
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      File imageFile = File(pickedFile.path);
+      try {
+        List<int> imageBytes = await imageFile.readAsBytes();
+        String base64String = base64Encode(imageBytes);
+        setState(() {
+          temProfileImageBase64 = base64String;
+        });
+      } catch (e) {
+        print("Error converting image to Base64: $e");
+      }
+    }
+  }
+  void EditDialog() {
+    phonebox.text = phone!;
+    addbox.text = address!;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Material(
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(360),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(360),
+                              child: Image.memory(
+                                base64Decode(temProfileImageBase64 ?? img_encode!),
+                                height: 125,
+                                width: 125,
+                                fit: BoxFit.fill,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                print("OK");
+                                await pickImage();
+                                setState(() {});
+                              },
+                              child: CircleAvatar(
+                                backgroundColor: Colors.blue,
+                                radius: 20,
+                                child: Icon(Icons.edit, color: Colors.white, size: 20),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: phonebox,
+                        decoration: InputDecoration(
+                          labelText: phone!.length==0? "Mobile No":"",
+                          fillColor: Colors.white,
+                          prefixIcon: Icon(Icons.phone_android_rounded,color: Colors.cyan,),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 15),
+                      TextField(
+                        controller: addbox,
+                        decoration: InputDecoration(
+                          labelText: address!.length==0? "Address":"",
+                          fillColor: Colors.white,
+                          prefixIcon: Icon(Icons.maps_home_work_rounded,color: Colors.cyan,),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 25),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.lightBlueAccent,
+                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Text("Cancel"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                if(temProfileImageBase64!=null){
+                                  img_encode = temProfileImageBase64;
+                                }
+                              });
+                              _saveChanges();
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.lightBlueAccent,
+                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Text("Save"),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -55,211 +236,111 @@ class _ProfilePageState extends State<ProfilePage> {
                 fontWeight: FontWeight.bold
             ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: EditDialog,
+          ),
+        ],
         backgroundColor: Color(0xfff0f9f0),
       ),
-      body: Center(
-        child: Container(
-          decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment(0, 0), // Center of the gradient
-                radius: 1.0, // Spread of the gradient
-                colors: [
-                  Color(0xFFE0F7FA),
-                  Color(0xffd1fbff),
-                ],
-                stops: [0.3,1.0],
-                // colors: [
-                //   Color(0xffb5ffff),Color(0xff89f7fe),Color(0xff00e4e4),
-                // ],
-              )
-          ),
-          child:
-            name==null?Center(
-              child: Container(
-                  height:50,
-                  width:50,
-                  child: CircularProgressIndicator()
-              ),
-            ): Center(
-              child: Column(
-                children:[
-                  // Text(
-                  //   'Faculty Profile',
-                  //   style: TextStyle(
-                  //     fontSize: 40,
-                  //     fontWeight: FontWeight.bold,
-                  //     color: Colors.teal.shade700,
-                  //   ),
-                  // ),
-                  // RichText(
-                  //   text: TextSpan(
-                  //     children: [
-                  //       TextSpan(
-                  //         text: 'Name:- ',
-                  //         style: TextStyle(
-                  //           fontSize: 20,
-                  //           fontWeight: FontWeight.bold,
-                  //           color: Colors.teal.shade700,
-                  //         ),
-                  //       ),
-                  //       TextSpan(
-                  //         text: name,
-                  //         style: TextStyle(
-                  //           fontSize: 18,
-                  //           color: Colors.black87,
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                  // RichText(
-                  //   text: TextSpan(
-                  //     children: [
-                  //       TextSpan(
-                  //         text: 'Email:- ',
-                  //         style: TextStyle(
-                  //           fontSize: 20,
-                  //           fontWeight: FontWeight.bold,
-                  //           color: Colors.teal.shade700,
-                  //         ),
-                  //       ),
-                  //       TextSpan(
-                  //         text: email,
-                  //         style: TextStyle(
-                  //           fontSize: 18,
-                  //           color: Colors.black87,
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                  // RichText(
-                  //   text: TextSpan(
-                  //     children: [
-                  //       TextSpan(
-                  //         text: 'Department:- ',
-                  //         style: TextStyle(
-                  //           fontSize: 20,
-                  //           fontWeight: FontWeight.bold,
-                  //           color: Colors.teal.shade700,
-                  //         ),
-                  //       ),
-                  //       TextSpan(
-                  //         text: dept,
-                  //         style: TextStyle(
-                  //           fontSize: 18,
-                  //           color: Colors.black87,
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                  // RichText(
-                  //   text: TextSpan(
-                  //     children: [
-                  //       TextSpan(
-                  //         text: 'Post:- ',
-                  //         style: TextStyle(
-                  //           fontSize: 20,
-                  //           fontWeight: FontWeight.bold,
-                  //           color: Colors.teal.shade700,
-                  //         ),
-                  //       ),
-                  //       TextSpan(
-                  //         text: post,
-                  //         style: TextStyle(
-                  //           fontSize: 18,
-                  //           color: Colors.black87,
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 7),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Material(
-                            elevation: 15,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(360),
-                              side: BorderSide(
-                                color: Colors.cyan, // Border color
-                                width: 1.5,         // Border width
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(360),
-                              child: Image.memory(
-                                base64Decode(img_encode),
-                                height: 100,
-                                width: 100,
-                                fit: BoxFit.fill,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 10,),
-                          build_item("$name", Icons.person),
-                          SizedBox(height: 5,),
-                          build_item("$email", Icons.mail_outline_sharp),
-                          SizedBox(height: 5,),
-                          build_item("$dept", Icons.account_balance),
-                          SizedBox(height: 5,),
-                          build_item("$post", Icons.work_outline),
-                          SizedBox(height: 5,),
-                          build_item("$quali", Icons.school_outlined),
-                          SizedBox(height: 10,),
-                          ElevatedButton.icon(
-                              icon: Icon(Icons.logout,color: Colors.white,),
-                              onPressed:()=>show_dialouge(context),
-                              label: Text("Logout",
-                                style: TextStyle(color: Colors.white,fontSize: 20),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                shadowColor: Colors.black,
-                                elevation: 10,
-                                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                              )
-                          ),
-                              // buildRichText("Name", name!),
-                          // buildRichText("Email", email!),
-                          // buildRichText("Department", dept!),
-                          // buildRichText("Post", post!),
-                          // buildRichText("Qualifications", "${quali!}"),
-                          // SizedBox(height: 10,),
-                        ],
-                      ),
+      body: Container(
+        height: double.maxFinite,
+        decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment(0, 0), // Center of the gradient
+              radius: 1.0, // Spread of the gradient
+              colors: [
+                Color(0xFFE0F7FA),
+                Color(0xffd1fbff),
+              ],
+              stops: [0.3,1.0],
+            )
+        ),
+        child:
+          name==null?
+          Center(
+            child: Container(
+                height:50,
+                width:50,
+                child: CircularProgressIndicator()
+            ),
+          ):
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(height: 15,),
+                Material(
+                  elevation: 15,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(360),
+                    side: BorderSide(
+                      color: Colors.cyan, // Border color
+                      width: 1.5,         // Border width
                     ),
                   ),
-                ],
-              ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(360),
+                    child: Image.memory(
+                      base64Decode(img_encode),
+                      height: 100,
+                      width: 100,
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10,),
+                build_item("$name", Icons.person),
+                build_item("$email", Icons.mail_outline_sharp),
+                build_item("$dept", Icons.account_balance),
+                build_item("$post", Icons.work_outline),
+                build_item("$quali", Icons.school_outlined),
+                if(address!=null && address!.length>0)
+                  build_item("$address", Icons.home_work_sharp),
+                if(phone!=null && phone!.length>0)
+                  build_item("$phone", Icons.phone_android_rounded),
+                SizedBox(height: 15,),
+                ElevatedButton.icon(
+                    icon: Icon(Icons.logout,color: Colors.white,),
+                    onPressed:()=>show_dialouge(context),
+                    label: Text("Logout",
+                      style: TextStyle(color: Colors.white,fontSize: 20),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shadowColor: Colors.black,
+                      elevation: 10,
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    )
+                ),
+                SizedBox(height: 15,),
+              ],
             ),
-        ),
+          ),
       ),
     );
   }
 
   Widget build_item(String value,IconData ic){
-    return Card(
-      elevation: 10,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 9,vertical: 7),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Icon(ic,color: Colors.cyan,size: 30,),
-            SizedBox(width: 10,),
-            Expanded(
-              child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Text(value,style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),)
-              ),
-            )
-          ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 5),
+      child: Card(
+        elevation: 10,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 9,vertical: 7),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Icon(ic,color: Colors.cyan,size: 30,),
+              SizedBox(width: 10,),
+              Expanded(
+                child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Text(value,style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),)
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
