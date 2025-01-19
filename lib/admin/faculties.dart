@@ -131,7 +131,6 @@ class _FacultyPageState extends State<FacultyPage> {
             _faculties.clear();
             _fetch_faculty();
           }
-          //print(res);
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.blue,

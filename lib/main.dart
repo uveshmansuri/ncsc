@@ -1,3 +1,4 @@
+import 'package:NCSC/admin/CreateCirculartPage.dart';
 import 'package:NCSC/email_verification.dart';
 import 'package:NCSC/splash.dart';
 import 'package:NCSC/admin/create_faculty.dart';
@@ -31,7 +32,6 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.system, // Automatically follow system theme
       home:  splash(),
      // home: DashboardPage(),
-      // Your login screen
     );
   }
 }

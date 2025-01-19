@@ -54,6 +54,9 @@ dependencies:
   firebase_auth: ^5.3.4
   provider: ^6.1.2
   email_auth: ^2.0.0
+  flutter_quill: ^10.8.5
+  intl: ^0.19.0
+  flutter_markdown: ^0.7.5
 #
 #  flutter_screenutil: ^5.9.3
 

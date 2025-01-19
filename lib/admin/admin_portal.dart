@@ -1,8 +1,11 @@
+import 'package:NCSC/admin/Circulars.dart';
+import 'package:NCSC/admin/Subjects.dart';
 import 'package:NCSC/admin/dept.dart';
 import 'package:NCSC/admin/faculties.dart';
 import 'package:NCSC/login.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'CreateCirculartPage.dart';
 
 class admin_portal extends StatefulWidget{
   @override
@@ -164,21 +167,22 @@ class _admin_portalState extends State<admin_portal> {
                         _buildActionCard(
                           label: 'Subjects',
                           icon: Icons.book,
-                          onPressed: (){}
-                          // onPressed: () => Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(builder: (context) => CreateSubjectPage()),
-                          // ),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Subjects()),
+                          ),
                         ),
+                        const SizedBox(height: 16),
                         _buildActionCard(
-                            label: 'Circulars (Updates)',
-                            icon: Icons.notifications,
-                            onPressed: (){}
-                          // onPressed: () => Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(builder: (context) => CreateCircularPage()),
-                          // ),
+                          label: 'Circulars (Updates)',
+                          icon: Icons.notifications,
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Circulars()),
+                          ),
                         ),
+                          const SizedBox(height: 16),
                       ],
                     ),
                   ),
