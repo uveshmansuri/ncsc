@@ -1,11 +1,8 @@
 import 'package:NCSC/admin/dept.dart';
 import 'package:NCSC/admin/faculties.dart';
-import 'package:NCSC/admin/subject.dart';
 import 'package:NCSC/login.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'create_subject.dart';
 
 class admin_portal extends StatefulWidget{
   @override
@@ -167,12 +164,11 @@ class _admin_portalState extends State<admin_portal> {
                         _buildActionCard(
                           label: 'Subjects',
                           icon: Icons.book,
-
-                          onPressed: () => Navigator.push(
-                            context,
-                             MaterialPageRoute(builder: (context) => SubjectPage()),
-
-                           ),
+                          onPressed: (){}
+                          // onPressed: () => Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(builder: (context) => CreateSubjectPage()),
+                          // ),
                         ),
                         _buildActionCard(
                             label: 'Circulars (Updates)',

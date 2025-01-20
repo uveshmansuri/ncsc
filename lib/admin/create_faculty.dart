@@ -35,7 +35,6 @@ class _create_facultyState extends State<create_faculty> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _fetch_dept();
   }
