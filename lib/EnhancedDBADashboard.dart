@@ -1,14 +1,13 @@
 import 'package:NCSC/try.dart';
 import 'package:flutter/material.dart';
-
-// Import the required pages for navigation
+import 'facultywhole/staffmanag.dart';
 import 'fundir/department.dart';
 import 'fundir/circular.dart';
 import 'fundir/leave.dart';
 import 'fundir/log.dart';
 import 'fundir/reco.dart';
 import 'fundir/setting.dart';
-import 'fundir/staff.dart';
+
 import 'fundir/stu_man.dart';
 
 class EnhancedDBADashboard extends StatelessWidget {
@@ -52,7 +51,7 @@ class EnhancedDBADashboard extends StatelessWidget {
             _buildDrawerItem(
               icon: Icons.people,
               title: 'Staff Management',
-              page:FacultySeeScreen(),
+              page:StaffManagement(),
               context: context,
             ),
             _buildDrawerItem(
@@ -136,7 +135,7 @@ class EnhancedDBADashboard extends StatelessWidget {
                     context: context,
                     title: 'Staff',
                     value: '120',
-                    page: FacultySeeScreen(),
+                    page: StaffManagement(),
                   ),
                 ),
                 SizedBox(width: 8),
