@@ -1,8 +1,7 @@
-import 'package:NCSC/admin/dept.dart';
 import 'package:NCSC/admin/faculties.dart';
 import 'package:NCSC/login.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 class admin_portal extends StatefulWidget{
   @override
@@ -142,10 +141,11 @@ class _admin_portalState extends State<admin_portal> {
                           child: _buildActionCard(
                             label: 'Departments',
                             icon: Icons.business,
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => DepartmentPage()),
-                            ),
+                            onPressed: (){}
+                            // onPressed: () => Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(builder: (context) => DepartmentPage()),
+                            // ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -220,13 +220,13 @@ class _admin_portalState extends State<admin_portal> {
     );
   }
 
-  void log_out() async{
-    final pr=await SharedPreferences.getInstance();
-    //show_dialouge(context);
-    pr.clear();
-    pr.setBool("login_flag", false);
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
-  }
+  // void log_out() async{
+  //   final pr=await SharedPreferences.getInstance();
+  //   //show_dialouge(context);
+  //   pr.clear();
+  //   pr.setBool("login_flag", false);
+  //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
+  // }
 
   void show_dialouge(BuildContext context){
     showDialog(context: context,
@@ -242,7 +242,7 @@ class _admin_portalState extends State<admin_portal> {
                     },
                     child: Text("Cancel")
                 ),
-                TextButton(onPressed: log_out,
+                TextButton(onPressed: (){},
                     child: Text("Logout"),
                 ),
               ],

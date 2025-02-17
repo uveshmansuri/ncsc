@@ -48,7 +48,7 @@ class DefaultFirebaseOptions {
     authDomain: 'ncsc-db.firebaseapp.com',
     storageBucket: 'ncsc-db.firebasestorage.app',
     measurementId: 'G-DHNENHZQ2D',
-    databaseURL: "https://ncsc-db.firebaseio.com",
+    databaseURL: "https://ncsc-db-default-rtdb.firebaseio.com",
   );
 
   static const FirebaseOptions android = FirebaseOptions(

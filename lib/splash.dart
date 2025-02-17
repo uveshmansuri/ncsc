@@ -5,7 +5,7 @@ import 'package:NCSC/faculty/main_faculty.dart';
 import 'package:NCSC/login.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 class splash extends StatefulWidget{
   @override
@@ -16,29 +16,29 @@ class _splashState extends State<splash> {
   @override
   void initState(){
     Timer(Duration(seconds: 4),() async {
-      final SharedPreferences prefs =await SharedPreferences.getInstance();
-      if(prefs.getBool("login_flag")==true){
-        //print(prefs.getString("role"));
-        if(prefs.getString("role")=="admin"){
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context)=>admin_portal()
-              )
-          );
-        }
-        if(prefs.getString("role")=="faculty"){
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context)=>FacultyMain()
-              )
-          );
-        }
-      }else{
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context)=>login())
-        );
-      }
+      // final SharedPreferences prefs =await SharedPreferences.getInstance();
+      // if(prefs.getBool("login_flag")==true){
+      //   //print(prefs.getString("role"));
+      //   if(prefs.getString("role")=="admin"){
+      //     Navigator.pushReplacement(
+      //         context,
+      //         MaterialPageRoute(builder: (context)=>admin_portal()
+      //         )
+      //     );
+      //   }
+      //   if(prefs.getString("role")=="faculty"){
+      //     Navigator.pushReplacement(
+      //         context,
+      //         MaterialPageRoute(builder: (context)=>FacultyMain()
+      //         )
+      //     );
+      //   }
+      // }else{
+      //   Navigator.pushReplacement(
+      //       context,
+      //       MaterialPageRoute(builder: (context)=>login())
+      //   );
+      // }
     });
     super.initState();
   }
@@ -124,7 +124,7 @@ class _splashState extends State<splash> {
           ),
         ),
       ),
-      bottomNavigationBar: Text("Developed",textAlign: TextAlign.center,),
+      bottomNavigationBar: Text("Developed by USM",textAlign: TextAlign.center,),
     );
   }
 }

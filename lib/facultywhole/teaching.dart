@@ -67,7 +67,6 @@ class _AddTeachingStaffState extends State<AddTeachingStaff> {
       }).then((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Teaching Staff Added Successfully!')));
-
         // Clear fields after saving
         _nameController.clear();
         _idController.clear();

@@ -151,9 +151,7 @@ class _SubjectsState extends State<Subjects> {
         .then(
             (_){
               sublist.removeAt(index);
-              setState(() {
-
-              });
+              setState(() {});
               Fluttertoast.showToast(msg: "Subject Deleted");
             })
         .catchError(

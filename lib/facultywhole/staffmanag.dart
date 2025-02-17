@@ -42,14 +42,13 @@ class _StaffManagementState extends State<StaffManagement> with SingleTickerProv
       var data = event.snapshot.value;
       if (data != null && data is Map) { // Ensure data is a Map
         _teachingStaff.clear();
-
         // Loop through the map to extract data
         data.forEach((key, value) {
           if (value != null && value is Map) { // Ensure value is also a Map
             _teachingStaff.add({
               'name': value['name'] ?? 'Unknown',
               'role': value['role'] ?? 'Unknown',
-              'id': value['id'] ?? 'Unknown'
+              'id':key ?? 'Unknown'
             });
           }
         });
@@ -66,14 +65,13 @@ class _StaffManagementState extends State<StaffManagement> with SingleTickerProv
       var data = event.snapshot.value;
       if (data != null && data is Map) { // Ensure data is a Map
         _nonTeachingStaff.clear();
-
         // Loop through the map to extract data
         data.forEach((key, value) {
           if (value != null && value is Map) { // Ensure value is also a Map
             _nonTeachingStaff.add({
-              'name': value['name'] ?? 'Unknown',
+              'name': value['name'],
               'role': value['role'] ?? 'Unknown',
-              'id': value['id'] ?? 'Unknown'
+              'id': key ?? 'Unknown'
             });
           }
         });

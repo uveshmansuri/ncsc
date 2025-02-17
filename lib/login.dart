@@ -1,12 +1,14 @@
+import 'package:NCSC/DBADashboard.dart';
 import 'package:NCSC/admin/admin_portal.dart';
 import 'package:NCSC/faculty/faculty_home.dart';
 import 'package:NCSC/faculty/main_faculty.dart';
+import 'package:NCSC/main.dart';
 import 'package:NCSC/registration.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 class login extends StatefulWidget{
   @override
@@ -158,18 +160,18 @@ class _loginState extends State<login> {
             flag=1;
             if(sp.child("role").value.toString()=="admin"){
               //print("Admin");
-              final SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('login_flag', true);
-              await prefs.setString('uname', username);
-              await prefs.setString('role', "admin");
+              // final SharedPreferences prefs = await SharedPreferences.getInstance();
+              // await prefs.setBool('login_flag', true);
+              // await prefs.setString('uname', username);
+              // await prefs.setString('role', "admin");
               //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>));
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>admin_portal()));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>DBA_Dashboard()));
             }
             if(sp.child("role").value.toString()=="faculty"){
-              final SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('login_flag', true);
-              await prefs.setString('uname', username);
-              await prefs.setString('role', "faculty");
+              // final SharedPreferences prefs = await SharedPreferences.getInstance();
+              // await prefs.setBool('login_flag', true);
+              // await prefs.setString('uname', username);
+              // await prefs.setString('role', "faculty");
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>FacultyMain()));
             }
           }else{

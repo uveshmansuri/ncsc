@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -27,8 +27,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadUid() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    uid = prefs.getString('uname');
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // uid = prefs.getString('uname');
     if (uid != null) {
       try {
         var dbRef = FirebaseDatabase.instance.ref("Faculties");
@@ -52,8 +52,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
   Future<void> _saveChanges() async {
     var dbRef = FirebaseDatabase.instance.ref("Faculties");
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    uid = prefs.getString('uname');
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // uid = prefs.getString('uname');
     if(temProfileImageBase64!=null){
       img_encode = temProfileImageBase64;
     }
@@ -360,25 +360,25 @@ class _ProfilePageState extends State<ProfilePage> {
               },
                   child: Text("Cancel")
               ),
-              TextButton(onPressed: logout,
+              TextButton(onPressed: (){},
                 child: Text("Logout"),
               ),
             ],
           ),
     );
   }
-  void logout() async{
-    await FirebaseAuth.instance.signOut();
-    SharedPreferences pref=await SharedPreferences.getInstance();
-    pref.clear();
-    pref.commit();
-    // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => login()),
-      (Route<dynamic> route) => false,
-    );
-  }
+  // void logout() async{
+  //   await FirebaseAuth.instance.signOut();
+  //   SharedPreferences pref=await SharedPreferences.getInstance();
+  //   pref.clear();
+  //   pref.commit();
+  //   // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
+  //   Navigator.pushAndRemoveUntil(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => login()),
+  //     (Route<dynamic> route) => false,
+  //   );
+  // }
   // Widget buildRichText(String title, String value) {
   //   return Padding(
   //     padding: const EdgeInsets.symmetric(vertical: 8.0),

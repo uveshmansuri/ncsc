@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 class email_verification extends StatefulWidget{
   var email_id,user_name,pass,role;
@@ -83,10 +83,10 @@ class _email_verificationState extends State<email_verification> {
       "role":role
     }).then((_) async{
       Fluttertoast.showToast(msg: "Registration Successful!!!");
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('login_flag', true);
-      await prefs.setString('uname', user_name);
-      await prefs.setString('role', "faculty");
+      // final SharedPreferences prefs = await SharedPreferences.getInstance();
+      // await prefs.setBool('login_flag', true);
+      // await prefs.setString('uname', user_name);
+      // await prefs.setString('role', "faculty");
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => faculty_home()),
