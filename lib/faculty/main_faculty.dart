@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'home_page.dart';
+import 'faculty_home.dart';
 import 'profile_page.dart';
 import 'updates_page.dart';
 

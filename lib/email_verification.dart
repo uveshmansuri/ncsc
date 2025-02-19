@@ -89,7 +89,7 @@ class _email_verificationState extends State<email_verification> {
       // await prefs.setString('role', "faculty");
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => faculty_home()),
+        MaterialPageRoute(builder: (context) => HomePage()),
             (route) => false, // Remove all previous routes
       );
     });

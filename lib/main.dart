@@ -3,6 +3,12 @@ import 'package:NCSC/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'DBADashboard.dart';
+import 'f_reco.dart';
+import 'faculty/addassignment.dart';
+import 'faculty/circularpage.dart';
+import 'faculty/faculty_home.dart';
+import 'faculty/main_faculty.dart';
+import 'faculty/newsforyou.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -20,7 +26,7 @@ class MY_APP extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'NCSC',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: DBA_Dashboard()
+      home:  FacultyMain(),
     );
   }
 }
