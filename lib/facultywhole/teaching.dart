@@ -110,10 +110,8 @@ class _AddTeachingStaffState extends State<AddTeachingStaff> {
                 _buildTextField(_emailController, "Enter Email", Icons.email, isEmail: true),
                 _buildTextField(_qualificationController, "Enter Qualification", Icons.school),
                 _buildTextField(_detailsController, "Enter Teacher Details", Icons.info),
-
                 SizedBox(height: 20),
                 Divider(),
-
                 // Use FutureBuilder to Fetch Departments
                 Text("Select Department", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 FutureBuilder<Map<String, String>>(
@@ -125,12 +123,10 @@ class _AddTeachingStaffState extends State<AddTeachingStaff> {
                     if (snapshot.hasError) {
                       return Text("Error loading departments");
                     }
-
                     Map<String, String> deptList = snapshot.data ?? {};
                     if (deptList.isEmpty) {
                       return Text("No departments available");
                     }
-
                     return DropdownButtonFormField<String>(
                       value: selectedDepartment ?? deptList.values.first,
                       items: deptList.entries.map((dept) {
@@ -151,10 +147,8 @@ class _AddTeachingStaffState extends State<AddTeachingStaff> {
                     );
                   },
                 ),
-
                 SizedBox(height: 20),
                 Divider(),
-
                 // Role Selection with Checkboxes
                 Text("Select Roles", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Column(
@@ -178,7 +172,6 @@ class _AddTeachingStaffState extends State<AddTeachingStaff> {
 
                 SizedBox(height: 20),
                 Divider(),
-
                 // Submit Button
                 Center(
                   child: ElevatedButton.icon(

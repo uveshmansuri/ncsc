@@ -1,3 +1,4 @@
+import 'package:NCSC/admin/add_teaching_staff.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart'; // Import Firebase Database
 import 'package:NCSC/facultywhole/nonteaching.dart';
@@ -10,7 +11,7 @@ class StaffManagement extends StatefulWidget {
 
 class _StaffManagementState extends State<StaffManagement> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final DatabaseReference _teachingRef = FirebaseDatabase.instance.ref('faculty/teaching');
+  final DatabaseReference _teachingRef = FirebaseDatabase.instance.ref('Staff/faculty');
   final DatabaseReference _nonTeachingRef = FirebaseDatabase.instance.ref('faculty/non_teaching');
 
   List<Map<String, dynamic>> _teachingStaff = [];
@@ -47,7 +48,8 @@ class _StaffManagementState extends State<StaffManagement> with SingleTickerProv
           if (value != null && value is Map) { // Ensure value is also a Map
             _teachingStaff.add({
               'name': value['name'] ?? 'Unknown',
-              'role': value['role'] ?? 'Unknown',
+              'role': value['post'] ?? 'Unknown',
+              'dept':value['department'],
               'id':key ?? 'Unknown'
             });
           }
@@ -70,7 +72,7 @@ class _StaffManagementState extends State<StaffManagement> with SingleTickerProv
           if (value != null && value is Map) { // Ensure value is also a Map
             _nonTeachingStaff.add({
               'name': value['name'],
-              'role': value['role'] ?? 'Unknown',
+              'role': value['roles'] ?? 'Unknown',
               'id': key ?? 'Unknown'
             });
           }
@@ -87,7 +89,7 @@ class _StaffManagementState extends State<StaffManagement> with SingleTickerProv
     if (_tabController.index == 0) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => AddTeachingStaff()),
+        MaterialPageRoute(builder: (context) => ADD_FACULTY()),
       );
     } else {
       Navigator.push(
@@ -98,14 +100,36 @@ class _StaffManagementState extends State<StaffManagement> with SingleTickerProv
   }
 
   // Widget for displaying staff data
-  Widget _buildStaffList(List<Map<String, dynamic>> staffList) {
+  Widget _buildStaffList(List<Map<String, dynamic>> staffList,int flag) {
     return ListView.builder(
       itemCount: staffList.length,
       itemBuilder: (context, index) {
         var staff = staffList[index];
-        return ListTile(
-          title: Text(staff['name']),
-          subtitle: Text('Role: ${staff['role']}\nID: ${staff['id']}'),
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10,vertical: 15),
+          child: Card(
+            elevation: 10,
+            color: Color(0xFFf0f9f0),
+            shadowColor: Colors.lightBlueAccent,
+            child: ListTile(
+              leading: Container(
+                  height:50,
+                  width:50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                    color: Colors.blue,
+                  ),
+                  child: Center(child: Text(
+                      "${staff['id']}",
+                    style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),
+                  ),
+                  )
+              ),
+              title: Text(staff['name'],style: TextStyle(fontSize:15,color: Colors.black,fontWeight: FontWeight.bold)),
+              subtitle: flag==1?Text('Post: ${staff['role']}\n'):Text('Post: ${staff['role'][0]}\n'),
+              trailing: flag==1?Text("${staff['dept']}",style: TextStyle(fontSize:15,color: Colors.black,fontWeight: FontWeight.bold),):Text(""),
+            ),
+          ),
         );
       },
     );
@@ -128,10 +152,9 @@ class _StaffManagementState extends State<StaffManagement> with SingleTickerProv
         controller: _tabController,
         children: [
           // Teaching Staff Tab
-          _buildStaffList(_teachingStaff),
-
+          _buildStaffList(_teachingStaff,1),
           // Non-Teaching Staff Tab
-          _buildStaffList(_nonTeachingStaff),
+          _buildStaffList(_nonTeachingStaff,0),
         ],
       ),
       floatingActionButton: FloatingActionButton(
