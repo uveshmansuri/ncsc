@@ -112,7 +112,7 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
               _buildDrawerItem(
                 icon: Icons.subject,
                 title: 'Student Management',
-                page: StudentManagementPage(),
+                page: Students(),
                 context: context,
               ),
               _buildDrawerItem(

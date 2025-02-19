@@ -31,7 +31,7 @@ class _CreateCircularPageState extends State<CreateCircularPage> {
       );
       txt_description.value = TextEditingValue(
         text: newText,
-        selection: TextSelection.collapsed(offset: selection.start), // Adjust the cursor position
+        selection: TextSelection.collapsed(offset: selection.start),
       );
     }
   }
