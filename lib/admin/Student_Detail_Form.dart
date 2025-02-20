@@ -15,7 +15,6 @@ class _Student_FormState extends State<Student_Form> {
   TextEditingController txt_mail=TextEditingController();
 
   List<String> dept_lst=[];
-  List<String> did_list=[];
   String dept = '';
   String selected_did='';
 
@@ -39,7 +38,6 @@ class _Student_FormState extends State<Student_Form> {
       for(DataSnapshot sp in snapshot.children){
         var dname=sp.child("department").value.toString();
         dept_lst.add(dname);
-        did_list.add(sp.key.toString());
       }
     }
     setState(() {
@@ -131,8 +129,6 @@ class _Student_FormState extends State<Student_Form> {
                                     .toList(),
                                 onChanged: (value) {
                                   dept = value!;
-                                  int index = dept_lst.indexOf(value);
-                                  selected_did=did_list[index];
                                 },
                                 validator: (value) => value == null ? 'Please select a department' : null,
                               ),
@@ -212,7 +208,7 @@ class _Student_FormState extends State<Student_Form> {
           "stud_id":txt_sid.text.trim(),
           "name":txt_sname.text.trim(),
           "email":txt_mail.text.trim(),
-          "dept_id":selected_did,
+          "dept":dept,
           "sem":selectedSemester
         })
         .then(

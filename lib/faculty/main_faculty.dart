@@ -5,20 +5,29 @@ import 'profile_page.dart';
 import 'updates_page.dart';
 
 class FacultyMain extends StatefulWidget {
+  final String fid;
+  FacultyMain(this.fid);
   @override
   _FacultyMainState createState() => _FacultyMainState();
 }
 
 class _FacultyMainState extends State<FacultyMain> {
   int _currentIndex = 1;
-  final List<Widget> _pages = [
-    UpdatesPage(),
-    HomePage(),
-    ProfilePage(),
-  ];
-  final PageController _pageController = PageController(initialPage: 1);
+  late PageController _pageController;
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _pages = [
+      UpdatesPage(),
+      HomePage(widget.fid),
+      ProfilePage(),
+    ];
     return WillPopScope(
       onWillPop: () async{
         if(_currentIndex!=1){

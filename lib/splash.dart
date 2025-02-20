@@ -5,6 +5,7 @@ import 'package:NCSC/faculty/main_faculty.dart';
 import 'package:NCSC/login.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 
 class splash extends StatefulWidget{
@@ -16,6 +17,7 @@ class _splashState extends State<splash> {
   @override
   void initState(){
     Timer(Duration(seconds: 4),() async {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
       // final SharedPreferences prefs =await SharedPreferences.getInstance();
       // if(prefs.getBool("login_flag")==true){
       //   //print(prefs.getString("role"));
@@ -117,14 +119,15 @@ class _splashState extends State<splash> {
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 20, color: Colors.black),
                 ),
-                CircularProgressIndicator(),
-                SizedBox(height: 40,),
+                SizedBox(height: 10,),
+                 CircularProgressIndicator(),
+                //Lottie.asset("assets/animations/dba_loading.json",height: 150,width: 150),
               ],
             ),
           ),
         ),
       ),
-      bottomNavigationBar: Text("Developed by USM",textAlign: TextAlign.center,),
+      //bottomNavigationBar: Text("Developed by USM",textAlign: TextAlign.center,),
     );
   }
 }

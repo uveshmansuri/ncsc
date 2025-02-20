@@ -20,11 +20,6 @@ class _SubjectsState extends State<Subjects> {
   late List<subject_model> sublist=[];
   final List<subject_model> temp_sublist=[];
 
-  final Map<String, String> idToName = {
-    'F1': 'Alice',
-    'F2': 'Bob',
-    'F3': 'Charlie',
-  };
 
   bool flag=false;
 
@@ -300,64 +295,64 @@ class _SubjectsState extends State<Subjects> {
     });
   }
 
-  void _showIdDialog(BuildContext context) {
-    final TextEditingController _controller = TextEditingController();
-    List<String> suggestions = [];
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // Using StatefulBuilder to update the UI within the dialog.
-        return StatefulBuilder(
-          builder: (context, setState) {
-            void updateSuggestions(String input) {
-              suggestions = idToName.entries
-                  .where((entry) => entry.key.startsWith(input))
-                  .map((entry) => '${entry.key}: ${entry.value}')
-                  .toList();
-              if(suggestions.length==0)
-                suggestions.add("Invalid Faculty ID");
-              setState(() {});
-            }
-            return AlertDialog(
-              title: const Text('Enter ID'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      labelText: 'ID',
-                    ),
-                    onChanged: (value) {
-                      // Update the suggestion based on the entered ID.
-                      setState(() {
-                        updateSuggestions(value);
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  Column(
-                    children: [
-                      for (var suggestion in suggestions) Text(suggestion,),
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  child: const Text('Submit'),
-                  onPressed: () {
-                    // You can perform any action with _controller.text here.
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+  // void _showIdDialog(BuildContext context) {
+  //   final TextEditingController _controller = TextEditingController();
+  //   List<String> suggestions = [];
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       // Using StatefulBuilder to update the UI within the dialog.
+  //       return StatefulBuilder(
+  //         builder: (context, setState) {
+  //           void updateSuggestions(String input) {
+  //             suggestions = idToName.entries
+  //                 .where((entry) => entry.key.startsWith(input))
+  //                 .map((entry) => '${entry.key}: ${entry.value}')
+  //                 .toList();
+  //             if(suggestions.length==0)
+  //               suggestions.add("Invalid Faculty ID");
+  //             setState(() {});
+  //           }
+  //           return AlertDialog(
+  //             title: const Text('Enter ID'),
+  //             content: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 TextField(
+  //                   controller: _controller,
+  //                   decoration: const InputDecoration(
+  //                     labelText: 'ID',
+  //                   ),
+  //                   onChanged: (value) {
+  //                     // Update the suggestion based on the entered ID.
+  //                     setState(() {
+  //                       updateSuggestions(value);
+  //                     });
+  //                   },
+  //                 ),
+  //                 const SizedBox(height: 10),
+  //                 Column(
+  //                   children: [
+  //                     for (var suggestion in suggestions) Text(suggestion,),
+  //                   ],
+  //                 ),
+  //               ],
+  //             ),
+  //             actions: [
+  //               TextButton(
+  //                 child: const Text('Submit'),
+  //                 onPressed: () {
+  //                   // You can perform any action with _controller.text here.
+  //                   Navigator.of(context).pop();
+  //                 },
+  //               ),
+  //             ],
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 }
 
 class subject_model{

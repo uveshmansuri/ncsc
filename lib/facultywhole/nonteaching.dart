@@ -37,7 +37,7 @@ class _AddNonTeachingStaffState extends State<AddNonTeachingStaff> {
         selectedRoles.isNotEmpty) {
 
       // Save to faculty/non_teaching/{id}
-      databaseReference.child("faculty/non_teaching/$id").set({
+      databaseReference.child("Staff/non_teaching/$id").set({
         'name': name,
         'email': email,
         'password': password,
@@ -100,7 +100,6 @@ class _AddNonTeachingStaffState extends State<AddNonTeachingStaff> {
                 _buildTextField(_passwordController, "Enter Password", Icons.lock, isPassword: true),
                 _buildTextField(_qualificationController, "Enter Qualification", Icons.school),
                 _buildTextField(_detailsController, "Enter Details", Icons.info),
-
                 SizedBox(height: 20),
                 Divider(),
 

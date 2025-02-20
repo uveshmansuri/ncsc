@@ -270,11 +270,11 @@ class _regestrationState extends State<regestration> {
   void faculty_reg() async{
     String email,pass;
     bool flag=false;
-    final fr_db=FirebaseDatabase.instance.ref().child("Faculties");
+    final fr_db=FirebaseDatabase.instance.ref().child("Staff/faculty");
     DataSnapshot snapshot=await fr_db.get();
     if(validate_input()){
       for(DataSnapshot sp in snapshot.children){
-        if(sp.child("faculty_id").value.toString()==user_textcontrol.text) {
+        if(sp.key==user_textcontrol.text) {
           flag=true;
           email=sp.child("email").value.toString();
           pass=pass_textcontrol.text;

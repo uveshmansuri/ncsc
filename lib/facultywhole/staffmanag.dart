@@ -12,7 +12,7 @@ class StaffManagement extends StatefulWidget {
 class _StaffManagementState extends State<StaffManagement> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final DatabaseReference _teachingRef = FirebaseDatabase.instance.ref('Staff/faculty');
-  final DatabaseReference _nonTeachingRef = FirebaseDatabase.instance.ref('faculty/non_teaching');
+  final DatabaseReference _nonTeachingRef = FirebaseDatabase.instance.ref('Staff/non_teaching');
 
   List<Map<String, dynamic>> _teachingStaff = [];
   List<Map<String, dynamic>> _nonTeachingStaff = [];

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:NCSC/faculty/faculty_home.dart';
+import 'package:NCSC/faculty/main_faculty.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -89,7 +90,7 @@ class _email_verificationState extends State<email_verification> {
       // await prefs.setString('role', "faculty");
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => FacultyMain(user_name)),
             (route) => false, // Remove all previous routes
       );
     });

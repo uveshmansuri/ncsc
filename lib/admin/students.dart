@@ -21,7 +21,6 @@ class _StudentsState extends State<Students> {
 
   List<String> dept_lst=[];
   String dept = 'All';
-  List<String> did_list=[];
   String selectedDept="All";
   List<String> semester_lst = ["All", "1", "2", "3", "4", "5", "6"];
   var selectedSemester="All";
@@ -46,12 +45,10 @@ class _StudentsState extends State<Students> {
     final db_ref=FirebaseDatabase.instance.ref("department");
     final snapshot=await db_ref.get();
     dept_lst.insert(0, "All");
-    did_list.insert(0, "All");
     if(snapshot.exists){
       for(DataSnapshot sp in snapshot.children){
         var dname=sp.child("department").value.toString();
         dept_lst.add(dname);
-        did_list.add(sp.key.toString());
       }
     }
     setState(() {
@@ -67,7 +64,7 @@ class _StudentsState extends State<Students> {
       var stud_id=sp.child("stud_id").value.toString();
       var name=sp.child("name").value.toString();
       var email=sp.child("email").value.toString();
-      var dept=sp.child("dept_id").value.toString();
+      var dept=sp.child("dept").value.toString();
       var sem=sp.child("sem").value.toString();
       stud_list.add(Student_Model(stud_id, name, dept, email, sem));
       temp_stud_list.add(Student_Model(stud_id, name, dept, email, sem));
@@ -170,9 +167,10 @@ class _StudentsState extends State<Students> {
 
   void applyFilters() {
     List<Student_Model> filteredList = temp_stud_list;
-    //print(selectedDept);
-    if (selectedDept != "All") {
-      filteredList = filteredList.where((s) => s.dept == selectedDept).toList();
+    // print(selectedDept);
+    // print(dept);
+    if (dept != "All") {
+      filteredList = filteredList.where((s) => s.dept == dept).toList();
     }
 
     if (selectedSemester != "All") {
@@ -239,8 +237,7 @@ class _StudentsState extends State<Students> {
                     onChanged: (value) {
                       setState(() {
                         dept = value!;
-                        int index = dept_lst.indexOf(value);
-                        selectedDept=did_list[index];
+                        selectedDept=dept;
                         applyFilters();
                         // if(dept=="All"){
                         // //   stud_list.clear();
@@ -316,7 +313,7 @@ class _StudentsState extends State<Students> {
                                       Text(
                                           stud_list[index].stud_id + "\n" +
                                           stud_list[index].name + "\n"
-                                          //"Dept ID: " + stud_list[index].dept + "\n"
+                                          "Dept: " + stud_list[index].dept + "\n"
                                       ),
                                     ],
                                   ),
@@ -533,7 +530,7 @@ class _preview_dataState extends State<preview_data> {
           "stud_id":student.stud_id,
           "name":student.name,
           "email":student.email,
-          "dept_id":student.dept,
+          "dept":student.dept,
           "sem":student.semester
         }
       ).then(

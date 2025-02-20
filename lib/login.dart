@@ -172,7 +172,7 @@ class _loginState extends State<login> {
               // await prefs.setBool('login_flag', true);
               // await prefs.setString('uname', username);
               // await prefs.setString('role', "faculty");
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>FacultyMain()));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>FacultyMain(username)));
             }
           }else{
             flag=1;
