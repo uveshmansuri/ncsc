@@ -86,7 +86,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
                             if(widget.flag==1){
                               Navigator.push(context,
                                   MaterialPageRoute(builder:
-                                      (context)=>InternalMarksPage(sub_list[i].dept,sub_list[i].sem)
+                                      (context)=>InternalMarksPage(sub_list[i].dept,sub_list[i].sem,sub_list[i].sname)
                                   )
                               );
                             }
