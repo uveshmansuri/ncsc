@@ -30,8 +30,9 @@ class _InternalMarksPageState extends State<InternalMarksPage> {
         var _ctr=TextEditingController();
         _ctr.text="${db.value??""}";
         ed_list.add(_ctr);
+        setState(() {});
       }
-    }setState(() {});
+    }
   }
   @override
   Widget build(BuildContext context) {
