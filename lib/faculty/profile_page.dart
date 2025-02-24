@@ -139,7 +139,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             GestureDetector(
                               onTap: () async {
-                                print("OK");
+                                //print("OK");
                                 await pickImage();
                                 setState(() {});
                               },
@@ -276,7 +276,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(360),
                     side: BorderSide(
                       color: Colors.cyan, // Border color
-                      width: 2,         // Border width
+                      width: 2,// Border width
                     ),
                   ),
                   child: ClipRRect(
@@ -367,6 +367,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
     );
   }
+
   // void logout() async{
   //   await FirebaseAuth.instance.signOut();
   //   SharedPreferences pref=await SharedPreferences.getInstance();

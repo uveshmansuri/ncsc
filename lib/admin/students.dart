@@ -140,8 +140,8 @@ class _StudentsState extends State<Students> {
       return Student_Model(
         stud_id:row[0].toString(), // stud_id
         name: row[1].toString(), // name
-        email: row[2].toString(), // dept
-        dept: row[3].toString(), // email
+        dept: row[2].toString(), // dept
+        email: row[3].toString(), // email
         semester: row[4].toString()// semester
       );
     }).toList();
@@ -305,77 +305,74 @@ class _StudentsState extends State<Students> {
                               elevation: 5,
                               shadowColor: Colors.lightBlueAccent,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 5),
+                                padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 5),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(360),
-                                      child:
-                                      (stud_list[index].url != null && stud_list[index].url!.isNotEmpty)?
-                                        Image.network(stud_list[index].url!, width: 50, height: 50, fit: BoxFit.cover)
-                                      :Image.asset("assets/images/student_profile.png",
-                                        height: 50,
-                                        width: 50,
-                                        fit: BoxFit.fill,
-                                      )
-                                    ),
-                                    SizedBox(width: 20,),
                                     Expanded(
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                  stud_list[index].stud_id + "\n" +
-                                                  stud_list[index].name + "\n"
-                                                  "Dept: " + stud_list[index].dept + "\n"
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+                                      flex: 4,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(stud_list[index].stud_id,overflow: TextOverflow.ellipsis,),
+                                          Text(stud_list[index].name,overflow: TextOverflow.ellipsis,),
+                                        ],
                                       ),
                                     ),
-                                    // Column(
+                                    Expanded(
+                                      flex: 4,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text("Department:"+stud_list[index].dept,overflow: TextOverflow.ellipsis,),
+                                          Text("Semester:"+stud_list[index].semester,overflow: TextOverflow.ellipsis,),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: IconButton(onPressed: (){
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context)=>Stud_AD(
+                                                    stud_id: stud_list[index].stud_id,
+                                                    sname: stud_list[index].name,
+                                                    email: stud_list[index].email,
+                                                    dept: stud_list[index].dept,
+                                                    sem: stud_list[index].semester,
+                                                    url: stud_list[index].url
+                                                )
+                                            )
+                                        );
+                                      }, icon: Icon(Icons.remove_red_eye)
+                                      ),
+                                    ),
+                                    // Row(
                                     //   children: [
-                                    //     Text(stud_list[index].stud_id),
-                                    //     Text(stud_list[index].name),
-                                    //     Text(stud_list[index].email),
-                                    //     Text("Dept ID:"+stud_list[index].dept),
-                                    //     Text("Semester:"+stud_list[index].semester),
+                                    //     IconButton(onPressed: (){
+                                    //       Navigator.push(context,
+                                    //           MaterialPageRoute(
+                                    //               builder: (context)=>Stud_AD(
+                                    //                   stud_id: stud_list[index].stud_id,
+                                    //                   sname: stud_list[index].name,
+                                    //                   email: stud_list[index].email,
+                                    //                   dept: stud_list[index].dept,
+                                    //                   sem: stud_list[index].semester,
+                                    //                   url: stud_list[index].url
+                                    //               )
+                                    //           )
+                                    //       );
+                                    //       }, icon: Icon(Icons.remove_red_eye)
+                                    //     ),
+                                    //     // IconButton(
+                                    //     //     onPressed: ()=>pick_img(index),
+                                    //     //     icon: Icon(Icons.add_a_photo)
+                                    //     // ),
                                     //   ],
                                     // ),
-                                    Row(
-                                      children: [
-                                        IconButton(onPressed: (){
-                                          Navigator.push(context,
-                                              MaterialPageRoute(
-                                                  builder: (context)=>Stud_AD(
-                                                      stud_id: stud_list[index].stud_id,
-                                                      sname: stud_list[index].name,
-                                                      email: stud_list[index].email,
-                                                      dept: stud_list[index].dept,
-                                                      sem: stud_list[index].semester,
-                                                      url: stud_list[index].url
-                                                  )
-                                              )
-                                          );
-                                        }, icon: Icon(Icons.remove_red_eye)),
-                                        IconButton(onPressed: ()=>pick_img(index), icon: Icon(Icons.add_a_photo)),
-                                      ],
-                                    ),
                                   ],
                                 ),
                               ),
-                              // child: ListTile(
-                              //   leading: Text(stud_list[index].stud_id),
-                              //   title: Text(stud_list[index].name),
-                              //   subtitle: Text(stud_list[index].email),
-                              //   trailing: Text("Dept ID:-"+stud_list[index].dept+"\nSemester:"+stud_list[index].semester),
-                              // ),
                             ),
                           );
                         },
@@ -426,6 +423,7 @@ class _StudentsState extends State<Students> {
       ),
     );
   }
+
   void pick_img(int i) async{
     File? _image;
     final ImagePicker _picker = ImagePicker();
@@ -510,7 +508,7 @@ class _preview_dataState extends State<preview_data> {
                         leading: Text(stud_list[index].stud_id),
                         title: Text(stud_list[index].name),
                         subtitle: Text(stud_list[index].email),
-                        trailing: Text("Dept ID:-" +
+                        trailing: Text("Dept:" +
                             stud_list[index].dept +
                             "\nSemester:" +
                             stud_list[index].semester),

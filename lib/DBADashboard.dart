@@ -41,8 +41,8 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
       });
       ref.child("Students").onValue.listen((event) {
         if (event.snapshot.value != null) {
+          stud_count = event.snapshot.children.length;
           setState(() {
-            stud_count = event.snapshot.children.length;
           });
         }
       });
