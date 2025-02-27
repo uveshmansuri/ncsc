@@ -1,3 +1,4 @@
+import 'package:NCSC/faculty/addassignment.dart';
 import 'package:NCSC/faculty/attendancetake.dart';
 import 'package:NCSC/faculty/internalmarkssend.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -87,6 +88,13 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
                               Navigator.push(context,
                                   MaterialPageRoute(builder:
                                       (context)=>InternalMarksPage(sub_list[i].dept,sub_list[i].sem,sub_list[i].sname)
+                                  )
+                              );
+                            }
+                            if(widget.flag==2){
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder:
+                                      (context)=>AssignmentPage()
                                   )
                               );
                             }
