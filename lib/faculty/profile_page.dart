@@ -1,414 +1,227 @@
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:NCSC/login.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:image_picker/image_picker.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
+  final String fid;
+  ProfilePage(this.fid);
+
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String? uid,name,email,quali,dept,post,address,phone;
-  var img_encode,temProfileImageBase64;
-
-  final TextEditingController phonebox = TextEditingController();
-  final TextEditingController addbox = TextEditingController();
+  Map<String, dynamic>? facultyData;
+  bool isLoading = true;
+  File? _imageFile;
+  String? _base64Image;
+  final _imgPicker = ImagePicker();
+  TextEditingController phoneController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
+  TextEditingController experienceController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadUid();
+    fetchFacultyDetails();
   }
 
-  Future<void> _loadUid() async {
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // uid = prefs.getString('uname');
-    if (uid != null) {
-      try {
-        var dbRef = FirebaseDatabase.instance.ref("Faculties");
-        DataSnapshot sp = await dbRef.child(uid!).get();
+  void fetchFacultyDetails() {
+    DatabaseReference ref = FirebaseDatabase.instance.ref("Staff/faculty/${widget.fid}");
+
+    ref.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot.value;
+      if (data != null && data is Map) {
         setState(() {
-          name = sp.child("name").value?.toString();
-          email = sp.child("email").value?.toString();
-          quali = sp.child("qualification").value?.toString();
-          dept = sp.child("department").value?.toString();
-          post = sp.child("post").value?.toString();
-          phone = sp.child("phone").value?.toString();
-          address = sp.child("address").value?.toString();
-          img_encode=sp.child("img").value;
+          facultyData = Map<String, dynamic>.from(data);
+          phoneController.text = facultyData!["phone"] ?? "";
+          addressController.text = facultyData!["address"] ?? "";
+          experienceController.text = facultyData!["experience"] ?? "";
+          _base64Image = facultyData!["image"];
+          isLoading = false;
         });
-      } catch (e) {
-        //print("Error fetching faculty data: $e");
-      }
-    } else {
-      //print("UID is null");
-    }
-  }
-  Future<void> _saveChanges() async {
-    var dbRef = FirebaseDatabase.instance.ref("Faculties");
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // uid = prefs.getString('uname');
-    if(temProfileImageBase64!=null){
-      img_encode = temProfileImageBase64;
-    }
-    if (uid != null) {
-      try {
-        await dbRef.child(uid!)?.update({
-          "phone": phonebox.text,
-          "address": addbox.text,
-          "img": img_encode,
-        });
+      } else {
         setState(() {
-          if(phonebox.text!=null){
-            phone=phonebox.text;
-          }
-          if(addbox.text!=null){
-            address=addbox.text;
-          }
-          if(temProfileImageBase64!=null){
-            img_encode = temProfileImageBase64;
-          }
+          facultyData = null;
+          isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Profile Updated Successfully")),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error updating profile: $e")),
-        );
       }
-    }
+    }, onError: (error) {
+      print("Error fetching data: $error");
+      setState(() {
+        isLoading = false;
+      });
+    });
   }
 
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  Future<void> _pickImage(Function(String) onImagePicked) async {
+    final pickedFile = await _imgPicker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      File imageFile = File(pickedFile.path);
-      try {
-        List<int> imageBytes = await imageFile.readAsBytes();
-        String base64String = base64Encode(imageBytes);
-        setState(() {
-          temProfileImageBase64 = base64String;
-        });
-      } catch (e) {
-        print("Error converting image to Base64: $e");
-      }
+      final bytes = await pickedFile.readAsBytes();
+      String encodedImage = base64Encode(bytes);
+      onImagePicked(encodedImage);
     }
   }
-  void EditDialog() {
-    phonebox.text = phone!;
-    addbox.text = address!;
+
+  void saveDetails(String? updatedImage) {
+    DatabaseReference ref = FirebaseDatabase.instance.ref("Staff/faculty/${widget.fid}");
+    ref.update({
+      "phone": phoneController.text,
+      "address": addressController.text,
+      "experience": experienceController.text,
+      "image": updatedImage ?? _base64Image ?? ""
+    }).then((_) {
+      setState(() {
+        _base64Image = updatedImage ?? _base64Image;
+      });
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Profile updated successfully!")));
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to update profile.")));
+    });
+  }
+
+  void showEditDialog() {
+    String? tempImage = _base64Image;
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Edit Profile"),
+          content: StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _pickImage((image) {
+                        setStateDialog(() {
+                          tempImage = image;
+                        });
+                      }),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: tempImage != null
+                            ? MemoryImage(base64Decode(tempImage!))
+                            : null,
+                        backgroundColor: Colors.blueAccent,
+                        child: tempImage == null
+                            ? Icon(Icons.person, size: 50, color: Colors.white)
+                            : null,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    TextField(
+                      controller: phoneController,
+                      decoration: InputDecoration(labelText: "Phone"),
+                    ),
+                    TextField(
+                      controller: addressController,
+                      decoration: InputDecoration(labelText: "Address"),
+                    ),
+                    TextField(
+                      controller: experienceController,
+                      decoration: InputDecoration(labelText: "Experience"),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Material(
-                        elevation: 5,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(360),
-                        ),
-                        child: Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(360),
-                              child: Image.memory(
-                                base64Decode(temProfileImageBase64 ?? img_encode!),
-                                height: 125,
-                                width: 125,
-                                fit: BoxFit.fill,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () async {
-                                print("OK");
-                                await pickImage();
-                                setState(() {});
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: Colors.blue,
-                                radius: 20,
-                                child: Icon(Icons.edit, color: Colors.white, size: 20),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      TextField(
-                        controller: phonebox,
-                        decoration: InputDecoration(
-                          labelText: phone!.length==0? "Mobile No":"",
-                          fillColor: Colors.white,
-                          prefixIcon: Icon(Icons.phone_android_rounded,color: Colors.cyan,),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 15),
-                      TextField(
-                        controller: addbox,
-                        decoration: InputDecoration(
-                          labelText: address!.length==0? "Address":"",
-                          fillColor: Colors.white,
-                          prefixIcon: Icon(Icons.maps_home_work_rounded,color: Colors.cyan,),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 25),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.lightBlueAccent,
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Text("Cancel"),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                if(temProfileImageBase64!=null){
-                                  img_encode = temProfileImageBase64;
-                                }
-                              });
-                              _saveChanges();
-                              Navigator.of(context).pop();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.lightBlueAccent,
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Text("Save"),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
             ),
-          ),
+            ElevatedButton(
+              onPressed: () => saveDetails(tempImage),
+              child: Text("Save"),
+            ),
+          ],
         );
       },
     );
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Faculty Profile",
-            style: TextStyle(
-                color:Color(0xff0033ff),
-                fontSize: 30,
-                fontWeight: FontWeight.bold
-            ),
-        ),
+        title: Text("Faculty Profile"),
+        backgroundColor: Colors.blue,
         actions: [
           IconButton(
             icon: Icon(Icons.edit),
-            onPressed: EditDialog,
+            onPressed: showEditDialog,
+          )
+        ],
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : facultyData == null
+          ? Center(child: Text("No data found for this faculty"))
+          : Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          elevation: 5,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: _base64Image != null
+                        ? MemoryImage(base64Decode(_base64Image!))
+                        : null,
+                    backgroundColor: Colors.blueAccent,
+                    child: _base64Image == null
+                        ? Icon(Icons.person, size: 50, color: Colors.white)
+                        : null,
+                  ),
+                ),
+                SizedBox(height: 20),
+                buildProfileRow("Name", facultyData!["name"]),
+                buildProfileRow("Email", facultyData!["email"]),
+                buildProfileRow("Department", facultyData!["department"]),
+                buildProfileRow("Post", facultyData!["post"]),
+                buildProfileRow("Qualification", facultyData!["qualification"]),
+                buildProfileRow("Experience", facultyData!["experience"] ?? "Not Available"),
+                buildProfileRow("Phone", facultyData!["phone"] ?? "Not Available"),
+                buildProfileRow("Address", facultyData!["address"] ?? "Not Available"),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildProfileRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+          ),
+          Text(
+            value,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black),
           ),
         ],
-        backgroundColor: Color(0xfff0f9f0),
-      ),
-      body: Container(
-        height: double.maxFinite,
-        decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, 0), // Center of the gradient
-              radius: 1.0, // Spread of the gradient
-              colors: [
-                Color(0xFFE0F7FA),
-                Color(0xffd1fbff),
-              ],
-              stops: [0.3,1.0],
-            )
-        ),
-        child:
-          name==null?
-          Center(
-            child: Container(
-                height:50,
-                width:50,
-                child: CircularProgressIndicator()
-            ),
-          ):
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(height: 15,),
-                Material(
-                  elevation: 15,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(360),
-                    side: BorderSide(
-                      color: Colors.cyan, // Border color
-                      width: 2,         // Border width
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(360),
-                    child: Image.memory(
-                      base64Decode(img_encode),
-                      height: 150,
-                      width: 150,
-                      fit: BoxFit.fill,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10,),
-                build_item("$name", Icons.person),
-                build_item("$email", Icons.mail_outline_sharp),
-                build_item("$dept", Icons.account_balance),
-                build_item("$post", Icons.work_outline),
-                build_item("$quali", Icons.school_outlined),
-                if(address!=null && address!.length>0)
-                  build_item("$address", Icons.home_work_sharp),
-                if(phone!=null && phone!.length>0)
-                  build_item("$phone", Icons.phone_android_rounded),
-                SizedBox(height: 15,),
-                ElevatedButton.icon(
-                    icon: Icon(Icons.logout,color: Colors.white,),
-                    onPressed:()=>show_dialouge(context),
-                    label: Text("Logout",
-                      style: TextStyle(color: Colors.white,fontSize: 20),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      shadowColor: Colors.black,
-                      elevation: 10,
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    )
-                ),
-                SizedBox(height: 15,),
-              ],
-            ),
-          ),
       ),
     );
   }
-
-  Widget build_item(String value,IconData ic){
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 5),
-      child: Card(
-        elevation: 10,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 9,vertical: 7),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Icon(ic,color: Colors.cyan,size: 30,),
-              SizedBox(width: 10,),
-              Expanded(
-                child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Text(value,style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),)
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void show_dialouge(BuildContext context){
-    showDialog(context: context,
-      builder: (BuildContext context)=>
-          AlertDialog(
-            icon: Image.asset('assets/images/logo1.png',width: 80,height: 80,),
-            title: Text("Confirm Logout"),
-            content: Text("Are you sure you want to logout?"),
-            actions: [
-              TextButton(onPressed:
-                  () {
-                Navigator.of(context).pop();
-              },
-                  child: Text("Cancel")
-              ),
-              TextButton(onPressed: (){},
-                child: Text("Logout"),
-              ),
-            ],
-          ),
-    );
-  }
-  // void logout() async{
-  //   await FirebaseAuth.instance.signOut();
-  //   SharedPreferences pref=await SharedPreferences.getInstance();
-  //   pref.clear();
-  //   pref.commit();
-  //   // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
-  //   Navigator.pushAndRemoveUntil(
-  //     context,
-  //     MaterialPageRoute(builder: (context) => login()),
-  //     (Route<dynamic> route) => false,
-  //   );
-  // }
-  // Widget buildRichText(String title, String value) {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(vertical: 8.0),
-  //     child: RichText(
-  //       text: TextSpan(
-  //         // text: ">",
-  //         // style: TextStyle(
-  //         //     fontSize: 20,
-  //         //     fontWeight: FontWeight.bold,
-  //         //     color: Colors.blueAccent
-  //         // ),
-  //         children: [
-  //           TextSpan(
-  //             text: '$title:-',
-  //             style: TextStyle(
-  //               fontSize: 20,
-  //               fontWeight: FontWeight.bold,
-  //               color: Colors.blueAccent
-  //             ),
-  //           ),
-  //           TextSpan(
-  //             text: value,
-  //             style: TextStyle(
-  //               fontSize: 18,
-  //               color: Colors.cyan,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 }

@@ -1,10 +1,13 @@
 import 'package:NCSC/admin/students.dart';
+import 'package:NCSC/registration.dart';
 import 'package:NCSC/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'DBADashboard.dart';
+import 'faculty/addassignment.dart';
 import 'faculty/main_faculty.dart';
 import 'firebase_options.dart';
+import 'login.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +24,7 @@ class MY_APP extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'NCSC',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: splash()
+      home: login()
     );
   }
 }

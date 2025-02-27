@@ -1,190 +1,355 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'seeallassignment.dart';
 
-class AssignmentPage extends StatefulWidget {
+class UploadAssignment extends StatefulWidget {
+  final String facultyName;
+  final String department;
+  final String semester;
+  final List<Map<String, String>> subjects;
+
+  UploadAssignment({
+    required this.facultyName,
+    required this.department,
+    required this.semester,
+    required this.subjects,
+  });
+
   @override
-  _AssignmentPageState createState() => _AssignmentPageState();
+  _UploadAssignmentState createState() => _UploadAssignmentState();
 }
 
-class _AssignmentPageState extends State<AssignmentPage> {
-  final TextEditingController _questionController = TextEditingController();
-  String? selectedSubject;
-  String? selectedSemester;
-  File? selectedPdf;
+class _UploadAssignmentState extends State<UploadAssignment> {
+  String? selectedSubjectId;
+  String? selectedSubjectName;
+  String? fileType;
+  String? base64Image;
+  String? base64Pdf;
+  File? selectedFile;
+  DateTime? lastDate;
   bool isUploading = false;
-  List<Map<String, String>> subjectsList = [];
 
-  @override
-  void initState() {
-    super.initState();
-    fetchSubjects();
-  }
+  final databaseRef = FirebaseDatabase.instance.ref("Assignments");
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController questionController = TextEditingController();
 
-  Future<void> fetchSubjects() async {
-    DatabaseReference ref = FirebaseDatabase.instance.ref("Subjects");
-    DataSnapshot snapshot = await ref.get();
+  Future<void> pickFile(bool isPdf) async {
+    try {
+      if (questionController.text.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text("Clear the text field before uploading a file.")),
+        );
+        return;
+      }
 
-    if (snapshot.exists) {
-      List<Map<String, String>> tempList = [];
-      Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
-      data.forEach((key, value) {
-        tempList.add({
-          "name": value["name"], // Subject name
-          "sem": value["sem"],   // Semester
-        });
-      });
+      if (isPdf) {
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['pdf'],
+        );
 
-      setState(() {
-        subjectsList = tempList;
-      });
-    }
-  }
-
-  Future<void> pickPdfFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-
-    if (result != null) {
-      setState(() {
-        selectedPdf = File(result.files.single.path!);
-        _questionController.clear(); // Clear text field when PDF is selected
-      });
+        if (result != null && result.files.single.path != null) {
+          File file = File(result.files.single.path!);
+          List<int> fileBytes = await file.readAsBytes();
+          setState(() {
+            selectedFile = file;
+            fileType = "pdf";
+            base64Pdf = base64Encode(fileBytes);
+            base64Image = null;
+            questionController.clear();
+          });
+        }
+      } else {
+        final XFile? pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+        if (pickedFile != null) {
+          File file = File(pickedFile.path);
+          List<int> imageBytes = await file.readAsBytes();
+          setState(() {
+            selectedFile = file;
+            fileType = "image";
+            base64Image = base64Encode(imageBytes);
+            base64Pdf = null;
+            questionController.clear();
+          });
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error selecting file: $e")));
     }
   }
 
   Future<void> uploadAssignment() async {
-    if (selectedSubject == null || selectedSemester == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please select a subject and semester")),
-      );
+    if (selectedSubjectId == null ||
+        lastDate == null ||
+        titleController.text.isEmpty ||
+        (questionController.text.isEmpty && base64Image == null && base64Pdf == null)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Please fill all details.")));
       return;
     }
 
-    if (_questionController.text.isEmpty && selectedPdf == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please either write questions or upload a PDF")),
-      );
-      return;
-    }
-
-    setState(() {
-      isUploading = true;
-    });
+    setState(() => isUploading = true);
 
     try {
-      String pdfUrl = "";
+      String department = widget.department; // Get selected department
+      String semester = widget.semester; // Get selected semester
+      String facultyName = widget.facultyName; // Faculty name
+      String title = titleController.text; // Assignment title
 
-      if (selectedPdf != null) {
-        String fileName = "assignments/${DateTime.now().millisecondsSinceEpoch}.pdf";
-        Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
-        UploadTask uploadTask = storageRef.putFile(selectedPdf!);
-        TaskSnapshot taskSnapshot = await uploadTask;
-        pdfUrl = await taskSnapshot.ref.getDownloadURL();
+      DatabaseReference ref = databaseRef
+          .child(department) // Correct department
+          .child(semester) // Correct semester
+          .child(selectedSubjectId!) // Subject ID
+          .child(facultyName)
+          .child(title);
+
+      String type = "text";
+      String content = questionController.text;
+      if (base64Image != null) {
+        type = "image";
+        content = base64Image!;
+      } else if (base64Pdf != null) {
+        type = "pdf";
+        content = base64Pdf!;
       }
-      DatabaseReference dbRef = FirebaseDatabase.instance.ref("assignments").push();
-      await dbRef.set({
-        "subject": selectedSubject,
-        "semester": selectedSemester,
-        "questions": _questionController.text.isNotEmpty ? _questionController.text : null,
-        "pdfUrl": pdfUrl.isNotEmpty ? pdfUrl : null,
-        "timestamp": DateTime.now().toIso8601String(),
+
+      await ref.set({
+        "type": type,
+        "content": content,
+        "lastDate": lastDate!.toIso8601String(),
+        "completed_students": {},
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Assignment uploaded successfully!")),
-      );
+      // Reset form after upload
       setState(() {
-        selectedSubject = null;
-        selectedSemester = null;
-        _questionController.clear();
-        selectedPdf = null;
+        selectedSubjectId = null;
+        selectedSubjectName = null;
+        selectedFile = null;
+        base64Image = null;
+        base64Pdf = null;
+        fileType = null;
+        lastDate = null;
         isUploading = false;
       });
 
+      titleController.clear();
+      questionController.clear();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Assignment Uploaded Successfully!")));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error uploading assignment: $e")),
-      );
-      setState(() {
-        isUploading = false;
-      });
+      setState(() => isUploading = false);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Upload Failed: $e")));
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Upload Assignment")),
+      appBar: AppBar(
+        title: Text("Upload Assignment"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.list_alt),
+               onPressed: () {
+               Navigator.push(
+               context,
+               MaterialPageRoute(
+               builder: (context) => AssignmentListScreen(
+                       department: widget.department,
+                       semester: widget.semester,
+                       subject: widget.subjects,
+            ),
+           ),
+           );},
+          ),
+        ],
+      ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: EdgeInsets.all(16),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildDropdownCard(),
+              SizedBox(height: 16),
+              buildTitleField(),
+              SizedBox(height: 16),
+              buildQuestionField(),
+              SizedBox(height: 16),
+              buildFileUploadButtons(),
+              if (selectedFile != null) buildFilePreview(),
+              SizedBox(height: 16),
+              buildDatePickerCard(),
+              SizedBox(height: 16),
+              buildUploadButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildDropdownCard() {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(12),
+        child: DropdownButtonFormField<String>(
+          value: selectedSubjectId,
+          decoration:
+          InputDecoration(labelText: "Select Subject", border: InputBorder.none),
+          items: widget.subjects.map((subject) {
+            return DropdownMenuItem(
+              value: subject['id'],
+              child: Text(subject['name']!),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              selectedSubjectId = value;
+              selectedSubjectName = widget.subjects
+                  .firstWhere((subject) => subject['id'] == value)['name'];
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget buildTitleField() {
+    return TextField(
+      controller: titleController,
+      decoration: InputDecoration(
+        labelText: "Assignment Title",
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  Widget buildQuestionField() {
+    return TextField(
+      controller: questionController,
+      decoration: InputDecoration(
+        labelText: "Enter Question (disabled if file is selected)",
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      maxLines: 3,
+      enabled: selectedFile == null,
+    );
+  }
+
+  Widget buildFileUploadButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton.icon(
+          icon: Icon(Icons.picture_as_pdf),
+          label: Text("Upload PDF"),
+          onPressed: selectedFile == null ? () => pickFile(true) : null,
+        ),
+        ElevatedButton.icon(
+          icon: Icon(Icons.image),
+          label: Text("Upload Image"),
+          onPressed: selectedFile == null ? () => pickFile(false) : null,
+        ),
+      ],
+    );
+  }
+
+  Widget buildUploadButton() {
+    return Center(
+      child: ElevatedButton.icon(
+        icon: isUploading ? CircularProgressIndicator() : Icon(Icons.upload),
+        label: Text("Upload Assignment"),
+        onPressed: isUploading ? null : uploadAssignment,
+      ),
+    );
+  }
+
+
+Widget buildFilePreview() {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Select Subject", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            DropdownButton<String>(
-              value: selectedSubject,
-              hint: Text("Choose Subject"),
-              isExpanded: true,
-              onChanged: (value) {
+            Icon(
+              fileType == "pdf" ? Icons.picture_as_pdf : Icons.image,
+              size: 40,
+              color: fileType == "pdf" ? Colors.red : Colors.blue,
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                "File Selected: ${fileType == "pdf" ? "PDF" : "Image"}",
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
                 setState(() {
-                  selectedSubject = value;
-                  selectedSemester = subjectsList.firstWhere((element) => element["name"] == value)?["sem"];
+                  selectedFile = null;
+                  base64Image = null;
+                  base64Pdf = null;
+                  fileType = null;
                 });
               },
-              items: subjectsList.map((subject) {
-                return DropdownMenuItem(value: subject["name"], child: Text(subject["name"]!));
-              }).toList(),
-            ),
-
-            SizedBox(height: 10),
-            Text("Semester", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text(
-              selectedSemester ?? "Select a subject first",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
-            ),
-
-            SizedBox(height: 10),
-            Text("Enter Questions", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            TextField(
-              controller: _questionController,
-              maxLines: 5,
-              enabled: selectedPdf == null, // Disable if PDF is selected
-              decoration: InputDecoration(
-                hintText: "Write assignment questions here...",
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (text) {
-                if (text.isNotEmpty) {
-                  setState(() {
-                    selectedPdf = null; // Remove PDF if user types text
-                  });
-                }
-              },
-            ),
-
-            SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: _questionController.text.isEmpty ? pickPdfFile : null,
-              icon: Icon(Icons.upload_file),
-              label: Text("Upload PDF"),
-            ),
-            selectedPdf != null
-                ? Text("Selected PDF: ${selectedPdf!.path.split('/').last}")
-                : Text("No PDF selected"),
-
-            SizedBox(height: 20),
-            isUploading
-                ? Center(child: CircularProgressIndicator())
-                : ElevatedButton(
-              onPressed: uploadAssignment,
-              child: Text("Submit Assignment"),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildDatePickerCard() {
+    return GestureDetector(
+      onTap: () async {
+        DateTime? pickedDate = await showDatePicker(
+          context: context,
+          initialDate: lastDate ?? DateTime.now(),
+          firstDate: DateTime.now(),
+          lastDate: DateTime(2100),
+        );
+
+        if (pickedDate != null) {
+          setState(() {
+            lastDate = pickedDate;
+          });
+        }
+      },
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                lastDate == null
+                    ? "Select Last Date"
+                    : "Last Date: ${lastDate!.toLocal()}".split(' ')[0],
+                style: TextStyle(fontSize: 16),
+              ),
+              Icon(Icons.calendar_today, color: Colors.blue),
+            ],
+          ),
         ),
       ),
     );

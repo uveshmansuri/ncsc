@@ -1,3 +1,9 @@
+import 'package:NCSC/student/departmentlist.dart';
+import 'package:NCSC/student/internalmarks.dart';
+import 'package:NCSC/student/queryraising.dart';
+import 'package:NCSC/student/syllabus.dart';
+import 'package:NCSC/student/test.dart';
+import 'package:NCSC/student/timetable.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
@@ -13,7 +19,18 @@ class _DashboardPageState extends State<DashboardPage> {
     'assets/images/collageimg.jpg'
   ];
 
-  int _currentIndex = 0; // To track the current slide for the dot indicator
+  int _currentIndex = 0;
+
+  final List<Map<String, dynamic>> _iconList = [
+    {'icon': Icons.school, 'label': 'Department', 'page': DepartmentPage()},
+   // {'icon': Icons.payment, 'label': 'Fee Portal', 'page': FeePortalPage()},
+    {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
+    {'icon': Icons.check_circle, 'label': 'Test', 'page': TestPage()},
+    {'icon': Icons.library_books, 'label': 'Syllabus', 'page': SyllabusPage()},
+    {'icon': Icons.grade, 'label': 'Internal Marks', 'page': InternalMarksPage()},
+   // {'icon': Icons.assignment_turned_in, 'label': 'Attendance', 'page': AttendancePage()},
+    {'icon': Icons.assignment_turned_in, 'label': 'Query', 'page': QueryPage()},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +58,6 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Search Bar
               TextField(
                 decoration: InputDecoration(
                   hintText: 'Search',
@@ -55,7 +71,6 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
               SizedBox(height: 20),
-              // CarouselSlider with dot indicator
               Container(
                 child: Column(
                   children: [
@@ -75,12 +90,6 @@ class _DashboardPageState extends State<DashboardPage> {
                         height: 200.0,
                         autoPlay: true,
                         enlargeCenterPage: true,
-                        enableInfiniteScroll: true,
-                        aspectRatio: 16 / 9,
-                        viewportFraction: 0.8,
-                        autoPlayInterval: Duration(seconds: 3),
-                        autoPlayAnimationDuration: Duration(milliseconds: 800),
-                        autoPlayCurve: Curves.fastOutSlowIn,
                         onPageChanged: (index, reason) {
                           setState(() {
                             _currentIndex = index;
@@ -88,23 +97,17 @@ class _DashboardPageState extends State<DashboardPage> {
                         },
                       ),
                     ),
-                    // Dot Indicator
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: imgList.asMap().entries.map((entry) {
                         return GestureDetector(
-                          onTap: () => setState(() {
-                            _currentIndex = entry.key;
-                          }),
                           child: Container(
                             width: 8.0,
                             height: 8.0,
                             margin: EdgeInsets.symmetric(horizontal: 4.0),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _currentIndex == entry.key
-                                  ? Colors.blue
-                                  : Colors.grey,
+                              color: _currentIndex == entry.key ? Colors.blue : Colors.grey,
                             ),
                           ),
                         );
@@ -114,59 +117,34 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
               SizedBox(height: 20),
-              // Grid of Icon Buttons
               GridView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3, // 3 columns in grid
+                  crossAxisCount: 3,
                   crossAxisSpacing: 16.0,
                   mainAxisSpacing: 16.0,
                   childAspectRatio: 1,
                 ),
                 itemCount: _iconList.length,
                 itemBuilder: (context, index) {
-                  return _buildIconButton(_iconList[index]['icon'], _iconList[index]['label']);
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => _iconList[index]['page']),
+                      );
+                    },
+                    child: _buildIconButton(_iconList[index]['icon'], _iconList[index]['label']),
+                  );
                 },
               ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.blue,
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text(
-            '@copywrite',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showChatbotDialog(context);
-        },
-        backgroundColor: Colors.blue,
-        child: Icon(Icons.person_pin_circle_rounded),
-      ),
     );
   }
-
-  // List of icon data with labels
-  final List<Map<String, dynamic>> _iconList = [
-    {'icon': Icons.school, 'label': 'Department'},
-    {'icon': Icons.payment, 'label': 'Fee Portal'},
-    {'icon': Icons.access_time, 'label': 'Timetable'},
-    {'icon': Icons.check_circle, 'label': 'Test'},
-    {'icon': Icons.library_books, 'label': 'Syllabus'},
-    {'icon': Icons.grade, 'label': 'Internal Marks'},
-    {'icon': Icons.assignment_turned_in, 'label': 'Attendance'},
-  ];
 
   Widget _buildIconButton(IconData icon, String label) {
     return Container(
@@ -199,39 +177,6 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
-    );
-  }
-
-  // Function to show chatbot dialog
-  void _showChatbotDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Chatbot',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text('How can I help you today?'),
-                // Add your chatbot conversation widget or interface here
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

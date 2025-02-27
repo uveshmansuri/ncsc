@@ -29,7 +29,6 @@ class _NewsScreenState extends State<NewsScreen> {
             List<Map<String, dynamic>> circulars = [];
 
             data.forEach((key, value) {
-
               if (value is Map && value["faculty_rev"] == true) {
                 circulars.add({
                   "title": value["title"] ?? "No Title",
@@ -51,9 +50,10 @@ class _NewsScreenState extends State<NewsScreen> {
                   child: ListTile(
                     leading: const Icon(Icons.notifications, color: Colors.blue),
                     title: Text(circular['title']!),
-                    subtitle: Text(
-                      'Date: ${circular['date']}\n\n${circular['description']}',
-                    ),
+                    subtitle: Text('Date: ${circular['date']}'),
+                    onTap: () {
+                      _showCircularDetails(context, circular);
+                    },
                   ),
                 );
               },
@@ -63,6 +63,32 @@ class _NewsScreenState extends State<NewsScreen> {
           }
         },
       ),
+    );
+  }
+
+  void _showCircularDetails(BuildContext context, Map<String, dynamic> circular) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(circular['title']!),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Date: ${circular['date']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(circular['description']!),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

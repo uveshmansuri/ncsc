@@ -8,11 +8,9 @@ class InternalMarksPage extends StatefulWidget {
   @override
   State<InternalMarksPage> createState() => _InternalMarksPageState();
 }
-
 class _InternalMarksPageState extends State<InternalMarksPage> {
   List<students> stud_list=[];
   List<TextEditingController> ed_list=[];
-
   @override
   void initState() {
     fetch_students(widget.dept, widget.sem);

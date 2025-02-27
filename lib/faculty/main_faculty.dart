@@ -10,7 +10,6 @@ class FacultyMain extends StatefulWidget {
   @override
   _FacultyMainState createState() => _FacultyMainState();
 }
-
 class _FacultyMainState extends State<FacultyMain> {
   int _currentIndex = 1;
   late PageController _pageController;
@@ -26,7 +25,7 @@ class _FacultyMainState extends State<FacultyMain> {
     final List<Widget> _pages = [
       UpdatesPage(),
       HomePage(widget.fid),
-      ProfilePage(),
+      ProfilePage(widget.fid),
     ];
     return WillPopScope(
       onWillPop: () async{
