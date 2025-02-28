@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'studentscreenofassignment.dart';
+import 'addassignment.dart';
+import 'assignmentpagelist.dart';
 
-class AssignmentListScreen extends StatefulWidget {
-  final String department;
-  final String semester;
-  final List<Map<String, String>> subject;
+class AssignmentPage extends StatefulWidget {
+  final String dept, sem, faculty, subjectName;
 
-  AssignmentListScreen({
-    required this.department,
-    required this.semester,
-    required this.subject,
+  AssignmentPage({
+    required this.dept,
+    required this.sem,
+    required this.faculty,
+    required this.subjectName,
   });
 
   @override
-  _AssignmentListScreenState createState() => _AssignmentListScreenState();
+  _AssignmentPageState createState() => _AssignmentPageState();
 }
 
-class _AssignmentListScreenState extends State<AssignmentListScreen> {
-  final databaseRef = FirebaseDatabase.instance.ref("Assignments");
+class _AssignmentPageState extends State<AssignmentPage> {
   List<Map<String, dynamic>> assignments = [];
-  bool isLoading = true;
+  final databaseRef = FirebaseDatabase.instance.ref();
 
   @override
   void initState() {
@@ -30,95 +29,145 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
 
   Future<void> fetchAssignments() async {
     try {
-      DatabaseReference ref = databaseRef.child(widget.department).child(widget.semester);
-      DataSnapshot snapshot = (await ref.get());
+      final assignmentRef = databaseRef
+          .child('Assignments')
+          .child(widget.dept)
+          .child(widget.sem)
+          .child(widget.subjectName)
+          .child(widget.faculty);
+
+      DatabaseEvent event = await assignmentRef.once();
+      DataSnapshot snapshot = event.snapshot;
 
       if (snapshot.exists && snapshot.value is Map) {
-        Map<String, dynamic> subjectsData = Map<String, dynamic>.from(snapshot.value as Map);
-        List<Map<String, dynamic>> fetchedAssignments = [];
-
-        subjectsData.forEach((subjectId, facultyData) {
-          if (facultyData is Map) {
-            facultyData.forEach((facultyName, assignmentsData) {
-              if (assignmentsData is Map) {
-                assignmentsData.forEach((title, assignmentDetails) {
-                  if (assignmentDetails is Map) {
-                    fetchedAssignments.add({
-                      "title": title,
-                      "lastDate": assignmentDetails["lastDate"],
-                      "subject": widget.subject.firstWhere(
-                            (subj) => subj['id'] == subjectId,
-                        orElse: () => {"name": "Unknown"},
-                      )["name"],
-                      "facultyName": facultyName,
-                      "subjectId": subjectId,
-                    });
-                  }
-                });
-              }
-            });
-          }
-        });
+        Map<String, dynamic> assignmentsData = Map<String, dynamic>.from(snapshot.value as Map);
 
         setState(() {
-          assignments = fetchedAssignments;
-          isLoading = false;
+          assignments = assignmentsData.entries.map((entry) {
+            final data = Map<String, dynamic>.from(entry.value);
+            return {
+              'title': entry.key,
+              'subject': data['subjectName'] ?? widget.subjectName,
+              'lastDate': data['lastDate'] ?? 'No Date',
+              'fileType': data['fileType'] ?? 'Text',
+            };
+          }).toList();
         });
       } else {
         setState(() {
-          isLoading = false;
+          assignments = [];
         });
       }
     } catch (e) {
       setState(() {
-        isLoading = false;
+        assignments = [];
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error fetching assignments: $e")),
-      );
+      print("Error fetching assignments: $e");
     }
+  }
+
+  void deleteAssignment(String assignmentKey) async {
+    try {
+      await databaseRef
+          .child('Assignments')
+          .child(widget.dept)
+          .child(widget.sem)
+          .child(widget.subjectName)
+          .child(widget.faculty)
+          .child(assignmentKey)
+          .remove();
+
+      fetchAssignments();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Assignment deleted successfully!")),
+      );
+    } catch (e) {
+      print("Error deleting assignment: $e");
+    }
+  }
+
+  void showDeleteDialog(String assignmentKey) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Delete Assignment"),
+        content: Text("Are you sure you want to delete this assignment?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              deleteAssignment(assignmentKey);
+              Navigator.pop(context);
+            },
+            child: Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Assignments")),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : assignments.isEmpty
-          ? Center(child: Text("No Assignments Found"))
+      body: assignments.isEmpty
+          ? Center(child: Text("No assignments uploaded yet."))
           : ListView.builder(
         itemCount: assignments.length,
-        itemBuilder: (context, index) {
+        itemBuilder: (context, i) {
           return Card(
             elevation: 3,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             child: ListTile(
-              title: Text(assignments[index]["title"] ?? "No Title"),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Subject: ${assignments[index]["subject"]}"),
-                  Text("Last Date: ${assignments[index]["lastDate"]}"),
-                ],
+              title: Text(assignments[i]['title']),
+              subtitle: Text(
+                  "Subject: ${assignments[i]['subject']}\nDue: ${assignments[i]['lastDate']}"),
+              trailing: Icon(
+                assignments[i]['fileType'] == 'pdf'
+                    ? Icons.picture_as_pdf
+                    : assignments[i]['fileType'] == 'image'
+                    ? Icons.image
+                    : Icons.text_snippet,
+                color: assignments[i]['fileType'] == 'pdf' ? Colors.red : Colors.blue,
               ),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => StudentListScreen(
-                      department: widget.department,
-                      semester: widget.semester,
-                      assignmentTitle: assignments[index]["title"],
-                      facultyName: assignments[index]["facultyName"],
-                      subjectId: assignments[index]["subjectId"],
+                    builder: (context) => AssignmentDetailPage(
+                      dept: widget.dept,
+                      sem: widget.sem,
+                      faculty: widget.faculty,
+                      subjectName: widget.subjectName,
+                      assignmentKey: assignments[i]['title'],
                     ),
                   ),
                 );
               },
+              onLongPress: () {
+                showDeleteDialog(assignments[i]['title']);
+              },
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => UploadAssignment(
+              facultyId: widget.faculty,
+              department: widget.dept,
+              semester: widget.sem,
+              subjectId: widget.subjectName,
+              subjectName: widget.subjectName,
+            ),
+          ),
+        ).then((_) => fetchAssignments()),
+        child: Icon(Icons.add),
       ),
     );
   }

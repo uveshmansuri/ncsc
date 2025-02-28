@@ -1,6 +1,8 @@
 import 'package:NCSC/faculty/addassignment.dart';
 import 'package:NCSC/faculty/attendancetake.dart';
 import 'package:NCSC/faculty/internalmarkssend.dart';
+
+import 'package:NCSC/faculty/seeallassignment.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
@@ -40,74 +42,78 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Subjects"),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0, 0), // Center of the gradient
-            radius: 1.0, // Spread of the gradient
-            colors: [
-              Color(0xFFE0FCFF),
-              Color(0xffffffff),
-            ],
-            stops: [0.3,1.0], // Defines the stops for the gradient
-          ),
+        appBar: AppBar(
+          title: Text("Subjects"),
         ),
-        child: Column(
-          children: [
-            if(widget.flag==0)
-              get_title("Attendance"),
-            if(widget.flag==1)
-              get_title("Internal Marks"),
-            Expanded(
-              child: ListView.builder(
-                  itemCount: sub_list.length,
-                  itemBuilder: (context,i){
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 7),
-                      child: Card(
-                        elevation: 10,
-                        color: Color(0xFFf0f9f0),
-                        shadowColor: Color(0xFFd7ffef),
-                        child: ListTile(
-                          leading: Text(sub_list[i].sid),
-                          title: Text(sub_list[i].sname,style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),),
-                          subtitle: Text("Department:"+sub_list[i].dept),
-                          trailing: Text("Semester:"+sub_list[i].sem),
-                          onTap: (){
-                            if(widget.flag==0) {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder:
-                                      (context)=>AttendancePage()
-                                  )
-                              );
-                            }
-                            if(widget.flag==1){
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder:
-                                      (context)=>InternalMarksPage(sub_list[i].dept,sub_list[i].sem,sub_list[i].sname)
-                                  )
-                              );
-                            }
-                            if(widget.flag==2){
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder:
-                                      (context)=>AssignmentPage()
-                                  )
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                    );
-                  }
-              ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment(0, 0), // Center of the gradient
+              radius: 1.0, // Spread of the gradient
+              colors: [
+                Color(0xFFE0FCFF),
+                Color(0xffffffff),
+              ],
+              stops: [0.3,1.0], // Defines the stops for the gradient
             ),
-          ],
-        ),
-      )
+          ),
+          child: Column(
+            children: [
+              if(widget.flag==0)
+                get_title("Attendance"),
+              if(widget.flag==1)
+                get_title("Internal Marks"),
+              Expanded(
+                child: ListView.builder(
+                    itemCount: sub_list.length,
+                    itemBuilder: (context,i){
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 7),
+                        child: Card(
+                          elevation: 10,
+                          color: Color(0xFFf0f9f0),
+                          shadowColor: Color(0xFFd7ffef),
+                          child: ListTile(
+                            leading: Text(sub_list[i].sid),
+                            title: Text(sub_list[i].sname,style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),),
+                            subtitle: Text("Department:"+sub_list[i].dept),
+                            trailing: Text("Semester:"+sub_list[i].sem),
+                            onTap: (){
+                              if(widget.flag==0) {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder:
+                                        (context)=>AttendancePage()
+                                    )
+                                );
+                              }
+                              if(widget.flag==1){
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder:
+                                        (context)=>InternalMarksPage(sub_list[i].dept,sub_list[i].sem,sub_list[i].sname)
+                                    )
+                                );
+                              }
+                              if(widget.flag==2){
+                                Navigator.push(context,
+                                    MaterialPageRoute(
+                                    builder: (context) => AssignmentPage(
+                                  dept: sub_list[i].dept,
+                                  sem: sub_list[i].sem,
+                                  faculty: sub_list[i].fid,  // ✅ Fix: Add this
+                                  subjectName: sub_list[i].sname,
+                                ),)
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                ),
+              ),
+            ],
+          ),
+        )
     );
   }
   Widget get_title(var msg){
