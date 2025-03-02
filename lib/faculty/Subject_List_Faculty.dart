@@ -1,6 +1,7 @@
 import 'package:NCSC/faculty/addassignment.dart';
 import 'package:NCSC/faculty/attendancetake.dart';
 import 'package:NCSC/faculty/internalmarkssend.dart';
+import 'package:NCSC/faculty/seeallassignment.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
@@ -23,7 +24,11 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
     sub_list.clear();
     var db_ref=await FirebaseDatabase.instance.ref("Subjects").get();
     for(DataSnapshot sp in db_ref.children){
-      if(sp.child("faculty").value.toString()==widget.fid){
+      List<dynamic> assing_faculties = [];
+      if(sp.child("ass_faculties").exists){
+        assing_faculties.addAll(sp.value as List<dynamic>);
+      }
+      if(assing_faculties.contains(widget.fid)){
         var sub,sid,dept,sem;
         sub=sp.child("name").value.toString();
         sid=sp.key;
@@ -80,7 +85,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
                             if(widget.flag==0) {
                               Navigator.push(context,
                                   MaterialPageRoute(builder:
-                                      (context)=>AttendancePage()
+                                      (context)=>AttendancePage(sub_list[i].dept,sub_list[i].sem,sub_list[i].sname)
                                   )
                               );
                             }
@@ -94,7 +99,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
                             if(widget.flag==2){
                               Navigator.push(context,
                                   MaterialPageRoute(builder:
-                                      (context)=>AssignmentPage()
+                                      (context)=>AssignmentPage(subjectName: sub_list[i].sname,dept:sub_list[i].dept,faculty: widget.fid,sem: sub_list[i].sem,)
                                   )
                               );
                             }
