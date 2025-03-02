@@ -7,16 +7,10 @@ import 'package:file_picker/file_picker.dart';
 import 'seeallassignment.dart';
 
 class UploadAssignment extends StatefulWidget {
-  final String facultyName;
-  final String department;
-  final String semester;
-  final List<Map<String, String>> subjects;
+  final fid;
 
   UploadAssignment({
-    required this.facultyName,
-    required this.department,
-    required this.semester,
-    required this.subjects,
+    required this.fid
   });
 
   @override
@@ -98,9 +92,9 @@ class _UploadAssignmentState extends State<UploadAssignment> {
     setState(() => isUploading = true);
 
     try {
-      String department = widget.department; // Get selected department
-      String semester = widget.semester; // Get selected semester
-      String facultyName = widget.facultyName; // Faculty name
+      String department = "widget.department"; // Get selected department
+      String semester = "widget.semester"; // Get selected semester
+      String facultyName = "widget.facultyName"; // Faculty name
       String title = titleController.text; // Assignment title
 
       DatabaseReference ref = databaseRef
@@ -157,22 +151,6 @@ class _UploadAssignmentState extends State<UploadAssignment> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Upload Assignment"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.list_alt),
-               onPressed: () {
-               Navigator.push(
-               context,
-               MaterialPageRoute(
-               builder: (context) => AssignmentListScreen(
-                       department: widget.department,
-                       semester: widget.semester,
-                       subject: widget.subjects,
-            ),
-           ),
-           );},
-          ),
-        ],
       ),
       body: Padding(
         padding: EdgeInsets.all(16),
@@ -180,7 +158,7 @@ class _UploadAssignmentState extends State<UploadAssignment> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildDropdownCard(),
+              // buildDropdownCard(),
               SizedBox(height: 16),
               buildTitleField(),
               SizedBox(height: 16),
@@ -199,33 +177,33 @@ class _UploadAssignmentState extends State<UploadAssignment> {
     );
   }
 
-  Widget buildDropdownCard() {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: DropdownButtonFormField<String>(
-          value: selectedSubjectId,
-          decoration:
-          InputDecoration(labelText: "Select Subject", border: InputBorder.none),
-          items: widget.subjects.map((subject) {
-            return DropdownMenuItem(
-              value: subject['id'],
-              child: Text(subject['name']!),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              selectedSubjectId = value;
-              selectedSubjectName = widget.subjects
-                  .firstWhere((subject) => subject['id'] == value)['name'];
-            });
-          },
-        ),
-      ),
-    );
-  }
+  // Widget buildDropdownCard() {
+  //   return Card(
+  //     elevation: 3,
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //     child: Padding(
+  //       padding: EdgeInsets.all(12),
+  //       child: DropdownButtonFormField<String>(
+  //         value: selectedSubjectId,
+  //         decoration:
+  //         InputDecoration(labelText: "Select Subject", border: InputBorder.none),
+  //         items: widget.subjects.map((subject) {
+  //           return DropdownMenuItem(
+  //             value: subject['id'],
+  //             child: Text(subject['name']!),
+  //           );
+  //         }).toList(),
+  //         onChanged: (value) {
+  //           setState(() {
+  //             selectedSubjectId = value;
+  //             selectedSubjectName = widget.subjects
+  //                 .firstWhere((subject) => subject['id'] == value)['name'];
+  //           });
+  //         },
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget buildTitleField() {
     return TextField(

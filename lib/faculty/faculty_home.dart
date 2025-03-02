@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:NCSC/faculty/seeallassignment.dart';
+import 'package:NCSC/faculty/seeallassignment.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:NCSC/faculty/addassignment.dart';
@@ -103,30 +105,31 @@ class _HomePageState extends State<HomePage> {
           buildCard(context, "Schedule", Icons.schedule, SchedulePage()),
           buildCard(context, "Attendance", Icons.check_circle, faculty_sub_lst(widget.fid, 0)),
           buildCard(context, "Internal Marks", Icons.score, faculty_sub_lst(widget.fid, 1)),
-          buildAssignmentCard(context),
+          buildCard(context, "Assignment", Icons.assignment_rounded,AssignmentListScreen(fid:widget.fid)),
+          //buildAssignmentCard(context),
         ],
       ),
     );
   }
 
-  Widget buildAssignmentCard(BuildContext context) {
-    return Card(
-      elevation: 4,
-      margin: EdgeInsets.symmetric(vertical: 10),
-      child: ListTile(
-        leading: Icon(Icons.assignment, size: 30),
-        title: Text("Assignment", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        trailing: Icon(Icons.arrow_forward),
-        onTap: () {
-          if (facultySubjects.isNotEmpty) {
-            showDepartmentSelectionDialog(context);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No subjects available.")));
-          }
-        },
-      ),
-    );
-  }
+  // Widget buildAssignmentCard(BuildContext context) {
+  //   return Card(
+  //     elevation: 4,
+  //     margin: EdgeInsets.symmetric(vertical: 10),
+  //     child: ListTile(
+  //       leading: Icon(Icons.assignment, size: 30),
+  //       title: Text("Assignment", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+  //       trailing: Icon(Icons.arrow_forward),
+  //       onTap: () {
+  //         if (facultySubjects.isNotEmpty) {
+  //           showDepartmentSelectionDialog(context);
+  //         } else {
+  //           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No subjects available.")));
+  //         }
+  //       },
+  //     ),
+  //   );
+  // }
 
   Widget buildCard(BuildContext context, String title, IconData icon, Widget page) {
     return Card(
@@ -143,41 +146,41 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void showDepartmentSelectionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Select Department & Semester"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: facultySubjects.entries.map((deptEntry) {
-              return ExpansionTile(
-                title: Text(deptEntry.key, style: TextStyle(fontWeight: FontWeight.bold)),
-                children: deptEntry.value.entries.map((semEntry) {
-                  return ListTile(
-                    title: Text("Semester ${semEntry.key}"),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => UploadAssignment(
-                            facultyName: facultyName!,
-                            department: deptEntry.key,
-                            semester: semEntry.key,
-                            subjects: semEntry.value,
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }).toList(),
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-  }
+  // void showDepartmentSelectionDialog(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text("Select Department & Semester"),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: facultySubjects.entries.map((deptEntry) {
+  //             return ExpansionTile(
+  //               title: Text(deptEntry.key, style: TextStyle(fontWeight: FontWeight.bold)),
+  //               children: deptEntry.value.entries.map((semEntry) {
+  //                 return ListTile(
+  //                   title: Text("Semester ${semEntry.key}"),
+  //                   onTap: () {
+  //                     Navigator.pop(context);
+  //                     Navigator.push(
+  //                       context,
+  //                       MaterialPageRoute(
+  //                         builder: (context) => UploadAssignment(
+  //                           facultyName: facultyName!,
+  //                           department: deptEntry.key,
+  //                           semester: semEntry.key,
+  //                           subjects: semEntry.value,
+  //                         ),
+  //                       ),
+  //                     );
+  //                   },
+  //                 );
+  //               }).toList(),
+  //             );
+  //           }).toList(),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 }

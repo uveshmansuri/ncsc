@@ -223,7 +223,7 @@ class _Stud_ADState extends State<Stud_AD> {
       _response = "Preparing...";
     });
     print("p..");
-    var uri = Uri.parse('http://192.168.246.172:8000/encode');
+    var uri = Uri.parse('http://192.168.130.172:8000/encode');
     List<dynamic>? _faceEncodings;
     print("Starting....");
     var request = http.MultipartRequest('POST', uri)

@@ -197,22 +197,6 @@ class _SubjectsState extends State<Subjects> {
                                   ),
                                   )
                               ),
-                              // leading:ClipOval(
-                              //   child: Container(
-                              //       color: Colors.blue,
-                              //       width: 50.0,
-                              //       height: 50.0,
-                              //       child: Padding(
-                              //         padding: const EdgeInsets.all(5),
-                              //         child: Center(
-                              //             child: Text(
-                              //               sublist[index].id,
-                              //               style: TextStyle(color: Colors.white),
-                              //             )
-                              //         ),
-                              //       )
-                              //   ),
-                              // ),
                               title: Text(
                                sublist[index].name,
                                style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.lightBlue),
@@ -226,15 +210,13 @@ class _SubjectsState extends State<Subjects> {
                                   icon: Icon(Icons.delete_forever_sharp,color: Colors.red,size: 25,)
                               ),
                               // onTap: ()=>_showIdDialog(context),
-                              onTap: () async{
-                                var res=await Navigator.push(context,
-                                    MaterialPageRoute(builder: (context)=>assing_faculty(
-                                        sublist[index].id,sublist[index].name,dept_lst,sublist[index].fid)
+                              onTap: (){
+                                Navigator.push(context,
+                                    MaterialPageRoute(
+                                        builder: (context)=>assing_faulty(
+                                            sublist[index].id, sublist[index].name, dept_lst)
                                     )
                                 );
-                                if(res==true){
-                                  fetch_subjects();
-                                }
                               },
                             ),
                           ),
@@ -294,65 +276,6 @@ class _SubjectsState extends State<Subjects> {
       );
     });
   }
-
-  // void _showIdDialog(BuildContext context) {
-  //   final TextEditingController _controller = TextEditingController();
-  //   List<String> suggestions = [];
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       // Using StatefulBuilder to update the UI within the dialog.
-  //       return StatefulBuilder(
-  //         builder: (context, setState) {
-  //           void updateSuggestions(String input) {
-  //             suggestions = idToName.entries
-  //                 .where((entry) => entry.key.startsWith(input))
-  //                 .map((entry) => '${entry.key}: ${entry.value}')
-  //                 .toList();
-  //             if(suggestions.length==0)
-  //               suggestions.add("Invalid Faculty ID");
-  //             setState(() {});
-  //           }
-  //           return AlertDialog(
-  //             title: const Text('Enter ID'),
-  //             content: Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 TextField(
-  //                   controller: _controller,
-  //                   decoration: const InputDecoration(
-  //                     labelText: 'ID',
-  //                   ),
-  //                   onChanged: (value) {
-  //                     // Update the suggestion based on the entered ID.
-  //                     setState(() {
-  //                       updateSuggestions(value);
-  //                     });
-  //                   },
-  //                 ),
-  //                 const SizedBox(height: 10),
-  //                 Column(
-  //                   children: [
-  //                     for (var suggestion in suggestions) Text(suggestion,),
-  //                   ],
-  //                 ),
-  //               ],
-  //             ),
-  //             actions: [
-  //               TextButton(
-  //                 child: const Text('Submit'),
-  //                 onPressed: () {
-  //                   // You can perform any action with _controller.text here.
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
 }
 
 class subject_model{
@@ -360,34 +283,37 @@ class subject_model{
   subject_model(this.id,this.name,this.dept,this.sem,this.fid);
 }
 
-class assing_faculty extends StatefulWidget{
-  var sub_id,subject_name,fid;
-  List<String> dept_lst=[];
-  assing_faculty(this.sub_id,this.subject_name,this.dept_lst,this.fid);
-  @override
-  State<assing_faculty> createState() => _assing_facultyState();
-}
-
 class faculty{
-  var fid,fname,dept;
-  faculty(this.fid,this.fname,this.dept);
+  var fid,dept,name;
+  faculty(this.fid,this.name,this.dept);
 }
 
-class _assing_facultyState extends State<assing_faculty> {
-  List<faculty> faculty_list=[];
-  List<faculty> temp_faculty_list=[];
+class assing_faulty extends StatefulWidget{
+  var sub_id,subject_name;
   List<String> dept_lst=[];
+  assing_faulty(this.sub_id,this.subject_name,this.dept_lst);
+
+  @override
+  State<assing_faulty> createState() => _assing_faultyState();
+}
+
+class _assing_faultyState extends State<assing_faulty> {
+  List<faculty> faculty_list = [];
+  List<faculty> temp_faculty_list = [];
+  List<String> dept_lst = [];
+  List<dynamic> assing_faculties = [];
+  List<faculty> ass_faculty_list = [];
 
   String dept = 'All';
   String selectedDept = 'All';
 
-  var facultyname="";
+  bool flag = false;
 
   @override
   void initState() {
     super.initState();
     dept_lst.addAll(widget.dept_lst);
-    print("${widget.fid}");
+    fetch_ass_faculty();
     fetch_fcaulty();
   }
 
@@ -402,84 +328,173 @@ class _assing_facultyState extends State<assing_faculty> {
     });
   }
 
-  void fetch_fcaulty() async{
-    var db_ref=await FirebaseDatabase.instance.ref("Staff/faculty").get();
-    for(DataSnapshot sp in db_ref.children){
-      faculty_list.add(faculty(sp.key, sp.child("name").value.toString(),sp.child("department").value.toString()));
-      if(sp.key==widget.fid){
-        facultyname=sp.child("name").value.toString();
+  void fetch_ass_faculty() async {
+    var db_rf = FirebaseDatabase.instance.ref(
+        "Subjects/${widget.sub_id}/ass_faculties");
+    var sp = await db_rf.get();
+    if (sp.exists) {
+      assing_faculties.addAll(sp.value as List<dynamic>);
+    }
+  }
+
+  void fetch_fcaulty() async {
+    var db_ref = await FirebaseDatabase.instance.ref("Staff/faculty").get();
+    for (DataSnapshot sp in db_ref.children) {
+      if (assing_faculties.contains(sp.key)) {
+        ass_faculty_list.add(faculty(sp.key, sp
+            .child("name")
+            .value
+            .toString(), sp
+            .child("department")
+            .value
+            .toString()));
+      } else {
+        faculty_list.add(faculty(sp.key, sp
+            .child("name")
+            .value
+            .toString(), sp
+            .child("department")
+            .value
+            .toString()));
       }
     }
     setState(() {
       temp_faculty_list.addAll(faculty_list);
+      flag = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Assign Faculty"),
+      ),
       body: Center(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                SizedBox(width: 30,),
-                Text("Select Department"),
-                SizedBox(width: 30,),
-                DropdownButton<String>(
-                  value: dept,
-                  hint: Text("Select Department"),
-                  items: dept_lst
-                      .map((group) =>
-                      DropdownMenuItem<String>(
-                        value: group,
-                        child: Text(group),
-                      ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      dept = value!;
-                      selectedDept=dept;
-                      applyFilters();
-                    });
-                  },
-                ),//For DEPT Filter
-              ],
-            ),
-            Text(
-              "Assing Faculty to Subject ${widget.subject_name}",
-              style: TextStyle(fontSize: 20),
-            ),
-            facultyname.length==0?Text("Faculty Not Assinged Yest"):Text(facultyname),
-            Expanded(child: ListView.builder(
-              itemCount: faculty_list.length,
-              itemBuilder: (context,index){
-                return ListTile(
-                  leading: Text("${faculty_list[index].fid}"),
-                  title: Text("${faculty_list[index].fname}"),
-                  subtitle: Text("${faculty_list[index].dept}"),
-                  trailing: IconButton(onPressed: ()=>assing_faculty(faculty_list[index].fid), icon: facultyname.length==0?Icon(Icons.assignment_turned_in_outlined):Icon(Icons.change_circle)),
-                );
-              },),
-            )
-          ],
-        ),
+          child: flag == true
+              ?
+          Column(
+            children: [
+              Text("Assign Faculty to ${widget.subject_name}",
+                style: TextStyle(fontSize: 25),),
+              Text("Assigned Faculties"),
+              get_itm(ass_faculty_list, true),
+              Row(
+                children: [
+                  SizedBox(width: 30,),
+                  Text("Select Department"),
+                  SizedBox(width: 30,),
+                  DropdownButton<String>(
+                    value: dept,
+                    hint: Text("Select Department"),
+                    items: dept_lst
+                        .map((group) =>
+                        DropdownMenuItem<String>(
+                          value: group,
+                          child: Text(group),
+                        ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        dept = value!;
+                        selectedDept = dept;
+                        applyFilters();
+                      });
+                    },
+                  ), //For DEPT Filter
+                ],
+              ),
+              SizedBox(height: 10,),
+              Text("Faculties"),
+              get_itm(faculty_list, false)
+            ],
+          )
+              :
+          CircularProgressIndicator()
       ),
     );
   }
 
-  void assing_faculty(var fid) async{
-    await FirebaseDatabase.instance
-        .ref("Subjects/${widget.sub_id}")
-        .update({"faculty":fid})
-        .then(
-            (_){
-              Fluttertoast.showToast(msg: "Faculty Assinged Succsesfully");
-              Navigator.pop(context,true);
-            })
-        .catchError(
-            (err){
-              Fluttertoast.showToast(msg: "Failed to Assinged Faculty:${err}");
-            });
+  Widget get_itm(List<faculty> faculty_lst, bool is_assign) {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: faculty_lst.length,
+      itemBuilder: (context, index) {
+        return Card(
+          elevation: 5,
+          child: ListTile(
+            leading: Text("${faculty_lst[index].fid}"),
+            title: Text("${faculty_lst[index].name}"),
+            subtitle: Text("Department:${faculty_lst[index].dept}"),
+            trailing: IconButton(
+                icon: Icon(is_assign ? Icons.remove_circle : Icons.assignment_turned_in_rounded),
+                onPressed: () {
+                  show_confirm(
+                    widget.subject_name,
+                    faculty_lst[index].name,
+                    faculty_lst[index].fid,
+                    index,
+                    is_assign,
+                  );
+                }
+            ),
+          ),
+        );
+      },);
+  }
+
+  void show_confirm(var sub, var faculty, var fid, int index, bool is_assing) {
+    showDialog(context: context, builder: (ctx) {
+      return AlertDialog(
+        title: Text("Confirm"),
+        content: is_assing
+            ?
+        Text("Do you want to remove $faculty from $sub?")
+            :
+        Text("Do you want to assign $sub to $faculty?"),
+        actions: [
+          TextButton(onPressed: () {
+            Navigator.pop(ctx);
+          }, child: Text("No"),),
+          TextButton(onPressed: () {
+            is_assing? remove(fid, index) : assign(fid, index);
+            Navigator.pop(ctx);
+          }, child: Text("Yes"),),
+        ],
+      );
+    });
+  }
+
+  void assign(var fid, int index) async {
+    var db_rf = FirebaseDatabase.instance.ref(
+        "Subjects/${widget.sub_id}/ass_faculties");
+    assing_faculties.add(fid);
+    await db_rf.set(assing_faculties).then((_) {
+      Fluttertoast.showToast(msg: "Assigned!!!");
+    });
+    setState(() {
+      ass_faculty_list.add(faculty(
+          faculty_list[index].fid, faculty_list[index].name,
+          faculty_list[index].dept));
+      faculty_list.removeAt(index);
+    });
+  }
+
+  void remove(var fid, int index) async {
+    var db_rf = FirebaseDatabase.instance.ref(
+        "Subjects/${widget.sub_id}/ass_faculties");
+
+    assing_faculties.remove(fid);
+
+    await db_rf.set(assing_faculties).then((_) {
+      Fluttertoast.showToast(msg: "Removed!!!");
+    });
+
+    setState(() {
+      faculty_list.add(faculty(
+          ass_faculty_list[index].fid, ass_faculty_list[index].name,
+          ass_faculty_list[index].dept));
+      ass_faculty_list.removeAt(index);
+    });
   }
 }
