@@ -4,13 +4,43 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
-import 'seeallassignment.dart';
+
+class Assignment {
+  final DateTime lastDate;
+  final String? fileType;
+  final String? base64Image;
+  final String? base64Pdf;
+  final String? questionContent;
+
+  Assignment({
+    required this.lastDate,
+    this.fileType,
+    this.base64Image,
+    this.base64Pdf,
+    this.questionContent,
+  });
+  Map<String, dynamic> toMap() {
+    return {
+      'fileType': fileType,
+      'lastDate': lastDate.toIso8601String(),
+      'content': fileType == 'image' ? base64Image : (fileType == 'pdf' ? base64Pdf : questionContent),
+    };
+  }
+}
 
 class UploadAssignment extends StatefulWidget {
-  final fid;
+  final String facultyId;
+  final String department;
+  final String semester;
+  final String subjectId;
+  final String subjectName;
 
   UploadAssignment({
-    required this.fid
+    required this.facultyId,
+    required this.department,
+    required this.semester,
+    required this.subjectId,
+    required this.subjectName,
   });
 
   @override
@@ -18,8 +48,6 @@ class UploadAssignment extends StatefulWidget {
 }
 
 class _UploadAssignmentState extends State<UploadAssignment> {
-  String? selectedSubjectId;
-  String? selectedSubjectName;
   String? fileType;
   String? base64Image;
   String? base64Pdf;
@@ -35,8 +63,7 @@ class _UploadAssignmentState extends State<UploadAssignment> {
     try {
       if (questionController.text.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text("Clear the text field before uploading a file.")),
+          SnackBar(content: Text("Clear the text field before uploading a file.")),
         );
         return;
       }
@@ -74,57 +101,44 @@ class _UploadAssignmentState extends State<UploadAssignment> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error selecting file: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error selecting file: $e")));
     }
   }
 
   Future<void> uploadAssignment() async {
-    if (selectedSubjectId == null ||
-        lastDate == null ||
+    if (lastDate == null ||
         titleController.text.isEmpty ||
-        (questionController.text.isEmpty && base64Image == null && base64Pdf == null)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Please fill all details.")));
+        (questionController.text.isEmpty &&
+            base64Image == null &&
+            base64Pdf == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Please fill all details.")));
       return;
     }
 
     setState(() => isUploading = true);
 
     try {
-      String department = "widget.department"; // Get selected department
-      String semester = "widget.semester"; // Get selected semester
-      String facultyName = "widget.facultyName"; // Faculty name
-      String title = titleController.text; // Assignment title
+      // Create an instance of the Assignment model
+      Assignment assignment = Assignment(
+        lastDate: lastDate!,
+        fileType: fileType,
+        base64Image: base64Image,
+        base64Pdf: base64Pdf,
+        questionContent: questionController.text.isNotEmpty ? questionController.text : null,
+      );
 
       DatabaseReference ref = databaseRef
-          .child(department) // Correct department
-          .child(semester) // Correct semester
-          .child(selectedSubjectId!) // Subject ID
-          .child(facultyName)
-          .child(title);
+          .child(widget.department)
+          .child(widget.semester)
+          .child(widget.subjectId)
+          .child(widget.facultyId)
+          .child(titleController.text);
 
-      String type = "text";
-      String content = questionController.text;
-      if (base64Image != null) {
-        type = "image";
-        content = base64Image!;
-      } else if (base64Pdf != null) {
-        type = "pdf";
-        content = base64Pdf!;
-      }
+      await ref.set(assignment.toMap());
 
-      await ref.set({
-        "type": type,
-        "content": content,
-        "lastDate": lastDate!.toIso8601String(),
-        "completed_students": {},
-      });
-
-      // Reset form after upload
       setState(() {
-        selectedSubjectId = null;
-        selectedSubjectName = null;
         selectedFile = null;
         base64Image = null;
         base64Pdf = null;
@@ -140,26 +154,22 @@ class _UploadAssignmentState extends State<UploadAssignment> {
           SnackBar(content: Text("Assignment Uploaded Successfully!")));
     } catch (e) {
       setState(() => isUploading = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Upload Failed: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Upload Failed: $e")));
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Upload Assignment"),
-      ),
+          title: Text("Upload Assignment for ${widget.subjectName}")),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // buildDropdownCard(),
-              SizedBox(height: 16),
               buildTitleField(),
               SizedBox(height: 16),
               buildQuestionField(),
@@ -176,34 +186,6 @@ class _UploadAssignmentState extends State<UploadAssignment> {
       ),
     );
   }
-
-  // Widget buildDropdownCard() {
-  //   return Card(
-  //     elevation: 3,
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //     child: Padding(
-  //       padding: EdgeInsets.all(12),
-  //       child: DropdownButtonFormField<String>(
-  //         value: selectedSubjectId,
-  //         decoration:
-  //         InputDecoration(labelText: "Select Subject", border: InputBorder.none),
-  //         items: widget.subjects.map((subject) {
-  //           return DropdownMenuItem(
-  //             value: subject['id'],
-  //             child: Text(subject['name']!),
-  //           );
-  //         }).toList(),
-  //         onChanged: (value) {
-  //           setState(() {
-  //             selectedSubjectId = value;
-  //             selectedSubjectName = widget.subjects
-  //                 .firstWhere((subject) => subject['id'] == value)['name'];
-  //           });
-  //         },
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget buildTitleField() {
     return TextField(
@@ -255,8 +237,7 @@ class _UploadAssignmentState extends State<UploadAssignment> {
     );
   }
 
-
-Widget buildFilePreview() {
+  Widget buildFilePreview() {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -295,7 +276,7 @@ Widget buildFilePreview() {
     );
   }
 
-  Widget buildDatePickerCard() {
+Widget buildDatePickerCard() {
     return GestureDetector(
       onTap: () async {
         DateTime? pickedDate = await showDatePicker(
@@ -311,25 +292,9 @@ Widget buildFilePreview() {
           });
         }
       },
-      child: Card(
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                lastDate == null
-                    ? "Select Last Date"
-                    : "Last Date: ${lastDate!.toLocal()}".split(' ')[0],
-                style: TextStyle(fontSize: 16),
-              ),
-              Icon(Icons.calendar_today, color: Colors.blue),
-            ],
-          ),
-        ),
-      ),
+      child: Text("Last Date: ${lastDate != null ? lastDate!.toLocal().toString().split(' ')[0] : "Select Last Date"}"),
     );
   }
 }
+
+
