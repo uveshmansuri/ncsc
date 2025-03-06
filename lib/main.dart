@@ -22,8 +22,8 @@ class MY_APP extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'NCSC',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: HomePage("F101")
-      //home: splash()
+      //home: HomePage("F101")
+      home: splash()
     );
   }
 }

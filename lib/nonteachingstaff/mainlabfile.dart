@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:NCSC/nonteachingstaff/labattendance.dart';
-import 'package:NCSC/nonteachingstaff/leavereq.dart';
-import 'package:NCSC/nonteachingstaff/newsforall.dart';
-import 'package:NCSC/nonteachingstaff/queryfile.dart';
-import 'package:NCSC/nonteachingstaff/recordofpc.dart';
+
 
 class NonTeachingDashboardScreen extends StatelessWidget {
   final List<Map<String, dynamic>> items = [
@@ -12,6 +8,9 @@ class NonTeachingDashboardScreen extends StatelessWidget {
     {'title': 'Leave Request', 'icon': Icons.event_note, 'route': LeaveRequestScreen()},
     {'title': 'Query', 'icon': Icons.help_outline, 'route': QueryScreen()},
     {'title': 'Record', 'icon': Icons.folder, 'route': RecordScreen()},
+    {'title': 'attandance', 'icon': Icons.account_circle_outlined, 'route': QueryScreen()},
+    {'title': 'alert', 'icon': Icons.fiber_new_sharp, 'route': QueryScreen()},
+
 
   ];
 

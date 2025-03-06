@@ -4,6 +4,7 @@ import 'package:NCSC/faculty/faculty_home.dart';
 import 'package:NCSC/faculty/main_faculty.dart';
 import 'package:NCSC/main.dart';
 import 'package:NCSC/registration.dart';
+import 'package:NCSC/student/main_student.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -174,7 +175,13 @@ class _loginState extends State<login> {
               // await prefs.setString('role', "faculty");
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>FacultyMain(username)));
             }
-          }else{
+          if(sp.child("role").value.toString()=="student"){
+            // final SharedPreferences prefs = await SharedPreferences.getInstance();
+            // await prefs.setBool('login_flag', true);
+            // await prefs.setString('uname', username);
+            // await prefs.setString('role', "faculty");
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>StudentDashboard()));
+          }}else{
             flag=1;
             Fluttertoast.showToast(
               msg: "Invalid Password",
