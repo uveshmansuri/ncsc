@@ -276,7 +276,7 @@ class _UploadAssignmentState extends State<UploadAssignment> {
     );
   }
 
-Widget buildDatePickerCard() {
+  Widget buildDatePickerCard() {
     return GestureDetector(
       onTap: () async {
         DateTime? pickedDate = await showDatePicker(
@@ -295,6 +295,5 @@ Widget buildDatePickerCard() {
       child: Text("Last Date: ${lastDate != null ? lastDate!.toLocal().toString().split(' ')[0] : "Select Last Date"}"),
     );
   }
+
 }
-
-

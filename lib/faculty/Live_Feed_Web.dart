@@ -17,6 +17,15 @@ class Live_feed_web extends StatefulWidget{
   Live_feed_web(this.dept, this.sem, this.sub, this.stud_lst);
   @override
   State<Live_feed_web> createState() => _Live_feed_webState();
+
+  void export_excel_file_web(var excelBytes){
+    final blob = html.Blob([Uint8List.fromList(excelBytes)]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", "$sub AttendanceSheet.xlsx")
+      ..click();
+    html.Url.revokeObjectUrl(url);
+  }
 }
 
 class _Live_feed_webState extends State<Live_feed_web> {

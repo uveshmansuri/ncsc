@@ -26,7 +26,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
     for(DataSnapshot sp in db_ref.children){
       List<dynamic> assing_faculties = [];
       if(sp.child("ass_faculties").exists){
-        assing_faculties.addAll(sp.value as List<dynamic>);
+        assing_faculties.addAll(sp.child("ass_faculties").value as List<dynamic>);
       }
       if(assing_faculties.contains(widget.fid)){
         var sub,sid,dept,sem;

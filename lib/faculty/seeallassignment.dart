@@ -125,13 +125,17 @@ class _AssignmentPageState extends State<AssignmentPage> {
               title: Text(assignments[i]['title']),
               subtitle: Text(
                   "Subject: ${assignments[i]['subject']}\nDue: ${assignments[i]['lastDate']}"),
-              trailing: Icon(
-                assignments[i]['fileType'] == 'pdf'
-                    ? Icons.picture_as_pdf
-                    : assignments[i]['fileType'] == 'image'
-                    ? Icons.image
-                    : Icons.text_snippet,
-                color: assignments[i]['fileType'] == 'pdf' ? Colors.red : Colors.blue,
+              trailing: IconButton(
+                onPressed: (){},
+                icon: Icon(
+                  assignments[i]['fileType'] == 'pdf'
+                      ? Icons.picture_as_pdf
+                      : assignments[i]['fileType'] == 'image'
+                      ? Icons.image
+                      : Icons.text_snippet,
+                  color: assignments[i]['fileType'] == 'pdf' ? Colors.red : Colors.blue,
+                ),
+                tooltip: "Preview",
               ),
               onTap: () {
                 Navigator.push(

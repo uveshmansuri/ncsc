@@ -1,11 +1,17 @@
+// import 'dart:html' as html;
+import 'dart:io';
+import 'dart:math';
 import 'package:NCSC/faculty/LiveFeed_Attend.dart';
 import 'package:NCSC/faculty/Live_Feed_Web.dart';
 import 'package:NCSC/faculty/mark_attendance.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:excel/excel.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
 class AttendancePage extends StatefulWidget {
@@ -18,7 +24,6 @@ class AttendancePage extends StatefulWidget {
 
 class _AttendancePageState extends State<AttendancePage> {
   List<students> stud_list=[];
-  List<stud_attend_pr> attend_pr_list=[];
 
   int total_class=0;
 
@@ -77,14 +82,10 @@ class _AttendancePageState extends State<AttendancePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Attendance")),
+      appBar: AppBar(title: Text("${widget.sub} Attendance")),
       body: Center(
           child: Column(
             children: [
-              Text(
-                  "${widget.sub} Attendance Sheet",
-                  style: TextStyle(fontSize: 24)
-              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: Card(
@@ -143,7 +144,8 @@ class _AttendancePageState extends State<AttendancePage> {
               Card(
                 elevation: 5,
                 shadowColor: Colors.lightBlueAccent,
-                child: TextButton(
+                child: TextButton.icon(
+                    icon: Icon(Icons.assignment_turned_in_outlined),
                     onPressed: () async{
                       String crr_date = DateFormat("dd-MM-yyyy-HH-mm").format(DateTime.now());
                       var sp=await FirebaseDatabase.instance.ref("Attendance").child(widget.sub).child(crr_date).get();
@@ -153,7 +155,20 @@ class _AttendancePageState extends State<AttendancePage> {
                         show_dig(crr_date);
                       }
                     },
-                    child: Text("Take Attendance")
+                    label: Text("Take Attendance")
+                ),
+              ),
+              Card(
+                elevation: 5,
+                shadowColor: Colors.lightBlueAccent,
+                child: TextButton.icon(
+                  onPressed: () async{
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context)=>attend_sheet(widget.dept, widget.sem, widget.sub))
+                    );
+                  },
+                  label: Text("View AttendanceSheet"),
+                  icon: Icon(Icons.preview),
                 ),
               ),
               SizedBox(height: 10,)
@@ -221,10 +236,321 @@ class students{
   var stud_id,stud_name;
   double? atten_pr;
   List<dynamic>? encodings;
-  students({required this.stud_id, required this.stud_name, this.encodings,this.atten_pr});
+  Map<dynamic,dynamic>? attend;
+  students({required this.stud_id, required this.stud_name, this.encodings,this.atten_pr,this.attend});
 }
 
-class stud_attend_pr{
-  var sid,total;
-  stud_attend_pr(this.sid,this.total);
+class attend_sheet extends StatefulWidget{
+  var dept,sem,sub;
+  attend_sheet(this.dept,this.sem,this.sub);
+  @override
+  State<attend_sheet> createState() => _attend_sheetState();
+}
+
+class _attend_sheetState extends State<attend_sheet> {
+  List<students> Records=[];
+  int total_class=0;
+  Map<String,int> sum={};
+
+  final ScrollController _horizontalController = ScrollController();
+  //final ScrollController _verticalController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    get_attennd_data();
+    get_sammary();
+  }
+
+  void get_attennd_data() async{
+    var snap_stud=await FirebaseDatabase.instance.ref("Students").get();
+    var snap_attend=await FirebaseDatabase.instance.ref("Attendance/${widget.sub}").get();
+
+    int total_class=snap_attend.children.length;
+
+    for(DataSnapshot sp1 in snap_stud.children){
+      if(sp1.child("dept").value.toString()==widget.dept&&sp1.child("sem").value.toString()==widget.sem){
+        Map<dynamic,dynamic> attend={};
+        var name=(sp1.child("name").value.toString());
+        int class_count=0;
+        double pr=0.0;
+
+        if (snap_attend.exists) {
+          // Extract session keys and convert them to DateTime for sorting
+          List<String> sessionKeys = snap_attend.children
+              .map((s) => s.key.toString())
+              .toList();
+
+          sessionKeys.sort((a, b) {
+            DateTime dateA = parseDateTime(a);
+            DateTime dateB = parseDateTime(b);
+            return dateA.compareTo(dateB);
+          });
+
+          for (String session in sessionKeys) {
+            var status = "E";
+            DataSnapshot? s = snap_attend.child(session);
+
+            for (DataSnapshot s1 in s.children) {
+              if (s1.key == sp1.key) {
+                if (s1.child("status").value.toString() == "P") {
+                  class_count++;
+                }
+                status = s1.child("status").value.toString();
+              }
+            }
+            attend[session] = status;
+          }
+        }
+        pr=(class_count*100)/total_class;
+        Records.add(students(stud_id: sp1.key, stud_name: name , attend: attend,atten_pr: pr));
+        setState(() {
+        });
+      }
+    }
+  }
+
+  void get_sammary() async{
+    var snap_attend=await FirebaseDatabase.instance.ref("Attendance/${widget.sub}").get();
+    if(snap_attend.exists){
+      for(DataSnapshot sp in snap_attend.children){
+        int total_stud=0;
+        for(DataSnapshot s1 in sp.children){
+          if(s1.child("status").value.toString()=="P"){
+            total_stud+=1;
+          }
+        }
+        sum[sp.key.toString()]=total_stud;
+      }
+    }
+    print(sum);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<String> allDates = (Records
+        .expand((record) => record.attend!.keys)
+        .toSet()
+        .toList()).cast<String>();
+    return Scaffold(
+      appBar: AppBar(title: Text('${widget.sub} Attendance Sheet')),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Scrollbar(
+          controller: _horizontalController,
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            controller: _horizontalController,
+            scrollDirection: Axis.horizontal,
+            child: SingleChildScrollView(
+              child: DataTable(
+                columnSpacing: 12,
+                horizontalMargin: 10,
+                headingRowColor: MaterialStateProperty.all(Colors.lightBlue[200]),
+                border: TableBorder.all(color: Colors.black, width: 2),
+
+                columns: [
+                  DataColumn(label: Text('Student ID',style: TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('Student Name',style: TextStyle(fontWeight: FontWeight.bold))),
+                  ...allDates.map((date) => DataColumn(
+                      label: Text(date,style: TextStyle(fontWeight: FontWeight.bold))
+                  )).toList(),
+                  DataColumn(label: Text("Percentage",style: TextStyle(fontWeight: FontWeight.bold))),
+                ],
+
+                rows: Records.map((record) {
+                  bool isLowAttendance = record.atten_pr! < 50;
+                  return DataRow(
+                    color: isLowAttendance
+                        ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
+                        : null,
+                    cells: [
+                      DataCell(Text(record.stud_id)),
+                      DataCell(Text(record.stud_name)),
+                      ...allDates.map((date) {
+                        String status = record.attend?[date] ?? '-';
+                        return DataCell(
+                          Center(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                              decoration: BoxDecoration(
+                                color: getStatusColor(status),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Text(
+                                status,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+
+                      DataCell(Text("${record.atten_pr!.toStringAsFixed(2)}%",
+                          style: TextStyle(fontWeight: FontWeight.bold, color: record.atten_pr! < 50 ? Colors.red : Colors.green)
+                      )),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
+      ),
+      floatingActionButton: Column(
+        children: [
+          FloatingActionButton(onPressed: _exportToExcel,child: Icon(Icons.download,color: Colors.red,),),
+          FloatingActionButton(onPressed: ()=>showAttendanceLineChart(context,sum),child: Icon(Icons.download,color: Colors.red,),),
+        ],
+      )
+    );
+  }
+
+  Color getStatusColor(String status) {
+    switch (status) {
+      case 'P':
+        return Colors.green;
+      case 'A':
+        return Colors.red;
+      case 'E':
+        return Colors.yellow;
+      default:
+        return Colors.grey[300]!; 
+    }
+  }
+
+  DateTime parseDateTime(String dateStr) {
+    List<String> parts = dateStr.split('-'); // Split by '-'
+
+    if (parts.length < 4) {
+      return DateTime(1970); // Return default for invalid data
+    }
+
+    int day = int.parse(parts[0]);
+    int month = int.parse(parts[1]);
+    int year = int.parse(parts[2]);
+    int hour = int.parse(parts[3]);
+
+    return DateTime(year, month, day, hour);
+  }
+
+  void _exportToExcel() async {
+    List<String> allDates = (Records
+        .expand((record) => record.attend!.keys)
+        .toSet()
+        .toList()).cast<String>();
+
+    var excel = Excel.createExcel();
+    var sheet = excel['Sheet1'];
+
+    List<String> headers = ['Student ID', 'Student Name', ...allDates, 'Percentage'];
+    sheet.appendRow(headers.map((e) => TextCellValue(e)).toList());
+
+    for (var record in Records) {
+      List<CellValue> row = [
+        TextCellValue(record.stud_id),
+        TextCellValue(record.stud_name),
+        ...allDates.map((date) => TextCellValue(record.attend?[date] ?? '-')),
+        TextCellValue("${record.atten_pr!.toStringAsFixed(2)}%"),
+      ];
+      sheet.appendRow(row);
+    }
+
+    List<int>? excelBytes = excel.encode();
+    if (excelBytes == null) return;
+
+    if (kIsWeb) {
+      var obj=Live_feed_web(widget.dept, widget.sem, widget.sub,Records);
+      obj.export_excel_file_web(excelBytes);
+    }
+    else {
+      var status = await Permission.storage.request();
+      if (status.isGranted) {
+        Directory? directory = await getExternalStorageDirectory();
+        String filePath = "${directory!.path}/${widget.sub} AttendanceSheet.xlsx";
+        File(filePath)
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(excelBytes);
+        Fluttertoast.showToast(msg: "Excel file saved at: $filePath");
+      } else {
+        Fluttertoast.showToast(msg:"Storage permission denied");
+      }
+    }
+  }
+
+  Future<void> showAttendanceLineChart(BuildContext context, Map<String, int> dataMap) async {
+    // Convert the Map data into a list of FlSpot (x, y) points
+    List<FlSpot> chartData = [];
+    int index = 0;
+    dataMap.forEach((key, value) {
+      chartData.add(FlSpot(index.toDouble(), value.toDouble()));
+      index++;
+    });
+
+    double maxY = dataMap.values.isNotEmpty ? dataMap.values.reduce(max).toDouble() + 1 : 10.0;
+
+    await showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: Text('Attendance'),
+          content: Container(
+            width: double.maxFinite,
+            height: 300,
+            child: LineChart(
+              LineChartData(
+                minY: 0,
+                maxY: maxY,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: chartData,
+                    isCurved: true,
+                    color: Colors.blue,
+                    barWidth: 2,
+                    dotData: FlDotData(show: true),
+                  ),
+                ],
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        int idx = value.toInt();
+                        if (idx >= 0 && idx < dataMap.keys.length) {
+                          return Text(
+                            dataMap.keys.elementAt(idx),
+                            style: const TextStyle(fontSize: 10),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toString(),
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                    ),
+                  ),
+                )
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text('Close'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
