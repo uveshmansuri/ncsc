@@ -1,29 +1,29 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:pdfx/pdfx.dart';
 
 class Assignment {
   final DateTime lastDate;
   final String? fileType;
-  final String? base64Image;
-  final String? base64Pdf;
   final String? questionContent;
 
   Assignment({
     required this.lastDate,
     this.fileType,
-    this.base64Image,
-    this.base64Pdf,
     this.questionContent,
   });
   Map<String, dynamic> toMap() {
     return {
       'fileType': fileType,
-      'lastDate': lastDate.toIso8601String(),
-      'content': fileType == 'image' ? base64Image : (fileType == 'pdf' ? base64Pdf : questionContent),
+      'lastDate': lastDate!.toLocal().toString().split(' ')[0],
+      'content':questionContent
     };
   }
 }
@@ -48,16 +48,16 @@ class UploadAssignment extends StatefulWidget {
 }
 
 class _UploadAssignmentState extends State<UploadAssignment> {
-  String? fileType;
-  String? base64Image;
-  String? base64Pdf;
+  String? fileType,fileUrl;
   File? selectedFile;
   DateTime? lastDate;
   bool isUploading = false;
 
-  final databaseRef = FirebaseDatabase.instance.ref("Assignments");
+  final databaseRef= FirebaseDatabase.instance.ref("Assignments");
   final TextEditingController titleController = TextEditingController();
   final TextEditingController questionController = TextEditingController();
+
+  final storageRef=FirebaseStorage.instance.ref();
 
   Future<void> pickFile(bool isPdf) async {
     try {
@@ -76,12 +76,9 @@ class _UploadAssignmentState extends State<UploadAssignment> {
 
         if (result != null && result.files.single.path != null) {
           File file = File(result.files.single.path!);
-          List<int> fileBytes = await file.readAsBytes();
           setState(() {
             selectedFile = file;
             fileType = "pdf";
-            base64Pdf = base64Encode(fileBytes);
-            base64Image = null;
             questionController.clear();
           });
         }
@@ -90,12 +87,9 @@ class _UploadAssignmentState extends State<UploadAssignment> {
         await ImagePicker().pickImage(source: ImageSource.gallery);
         if (pickedFile != null) {
           File file = File(pickedFile.path);
-          List<int> imageBytes = await file.readAsBytes();
           setState(() {
             selectedFile = file;
             fileType = "image";
-            base64Image = base64Encode(imageBytes);
-            base64Pdf = null;
             questionController.clear();
           });
         }
@@ -107,11 +101,12 @@ class _UploadAssignmentState extends State<UploadAssignment> {
   }
 
   Future<void> uploadAssignment() async {
+    if (selectedFile == null) return;
+
     if (lastDate == null ||
         titleController.text.isEmpty ||
         (questionController.text.isEmpty &&
-            base64Image == null &&
-            base64Pdf == null)) {
+            selectedFile == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Please fill all details.")));
       return;
@@ -120,13 +115,18 @@ class _UploadAssignmentState extends State<UploadAssignment> {
     setState(() => isUploading = true);
 
     try {
+      final str_ref = storageRef.child("assignments/${DateTime.now().millisecondsSinceEpoch}");
+      final uploadTask = str_ref.putFile(selectedFile!);
+      final snapshot = await uploadTask.whenComplete(() => {});
+      fileUrl = await snapshot.ref.getDownloadURL();
+
       // Create an instance of the Assignment model
       Assignment assignment = Assignment(
         lastDate: lastDate!,
         fileType: fileType,
-        base64Image: base64Image,
-        base64Pdf: base64Pdf,
-        questionContent: questionController.text.isNotEmpty ? questionController.text : null,
+        // base64Image: base64Image,
+        // base64Pdf: base64Pdf,
+        questionContent: questionController.text.isNotEmpty ? questionController.text : fileUrl,
       );
 
       DatabaseReference ref = databaseRef
@@ -136,13 +136,13 @@ class _UploadAssignmentState extends State<UploadAssignment> {
           .child(widget.facultyId)
           .child(titleController.text);
 
+      print(assignment.questionContent);
       await ref.set(assignment.toMap());
 
       setState(() {
         selectedFile = null;
-        base64Image = null;
-        base64Pdf = null;
         fileType = null;
+        fileUrl=null;
         lastDate = null;
         isUploading = false;
       });
@@ -175,6 +175,7 @@ class _UploadAssignmentState extends State<UploadAssignment> {
               buildQuestionField(),
               SizedBox(height: 16),
               buildFileUploadButtons(),
+              if (selectedFile != null) SizedBox(height: 16),
               if (selectedFile != null) buildFilePreview(),
               SizedBox(height: 16),
               buildDatePickerCard(),
@@ -239,38 +240,56 @@ class _UploadAssignmentState extends State<UploadAssignment> {
 
   Widget buildFilePreview() {
     return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Icon(
-              fileType == "pdf" ? Icons.picture_as_pdf : Icons.image,
-              size: 40,
+      elevation: 5,
+      shadowColor: Colors.cyanAccent,
+      child: ListTile(
+        leading: IconButton(
+            onPressed: (){},
+            icon: Icon(
+              fileType == "pdf" ? Icons.picture_as_pdf : Icons.image,size: 40,
               color: fileType == "pdf" ? Colors.red : Colors.blue,
-            ),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                "File Selected: ${fileType == "pdf" ? "PDF" : "Image"}",
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                setState(() {
-                  selectedFile = null;
-                  base64Image = null;
-                  base64Pdf = null;
-                  fileType = null;
-                });
-              },
-            ),
-          ],
+            )
+        ),
+        title:  Text(
+          "File Selected: ${fileType == "pdf" ? "PDF" : "Image"}",
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 16),
+        ),
+        trailing: IconButton(
+          icon: Icon(Icons.delete, color: Colors.red),
+          onPressed: () {
+            setState(() {
+              selectedFile = null;
+              fileUrl=null;
+              fileType = null;
+            });
+          },
+        ),
+        onTap: (){
+          file_preview();
+        },
+      ),
+    );
+  }
+
+  void file_preview() {
+    if (selectedFile == null) return;
+    var pdfController=null;
+    if(fileType=="pdf")
+      pdfController= PdfController(document: PdfDocument.openFile(selectedFile!.path));
+    showDialog(
+      context: context,
+      builder: (_) => Scaffold(
+        body: fileType == "image"
+            ?
+        Center(child: Image.file(selectedFile!))
+            :
+        PdfView(controller: pdfController,),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Icon(Icons.close),
         ),
       ),
     );
@@ -295,5 +314,4 @@ class _UploadAssignmentState extends State<UploadAssignment> {
       child: Text("Last Date: ${lastDate != null ? lastDate!.toLocal().toString().split(' ')[0] : "Select Last Date"}"),
     );
   }
-
 }

@@ -9,7 +9,7 @@ class AssignmentDetailPage extends StatefulWidget {
     required this.sem,
     required this.faculty,
     required this.subjectName,
-    required this.assignmentKey, // Using key instead of title
+    required this.assignmentKey,
   });
 
   @override

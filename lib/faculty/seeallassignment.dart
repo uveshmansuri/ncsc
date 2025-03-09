@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:pdfx/pdfx.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'addassignment.dart';
 import 'assignmentpagelist.dart';
 
@@ -50,6 +52,7 @@ class _AssignmentPageState extends State<AssignmentPage> {
               'subject': data['subjectName'] ?? widget.subjectName,
               'lastDate': data['lastDate'] ?? 'No Date',
               'fileType': data['fileType'] ?? 'Text',
+              'content' :data['content']
             };
           }).toList();
         });
@@ -126,7 +129,15 @@ class _AssignmentPageState extends State<AssignmentPage> {
               subtitle: Text(
                   "Subject: ${assignments[i]['subject']}\nDue: ${assignments[i]['lastDate']}"),
               trailing: IconButton(
-                onPressed: (){},
+                onPressed: (){
+                  if(assignments[i]['fileType']=="pdf"){
+                    preview(i, 1);
+                  }else if(assignments[i]["fileType"]=="image"){
+                    preview(i,0);
+                  }else{
+
+                  }
+                },
                 icon: Icon(
                   assignments[i]['fileType'] == 'pdf'
                       ? Icons.picture_as_pdf
@@ -174,5 +185,40 @@ class _AssignmentPageState extends State<AssignmentPage> {
         child: Icon(Icons.add),
       ),
     );
+  }
+
+  void preview(int index,int flag){
+    showDialog(context: context, builder: (_){
+      return Scaffold(
+        body: Center(
+          child: flag==0
+              ?
+          Image.network(assignments[index]['content'],
+            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+            if (loadingProgress == null) {
+              return child;
+            }
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                    : null,
+              ),
+            );
+          },
+            errorBuilder: (context, error, stackTrace) {
+              return Center(child: Text("Failed to load image", style: TextStyle(color: Colors.red)));
+            },
+          )
+              :
+          flag==1?
+              SfPdfViewer.network(
+                assignments[index]['content'],
+              )
+              :
+          null,
+        ),
+      );
+    });
   }
 }

@@ -17,9 +17,10 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
   bool flag=false;
   @override
   void initState() {
-    fetch_subjects(widget.fid);
     super.initState();
+    fetch_subjects(widget.fid);
   }
+
   void fetch_subjects(var fid) async{
     sub_list.clear();
     var db_ref=await FirebaseDatabase.instance.ref("Subjects").get();
@@ -42,6 +43,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
     }
     print(flag);
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,7 +101,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
                             if(widget.flag==2){
                               Navigator.push(context,
                                   MaterialPageRoute(builder:
-                                      (context)=>AssignmentPage(subjectName: sub_list[i].sname,dept:sub_list[i].dept,faculty: widget.fid,sem: sub_list[i].sem,)
+                                      (context)=>AssignmentPage(subjectName: sub_list[i].sname,dept:sub_list[i].dept,faculty: widget.fid,sem: sub_list[i].sem)
                                   )
                               );
                             }

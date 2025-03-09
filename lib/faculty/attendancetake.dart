@@ -1,6 +1,4 @@
-// import 'dart:html' as html;
 import 'dart:io';
-import 'dart:math';
 import 'package:NCSC/faculty/LiveFeed_Attend.dart';
 import 'package:NCSC/faculty/Live_Feed_Web.dart';
 import 'package:NCSC/faculty/mark_attendance.dart';
@@ -251,6 +249,9 @@ class _attend_sheetState extends State<attend_sheet> {
   List<students> Records=[];
   int total_class=0;
   Map<String,int> sum={};
+  int total_students=0;
+
+  bool flag=true;
 
   final ScrollController _horizontalController = ScrollController();
   //final ScrollController _verticalController = ScrollController();
@@ -274,13 +275,10 @@ class _attend_sheetState extends State<attend_sheet> {
         var name=(sp1.child("name").value.toString());
         int class_count=0;
         double pr=0.0;
-
         if (snap_attend.exists) {
-          // Extract session keys and convert them to DateTime for sorting
           List<String> sessionKeys = snap_attend.children
               .map((s) => s.key.toString())
               .toList();
-
           sessionKeys.sort((a, b) {
             DateTime dateA = parseDateTime(a);
             DateTime dateB = parseDateTime(b);
@@ -305,12 +303,26 @@ class _attend_sheetState extends State<attend_sheet> {
         pr=(class_count*100)/total_class;
         Records.add(students(stud_id: sp1.key, stud_name: name , attend: attend,atten_pr: pr));
         setState(() {
+          flag=false;
         });
       }
     }
   }
 
   void get_sammary() async{
+    final stud_ref=FirebaseDatabase.instance.ref("Students");
+    final query=stud_ref.orderByChild("dept").equalTo(widget.dept);
+    query.once().then((event){
+      final sp=event.snapshot;
+      for(var s1 in sp.children){
+        if(s1.child("sem").value.toString()=="5"){
+          total_students++;
+        }
+      }
+      setState(() {
+
+      });
+    });
     var snap_attend=await FirebaseDatabase.instance.ref("Attendance/${widget.sub}").get();
     if(snap_attend.exists){
       for(DataSnapshot sp in snap_attend.children){
@@ -323,7 +335,6 @@ class _attend_sheetState extends State<attend_sheet> {
         sum[sp.key.toString()]=total_stud;
       }
     }
-    print(sum);
   }
 
   @override
@@ -334,77 +345,95 @@ class _attend_sheetState extends State<attend_sheet> {
         .toList()).cast<String>();
     return Scaffold(
       appBar: AppBar(title: Text('${widget.sub} Attendance Sheet')),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Scrollbar(
-          controller: _horizontalController,
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            controller: _horizontalController,
-            scrollDirection: Axis.horizontal,
-            child: SingleChildScrollView(
-              child: DataTable(
-                columnSpacing: 12,
-                horizontalMargin: 10,
-                headingRowColor: MaterialStateProperty.all(Colors.lightBlue[200]),
-                border: TableBorder.all(color: Colors.black, width: 2),
+      body: Stack(
+        children: [
+          flag==true
+              ?
+          Center(
+            child: CircularProgressIndicator(),
+          )
+              :
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Scrollbar(
+              controller: _horizontalController,
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                controller: _horizontalController,
+                scrollDirection: Axis.horizontal,
+                child: SingleChildScrollView(
+                  child: DataTable(
+                    columnSpacing: 12,
+                    horizontalMargin: 10,
+                    headingRowColor: MaterialStateProperty.all(Colors.lightBlue[200]),
+                    border: TableBorder.all(color: Colors.black, width: 2),
 
-                columns: [
-                  DataColumn(label: Text('Student ID',style: TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('Student Name',style: TextStyle(fontWeight: FontWeight.bold))),
-                  ...allDates.map((date) => DataColumn(
-                      label: Text(date,style: TextStyle(fontWeight: FontWeight.bold))
-                  )).toList(),
-                  DataColumn(label: Text("Percentage",style: TextStyle(fontWeight: FontWeight.bold))),
-                ],
+                    columns: [
+                      DataColumn(label: Text('Student ID',style: TextStyle(fontWeight: FontWeight.bold))),
+                      DataColumn(label: Text('Student Name',style: TextStyle(fontWeight: FontWeight.bold))),
+                      ...allDates.map((date) => DataColumn(
+                          label: Text(date,style: TextStyle(fontWeight: FontWeight.bold))
+                      )).toList(),
+                      DataColumn(label: Text("Percentage",style: TextStyle(fontWeight: FontWeight.bold))),
+                    ],
 
-                rows: Records.map((record) {
-                  bool isLowAttendance = record.atten_pr! < 50;
-                  return DataRow(
-                    color: isLowAttendance
-                        ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
-                        : null,
-                    cells: [
-                      DataCell(Text(record.stud_id)),
-                      DataCell(Text(record.stud_name)),
-                      ...allDates.map((date) {
-                        String status = record.attend?[date] ?? '-';
-                        return DataCell(
-                          Center(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                              decoration: BoxDecoration(
-                                color: getStatusColor(status),
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              child: Text(
-                                status,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold
+                    rows: Records.map((record) {
+                      bool isLowAttendance = record.atten_pr! < 50;
+                      return DataRow(
+                        color: isLowAttendance
+                            ? MaterialStateProperty.all(Colors.red.withOpacity(0.2))
+                            : null,
+                        cells: [
+                          DataCell(Text(record.stud_id)),
+                          DataCell(Text(record.stud_name)),
+                          ...allDates.map((date) {
+                            String status = record.attend?[date] ?? '-';
+                            return DataCell(
+                              Center(
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                                  decoration: BoxDecoration(
+                                    color: getStatusColor(status),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Text(
+                                    status,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-
-                      DataCell(Text("${record.atten_pr!.toStringAsFixed(2)}%",
-                          style: TextStyle(fontWeight: FontWeight.bold, color: record.atten_pr! < 50 ? Colors.red : Colors.green)
-                      )),
-                    ],
-                  );
-                }).toList(),
+                            );
+                          }).toList(),
+                          DataCell(Text("${record.atten_pr!.toStringAsFixed(2)}%",
+                              style: TextStyle(fontWeight: FontWeight.bold, color: record.atten_pr! < 50 ? Colors.red : Colors.green)
+                          )),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
       floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          FloatingActionButton(onPressed: _exportToExcel,child: Icon(Icons.download,color: Colors.red,),),
-          FloatingActionButton(onPressed: ()=>showAttendanceLineChart(context,sum),child: Icon(Icons.download,color: Colors.red,),),
+          FloatingActionButton(
+            onPressed: _exportToExcel,
+            child: Icon(Icons.download,color: Colors.red,),
+          ),
+          SizedBox(height: 10,),
+          FloatingActionButton(
+            onPressed: ()=>showAttendanceLineChart(context,sum),
+            child: Icon(Icons.show_chart_rounded,color: Colors.blue,),
+          ),
         ],
       )
     );
@@ -483,15 +512,14 @@ class _attend_sheetState extends State<attend_sheet> {
   }
 
   Future<void> showAttendanceLineChart(BuildContext context, Map<String, int> dataMap) async {
-    // Convert the Map data into a list of FlSpot (x, y) points
-    List<FlSpot> chartData = [];
-    int index = 0;
-    dataMap.forEach((key, value) {
-      chartData.add(FlSpot(index.toDouble(), value.toDouble()));
-      index++;
-    });
+    List<String> sorted_dates=dataMap.keys.toList()..sort();
 
-    double maxY = dataMap.values.isNotEmpty ? dataMap.values.reduce(max).toDouble() + 1 : 10.0;
+    List<FlSpot> spots=[];
+    for(int i=0;i<sorted_dates.length;i++){
+      String date=sorted_dates[i];
+      int yval=dataMap[date]!;
+      spots.add(FlSpot(i.toDouble(), yval.toDouble()));
+    }
 
     await showDialog(
       context: context,
@@ -500,46 +528,63 @@ class _attend_sheetState extends State<attend_sheet> {
           title: Text('Attendance'),
           content: Container(
             width: double.maxFinite,
-            height: 300,
+            height: double.maxFinite,
             child: LineChart(
               LineChartData(
                 minY: 0,
-                maxY: maxY,
+                maxY: total_students.toDouble()+5,
                 lineBarsData: [
                   LineChartBarData(
-                    spots: chartData,
-                    isCurved: true,
-                    color: Colors.blue,
+                    spots: spots,
+                    isCurved: false,
+                    gradient: LinearGradient(colors: [Colors.blueAccent, Colors.lightBlueAccent]),
                     barWidth: 2,
-                    dotData: FlDotData(show: true),
+                    isStrokeCapRound: true,
                   ),
                 ],
+                gridData: FlGridData(show: false),
                 titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        int idx = value.toInt();
-                        if (idx >= 0 && idx < dataMap.keys.length) {
-                          return Text(
-                            dataMap.keys.elementAt(idx),
-                            style: const TextStyle(fontSize: 10),
-                          );
-                        }
-                        return const Text('');
-                      },
-                    ),
+                  rightTitles:  AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: false,
+                      )
+                  ),
+                  topTitles:  AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: false,
+                      )
                   ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      getTitlesWidget: (value, meta) => Text(
-                        value.toString(),
-                        style: const TextStyle(fontSize: 10),
+                      getTitlesWidget: (value, meta) => Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Text('${value.toInt()}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                       ),
+                      interval: 10
                     ),
                   ),
-                )
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        int index = value.toInt();
+                        if (index >= 0 && index < sorted_dates.length) {
+                          return Transform.rotate(
+                            angle: -0.90,
+                            child: Text(
+                              sorted_dates[index],
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+                            ),
+                          );
+                        }
+                        return Container();
+                      },
+                      interval: 1,
+                    ),
+                  ),
+                ),
+
               ),
             ),
           ),
