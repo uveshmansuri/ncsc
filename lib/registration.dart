@@ -198,9 +198,13 @@ class _RegistrationState extends State<regestration> {
         try {
           await _auth.createUserWithEmailAndPassword(
               email: email, password: passTextController.text);
-          sendEmail(email, userTextController.text, passTextController.text, role);
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => homePage(studentName)));
+          if (role == "student") {
+            // For students, send verification email and navigate to the email_verification page.
+            sendEmail(email, userTextController.text, passTextController.text, role);
+          } else if (role == "faculty") {
+            // For faculty, navigate directly to the faculty home page.
+                sendEmail(email, userTextController.text, passTextController.text, role);
+          }
         } catch (e) {
           Fluttertoast.showToast(msg: e.toString());
         }
@@ -208,7 +212,7 @@ class _RegistrationState extends State<regestration> {
         Fluttertoast.showToast(msg: "Invalid User ID");
       }
     }
-  }
+}
 
   void sendEmail(String email, String userName, String pass, String role) async {
     try {

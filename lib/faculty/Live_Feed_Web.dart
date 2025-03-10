@@ -37,8 +37,7 @@ class _Live_feed_webState extends State<Live_feed_web> {
   Timer? _timer;
   bool _isProcessingFrame = false;
   String _reportText="";
-  final String serverIp = "192.168.43.172";
-  //final String serverIp = "192.168.1.177";
+  final String serverIp = "192.168.43.172";  //final String serverIp = "192.168.1.177";
   html.MediaStream? _mediaStream;
 
   @override
