@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
           {'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage()},
           {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
 
-          {'icon': Icons.access_time, 'label': 'Annocument', 'page': StudentCircularsPage()},
+          {'icon': Icons.announcement, 'label': 'Annocument', 'page': StudentCircularsPage()},
           {'icon': Icons.access_time, 'label': 'departmentlist', 'page': DepartmentList()},
 
           {'icon': Icons.grade, 'label': 'Marks', 'page': InternalMarksPage()},
