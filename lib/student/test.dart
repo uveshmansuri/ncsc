@@ -121,7 +121,7 @@ class _Test_detailsState extends State<Test_details> {
         child: Column(
           children: [
             ListTile(
-              leading: Icon(Icons.assignment,size: 40,color: Colors.lightBlue,),
+              leading: Icon(Icons.assignment,size: 40,color: Colors.blueAccent,),
               title: Text("Topics",style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold),),
               trailing: Text("Total Questions:${widget.obj.no}"),
             ),
