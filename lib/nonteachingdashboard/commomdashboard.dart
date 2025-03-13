@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:image_picker/image_picker.dart';
+import '../admin/students.dart';
 import 'circularnonteaching.dart';
 import 'clerkpage.dart';
 import 'complainnonteaching.dart';
 import 'computerlabdashboard.dart';
+import 'notesforall.dart';
 import 'officesupriender.dart';
 import 'sciencelabdashboard.dart';
 
@@ -135,9 +137,7 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
     );
   }
 
-  // Method to show the edit dialog for profile
   void showEditDialog() {
-    // Use a temporary variable to hold the new image before saving.
     String? tempImage = _base64Image;
     showDialog(
       context: context,
@@ -319,32 +319,76 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
                     icon: Icons.report_problem,
                     page: complainnonteaching(),
                   ),
-                  if (userRoles.contains("Lab Assistant"))
+
+                  if (userRoles.contains("Lab Assistant")) ...[
                     buildDashboardItem(
                       title: "Lab Assistant Page",
                       icon: Icons.computer,
+                      page: CalendarScreen(username: widget.username),
+                    ),
+                    buildDashboardItem(
+                      title: "Attendance",
+                      icon: Icons.computer,
                       page: computerlabdashboard(),
                     ),
-                  if (userRoles.contains("science_lab_assistant"))
+                    buildDashboardItem(
+                      title: "Library",
+                      icon: Icons.computer,
+                      page: computerlabdashboard(),
+                    ),
+                    buildDashboardItem(
+                      title: "Notes",
+                      icon: Icons.computer,
+                      page: CalendarScreen(username: widget.username),
+                    ),
+                  ],
+
+                  if (userRoles.contains("science_lab_assistant")) ...[
                     buildDashboardItem(
                       title: "Science Lab Page",
                       icon: Icons.science,
                       page: sciencelab(),
                     ),
-                  if (userRoles.contains("Clerk"))
+                    buildDashboardItem(
+                      title: "Material requirement",
+                      icon: Icons.science,
+                      page: sciencelab(),
+                    ),
+                  ],
+
+                  if (userRoles.contains("Clerk")) ...[
                     buildDashboardItem(
                       title: "Clerk Page",
                       icon: Icons.assignment_ind,
                       page: ClerkPage(),
                     ),
-                  if (userRoles.contains("office_superintendent"))
+                    buildDashboardItem(
+                      title: "Student",
+                      icon: Icons.computer,
+                      page: Students(),
+                    ),
+                    buildDashboardItem(
+                      title: "Notes",
+                      icon: Icons.computer,
+                      page: CalendarScreen(username: widget.username),
+                    ),
+                  ],
+
+                  if (userRoles.contains("office_superintendent")) ...[
                     buildDashboardItem(
                       title: "Office Superintendent Page",
                       icon: Icons.apartment,
                       page: OfficeSuperintendentPage(),
                     ),
+                    buildDashboardItem(
+                      title: "Request",
+                      icon: Icons.request_page,
+                      page: OfficeSuperintendentPage(),
+                    ),
+                  ],
                 ],
               ),
+
             ),
           ],
         ),

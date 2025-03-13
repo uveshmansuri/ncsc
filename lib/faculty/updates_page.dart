@@ -16,8 +16,6 @@ class UpdatesPage extends StatelessWidget {
           children: [                                       //quizzzzzzzzzzzzzz
             CustomCard(title: "Alert", navigateTo: AlertPage()),
             SizedBox(height: 16),
-            CustomCard(title: "Circular", navigateTo: CircularPage()),
-            SizedBox(height: 16),
             CustomCard(title: "News for you", navigateTo:  NewsScreen()),
           ],
         ),

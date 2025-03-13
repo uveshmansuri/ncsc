@@ -9,6 +9,7 @@ import 'DBADashboard.dart';
 import 'faculty/Subject_List_Faculty.dart';
 import 'faculty/main_faculty.dart';
 import 'firebase_options.dart';
+import 'nonteachingdashboard/notesforall.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
