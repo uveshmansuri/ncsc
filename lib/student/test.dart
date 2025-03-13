@@ -1,12 +1,9 @@
-import 'dart:convert';
-
 import 'package:NCSC/faculty/Tests_list.dart';
 import 'package:NCSC/student/Test_Screen.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:http/http.dart' as http;
 
 class TestPage extends StatefulWidget {
   var stud_id,dept,sem;
@@ -267,6 +264,8 @@ class _Test_detailsState extends State<Test_details> {
   //
 }
 }
+
+
 class mcq_model{
   var quetion,op1,op2,op3,op4,corr_op;
   mcq_model({
