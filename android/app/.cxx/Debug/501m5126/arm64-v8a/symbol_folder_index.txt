@@ -1,0 +1,1 @@
+D:\ncsc\build\app\intermediates\cxx\Debug\501m5126\obj\arm64-v8a

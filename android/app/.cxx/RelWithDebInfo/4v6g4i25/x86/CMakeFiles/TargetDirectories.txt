@@ -1,0 +1,2 @@
+D:/ncsc/android/app/.cxx/RelWithDebInfo/4v6g4i25/x86/CMakeFiles/edit_cache.dir
+D:/ncsc/android/app/.cxx/RelWithDebInfo/4v6g4i25/x86/CMakeFiles/rebuild_cache.dir
