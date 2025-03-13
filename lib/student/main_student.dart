@@ -4,24 +4,36 @@ import 'package:NCSC/student/queryraising.dart';
 import 'package:NCSC/student/syllabus.dart';
 import 'package:NCSC/student/test.dart';
 import 'package:NCSC/student/timetable.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
-
 class StudentDashboard extends StatefulWidget {
+  var stud_id;
+  StudentDashboard({required this.stud_id});
   @override
   _StudentDashboardState createState() => _StudentDashboardState();
 }
 
 class _StudentDashboardState extends State<StudentDashboard> {
   int _currentIndex = 1;
+  var stud_id,stud_name,dept,sem,email;
 
-  final List<Widget> _pages = [
-    Center(child: Text("🔔 Updates", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-    HomeScreen(),
-    Center(child: Text("👤 Profile", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-  ];
+  List<Widget> _pages=[];
+
+  bool flag=false;
+
+  @override
+  void initState() {
+    stud_id=widget.stud_id;
+    super.initState();
+    _pages = [
+      Center(child: Text("🔔 Updates", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+      HomeScreen(stud_id),
+      Center(child: Text("👤 Profile", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+    ];
+  }
 
   void _onTabTapped(int index) {
     setState(() {
@@ -39,7 +51,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
         },
         child: _pages[_currentIndex],
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
@@ -59,20 +70,55 @@ class _StudentDashboardState extends State<StudentDashboard> {
   }
 }
 
-// Home Screen with navigation to new pages
-class HomeScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> _iconList = [
-    {'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage()},
-    {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
-    // {'icon': Icons.announcement, 'label': 'Announcement', 'page': AnnouncementPage()},
-    // {'icon': Icons.quiz, 'label': 'Aptitude Test', 'page': AptitudeTestPage()},
-    {'icon': Icons.grade, 'label': 'Marks', 'page': InternalMarksPage()},
+class HomeScreen extends StatefulWidget {
+  var stud_id;
+  HomeScreen(this.stud_id);
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-  ];
+class _HomeScreenState extends State<HomeScreen> {
+  List<Map<String, dynamic>> _iconList=[];
+  var stud_name,dept,sem,email;
+
+  bool flag=false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetch_student_details();
+  }
+
+  void fetch_student_details() async{
+    try {
+      var db=await FirebaseDatabase.instance.ref("Students").child(widget.stud_id).get();
+      stud_name=db.child("name").value.toString();
+      dept=db.child("dept").value.toString();
+      sem=db.child("sem").value.toString();
+      email=db.child("email").value.toString();
+      flag=true;
+      setState(() {
+        _iconList = [
+          {'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage()},
+          {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
+          {'icon': Icons.grade, 'label': 'Marks', 'page': InternalMarksPage()},
+          {'icon': Icons.assignment,
+            'label': 'Test',
+            'page': TestPage(stud_id: widget.stud_id, dept: dept, sem: sem)
+          },
+        ];
+        print(flag);
+      });
+    } on Exception catch (e) {
+      print(e.toString());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return flag==true
+        ?
+    Column(
       children: [
         Stack(
           children: [
@@ -99,7 +145,7 @@ class HomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Welcome, Student!",
+                        "Welcome, ${stud_name}!",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -118,7 +164,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   CircleAvatar(
                     radius: 25,
-                    backgroundImage: AssetImage('assets/images/profile.png'),
+                    backgroundImage: AssetImage('assets/images/student_profile.png'),
                   ),
                 ],
               ),
@@ -151,7 +197,9 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
+    )
+        :
+    Center(child: CircularProgressIndicator(),);
   }
 
   Widget _buildIconCard(IconData icon, String label) {
@@ -188,6 +236,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+
 
 // class DashboardPage extends StatefulWidget {
 //   @override

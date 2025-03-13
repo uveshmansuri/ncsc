@@ -65,7 +65,8 @@ class _HomePageState extends State<HomePage> {
           buildCard(context, "Schedule", Icons.schedule, SchedulePage()),
           buildCard(context, "Attendance", Icons.check_circle, faculty_sub_lst(widget.fid, 0)),
           buildCard(context, "Internal Marks", Icons.score, faculty_sub_lst(widget.fid, 1)),
-          buildCard(context, "Assignment", Icons.assignment, faculty_sub_lst(widget.fid, 2)),
+          buildCard(context, "Assignment", Icons.menu_book, faculty_sub_lst(widget.fid, 2)),
+          buildCard(context, "Test", Icons.assignment, faculty_sub_lst(widget.fid, 3)),
         ],
       ),
     );

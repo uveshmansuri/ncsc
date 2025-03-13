@@ -166,12 +166,14 @@ class _loginState extends State<login> {
           if (role == "admin") {
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => DBA_Dashboard()));
-          } else if (role == "faculty") {
+          }
+          else if (role == "faculty") {
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => FacultyMain(username)));
-          } else if (role == "student") {
+          }
+          else if (role == "student") {
             Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => StudentDashboard()));
+                MaterialPageRoute(builder: (context) => StudentDashboard(stud_id: username,)));
           }
         } else {
           Fluttertoast.showToast(
@@ -222,8 +224,6 @@ class _loginState extends State<login> {
     }
   }
 }
-
-
 
 
 

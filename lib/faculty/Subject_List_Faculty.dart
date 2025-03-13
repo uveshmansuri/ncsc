@@ -1,3 +1,4 @@
+import 'package:NCSC/faculty/Tests_list.dart';
 import 'package:NCSC/faculty/addassignment.dart';
 import 'package:NCSC/faculty/attendancetake.dart';
 import 'package:NCSC/faculty/internalmarkssend.dart';
@@ -102,6 +103,18 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
                               Navigator.push(context,
                                   MaterialPageRoute(builder:
                                       (context)=>AssignmentPage(subjectName: sub_list[i].sname,dept:sub_list[i].dept,faculty: widget.fid,sem: sub_list[i].sem)
+                                  )
+                              );
+                            }
+                            if(widget.flag==3){
+                              Navigator.push(context,
+                                  MaterialPageRoute(
+                                      builder: (context)=>Test_list(
+                                        dept: sub_list[i].dept,
+                                        sem: sub_list[i].sem,
+                                        sub: sub_list[i].sname,
+                                        fid: sub_list[i].fid,
+                                      )
                                   )
                               );
                             }

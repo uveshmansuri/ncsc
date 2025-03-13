@@ -111,7 +111,7 @@ class _email_verificationState extends State<email_verification> {
       } else if (role == "student") {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => StudentDashboard()),
+          MaterialPageRoute(builder: (context) => StudentDashboard(stud_id:user_name)),
               (route) => false,
         );
       }

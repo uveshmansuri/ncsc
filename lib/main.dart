@@ -3,7 +3,10 @@ import 'package:NCSC/faculty/faculty_home.dart';
 import 'package:NCSC/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:get/get.dart';
+import 'Conectivity_Check/controller.dart';
 import 'DBADashboard.dart';
+import 'faculty/Subject_List_Faculty.dart';
 import 'faculty/main_faculty.dart';
 import 'firebase_options.dart';
 
@@ -13,6 +16,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(MY_APP());
+  Get.put(InternetController(),permanent: true);
 }
 
 class MY_APP extends StatelessWidget {
