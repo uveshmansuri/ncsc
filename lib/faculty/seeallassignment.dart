@@ -207,7 +207,7 @@ class _AssignmentPageState extends State<AssignmentPage> {
             );
           },
             errorBuilder: (context, error, stackTrace) {
-              return Center(child: Text("Failed to load image", style: TextStyle(color: Colors.red)));
+              return Center(child: Text("Failed to load image\n${error.toString()}", style: TextStyle(color: Colors.red)));
             },
           )
               :
