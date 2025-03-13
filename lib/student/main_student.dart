@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
+import 'annoucementstudent.dart';
+
 
 class StudentDashboard extends StatefulWidget {
   @override
@@ -64,9 +66,10 @@ class HomeScreen extends StatelessWidget {
   final List<Map<String, dynamic>> _iconList = [
     {'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage()},
     {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
-    // {'icon': Icons.announcement, 'label': 'Announcement', 'page': AnnouncementPage()},
+    {'icon': Icons.announcement, 'label': 'Announcement', 'page': StudentCircularsPage()},
     // {'icon': Icons.quiz, 'label': 'Aptitude Test', 'page': AptitudeTestPage()},
     {'icon': Icons.grade, 'label': 'Marks', 'page': InternalMarksPage()},
+    {'icon': Icons.grade, 'label': 'Department Information', 'page': DepartmentList()},
 
   ];
 

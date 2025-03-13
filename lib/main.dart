@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'DBADashboard.dart';
 import 'faculty/main_faculty.dart';
 import 'firebase_options.dart';
+import 'nonteachingdashboard/notesforall.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
