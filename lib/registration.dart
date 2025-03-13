@@ -165,7 +165,7 @@ class _RegistrationState extends State<regestration> {
   }
 
   void facultyReg() async {
-    final dbRef = FirebaseDatabase.instance.ref().child("Faculty");
+    final dbRef = FirebaseDatabase.instance.ref().child("Staff/faculty");
     processRegistration(dbRef, "faculty", (String id) => FacultyMain(id));
   }
 

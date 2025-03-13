@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
+import 'annoucementstudent.dart';
+
 class StudentDashboard extends StatefulWidget {
   var stud_id;
   StudentDashboard({required this.stud_id});
@@ -101,6 +103,10 @@ class _HomeScreenState extends State<HomeScreen> {
         _iconList = [
           {'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage()},
           {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
+
+          {'icon': Icons.access_time, 'label': 'Annocument', 'page': StudentCircularsPage()},
+          {'icon': Icons.access_time, 'label': 'departmentlist', 'page': DepartmentList()},
+
           {'icon': Icons.grade, 'label': 'Marks', 'page': InternalMarksPage()},
           {'icon': Icons.assignment,
             'label': 'Test',
