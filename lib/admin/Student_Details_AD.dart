@@ -223,7 +223,7 @@ class _Stud_ADState extends State<Stud_AD> {
       _response = "Preparing...";
     });
     print("p..");
-    var uri = Uri.parse('http://192.168.1.167:8000/encode');
+    var uri = Uri.parse('http://192.168.1.176:8000/encode');
     List<dynamic>? _faceEncodings;
     print("Starting....");
     var request = http.MultipartRequest('POST', uri)
@@ -231,7 +231,7 @@ class _Stud_ADState extends State<Stud_AD> {
     print("Preparing.....");
     try {
       setState(() {
-        _response="Getting Encodings......";
+        _response="  Encodings......";
       });
       print("Getting Encodings......");
       var response = await request.send();
@@ -239,7 +239,6 @@ class _Stud_ADState extends State<Stud_AD> {
       var responseData = await response.stream.bytesToString();
 
       var decodedData = jsonDecode(responseData);
-
         if(response.statusCode == 200){
           _faceEncodings = decodedData['encodings'];
           print("Len:${_faceEncodings?.length}");

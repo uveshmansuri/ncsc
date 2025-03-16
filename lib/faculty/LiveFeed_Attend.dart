@@ -29,7 +29,7 @@ class _Live_AttendState extends State<Live_Attend> {
   int _selectedCameraIndex = 0;
   Timer? _timer;
   String _reportText = "";
-  final String serverIp = "192.168.1.167";      //Server IP [IPv4 Adddress WIFI of Laptop]
+  final String serverIp = "192.168.43.78";      //Server IP [IPv4 Adddress WIFI of Laptop]
   bool _fetching=false;
 
   @override

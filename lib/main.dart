@@ -1,6 +1,7 @@
 import 'package:NCSC/admin/students.dart';
 import 'package:NCSC/faculty/faculty_home.dart';
 import 'package:NCSC/splash.dart';
+import 'package:NCSC/student/test.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -27,7 +28,7 @@ class MY_APP extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'NCSC',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: splash(),
+      home: splash()
     );
   }
 }

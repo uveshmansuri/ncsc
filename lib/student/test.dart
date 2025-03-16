@@ -15,6 +15,7 @@ class TestPage extends StatefulWidget {
 
 class _TestPageState extends State<TestPage> {
   List<test_model> test_list=[];
+  var test_result=null;
   @override
   void initState() {
     super.initState();
@@ -23,26 +24,29 @@ class _TestPageState extends State<TestPage> {
 
   void fetch_test() async{
     var db=FirebaseDatabase.instance.ref("Test/${widget.dept}/${widget.sem}");
-    await db.onValue.listen((event){
-      print(event.snapshot.exists);
-          for(DataSnapshot sp in event.snapshot.children){
-            var id=sp.key;
-            var title=sp.child("title").value.toString();
-            var no=sp.child("no_ques").value.toString();
-            var start=sp.child("starting").value.toString();
-            var end=sp.child("ending").value.toString();
-            var level=sp.child("level").value.toString();
-            var time_per_que=sp.child("time_que").value.toString();
-            var topics=sp.child("topics").value as List;
-            var sub=sp.child("sub").value.toString();
-            test_list.add(test_model(
-                id: id, title: title, no: no, start: start, end: end,
-                level: level,time_que: time_per_que,topics: topics,sub: sub
-            ));
-            setState(() {
+    await db.onChildAdded.listen((event){
+      if (event.snapshot.exists){
+        DataSnapshot sp=event.snapshot;
+        var id=sp.key;
+        var title=sp.child("title").value.toString();
+        var no=sp.child("no_ques").value.toString();
+        var start=sp.child("starting").value.toString();
+        var end=sp.child("ending").value.toString();
+        var level=sp.child("level").value.toString();
+        var time_per_que=sp.child("time_que").value.toString();
+        var topics=sp.child("topics").value as List;
+        var sub=sp.child("sub").value.toString();
+        if(sp.child("Report/${widget.stud_id}").exists){
+          test_result=sp.child("Report/${widget.stud_id}").child("result").value.toString();
+        }
+        test_list.add(test_model(
+            id: id, title: title, no: no, start: start, end: end,
+            level: level,time_que: time_per_que,topics: topics,sub: sub
+        ));
+        setState(() {
 
-            });
-          }
+        });
+      }
     });
   }
 
@@ -79,7 +83,9 @@ class _TestPageState extends State<TestPage> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context)=>Test_details(widget.stud_id,test_list[i])
+                              builder: (context)=>Test_details(
+                                  widget.stud_id,test_list[i],widget.dept,widget.sem,test_result
+                              )
                           )
                       );
                     },
@@ -95,8 +101,9 @@ class _TestPageState extends State<TestPage> {
 
 class Test_details extends StatefulWidget{
   test_model obj;
-  var stud_id;
-  Test_details(this.stud_id,this.obj);
+  var stud_id,dept,sem;
+  var test_result;
+  Test_details(this.stud_id,this.obj,this.dept,this.sem,this.test_result);
 
   @override
   State<Test_details> createState() => _Test_detailsState();
@@ -104,12 +111,14 @@ class Test_details extends StatefulWidget{
 
 class _Test_detailsState extends State<Test_details> {
   List topics=[];
+
   @override
   void initState() {
     super.initState();
     topics=widget.obj.topics as List;
     setState(() {});
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,6 +156,8 @@ class _Test_detailsState extends State<Test_details> {
             ),
             SizedBox(height: 10,),
             Divider(color: Colors.black45,thickness: 2,),
+            widget.test_result==null
+                ?
             Expanded(
               child: Column(
                 children: [
@@ -159,12 +170,16 @@ class _Test_detailsState extends State<Test_details> {
                     }else if(currentDateTime.isAfter(end_date_time)){
                       Fluttertoast.showToast(msg: "Test is Expired");
                     }else{
-                      //generate_ques();
+                      generate_ques();
                     }
                   }, child: Text("Start Test")),
                 ],
               ),
             )
+                :
+            Expanded(
+                child: Text("Result of Test is ${widget.test_result}")
+            ),
           ],
         ),
       ),
@@ -183,8 +198,8 @@ class _Test_detailsState extends State<Test_details> {
         sub_name +
         " of deficulty "+ level+
         " level questions "+
-        " include given topics:\n($all_topics)"
-            " It should generate single string containing all questions with 4 unique option and also" +
+        " include given topics:\n($all_topics)"+
+        " It should generate single string containing all questions with 4 unique option and also" +
         " add correct option " +
         "the generated string is into given formate " +
         "question###option1###option2###option3###option4###correct_option~=~=" +
@@ -205,21 +220,26 @@ class _Test_detailsState extends State<Test_details> {
     var prompt=get_query();
     List<mcq_model> mcq_list=[];
     int no_ques=int.parse(widget.obj.no);
+
+    String res="";
+
     for(int i=10;i<=no_ques;i+=10){
       try {
         final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: key);
+        if(!res.isEmpty){
+          prompt+=" also don't repeat below \n${res}";
+        }
         final content = [Content.text(prompt)];
         print("Getting Response");
         final response = await model.generateContent(content);
+        res+= "${response.text}";
         List<String> lines=response.text!.split("~=~=");
         for(var len in lines){
           List<String> que_content=len.split("###");
-          //print("Q."+que_content[0]);
-          //print("A."+que_content[1]);
-          //print("B."+que_content[2]);
-          //print("C."+que_content[3]);
-          //print("D."+que_content[4]);
-          //print("Right."+que_content[5]);
+          if(que_content.length!=6){
+            Fluttertoast.showToast(msg: "Something went wrong!!!\nPlease try Again Later!!!");
+            break;
+          }
           mcq_list.add(mcq_model(
               quetion: que_content[0], op1: que_content[1],
               op2: que_content[2], op3: que_content[3], op4: que_content[4],
@@ -230,8 +250,9 @@ class _Test_detailsState extends State<Test_details> {
         print(e.toString());
       }
     }
+
     if(mcq_list.length==no_ques){
-      Navigator.push(
+      var result=await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context)=>TestScreen(
@@ -239,32 +260,60 @@ class _Test_detailsState extends State<Test_details> {
               )
           )
       );
+      if(result==null || result==false){
+        await FirebaseDatabase.instance
+            .ref("Test/${widget.dept}/${widget.sem}/${widget.obj.id}/Report")
+            .child(widget.stud_id)
+            .set({"result":"Terminated"})
+            .then((_){
+              Fluttertoast.showToast(msg: "Test Terminated");
+            })
+            .catchError((err){
+              Fluttertoast.showToast(msg: err.toString());
+            });
+        //print(result);
+      }
+      else{
+        Fluttertoast.showToast(msg: "${result[0]}/${result[1]}");
+        await FirebaseDatabase.instance
+            .ref("Test/${widget.dept}/${widget.sem}/${widget.obj.id}/Report")
+            .child("${widget.stud_id}")
+            .set({"result":"${result[0]} out of ${result[1]}"})
+            .then((_){
+              Fluttertoast.showToast(msg: "Test Finished\nScore:${result[0]} out of ${result[1]}");
+            })
+            .catchError((err){
+              Fluttertoast.showToast(msg: err.toString());
+            });
+      }
     }
-  //   print(mcq_list.length);
-  //   // var model=AzureAIChat();
-  //   // var response=await model.getChatResponse(prompt);
-  //   //   List<String> lines=response.split("~=~=");
-  //   //   for(var len in lines){
-  //   //     List<String> que_content=len.split("###");
-  //   //     print("Q."+que_content[0]);
-  //   //     print("A."+que_content[1]);
-  //   //     print("B."+que_content[2]);
-  //   //     print("C."+que_content[3]);
-  //   //     print("D."+que_content[4]);
-  //   //     print("Right."+que_content[5]);
-  //   //     mcq_list.add(mcq_model(
-  //   //             quetion: que_content[0], op1: que_content[1],
-  //   //             op2: que_content[2], op3: que_content[3], op4: que_content[4],
-  //   //             corr_op: que_content[5]
-  //   //     ));
-  //   //   }
-  //   //   print(lines.length);
-  //   //print(prompt);
-  // }
-  //
+    else{
+      Fluttertoast.showToast(msg: "Something went wrong!!\nPlease try Again Later!!");
+    }
+    //   print(mcq_list.length);
+    //   // var model=AzureAIChat();
+    //   // var response=await model.getChatResponse(prompt);
+    //   //   List<String> lines=response.split("~=~=");
+    //   //   for(var len in lines){
+    //   //     List<String> que_content=len.split("###");
+    //   //     print("Q."+que_content[0]);
+    //   //     print("A."+que_content[1]);
+    //   //     print("B."+que_content[2]);
+    //   //     print("C."+que_content[3]);
+    //   //     print("D."+que_content[4]);
+    //   //     print("Right."+que_content[5]);
+    //   //     mcq_list.add(mcq_model(
+    //   //             quetion: que_content[0], op1: que_content[1],
+    //   //             op2: que_content[2], op3: que_content[3], op4: que_content[4],
+    //   //             corr_op: que_content[5]
+    //   //     ));
+    //   //   }
+    //   //   print(lines.length);
+    //   //print(prompt);
+    // }
+    //
+  }
 }
-}
-
 
 class mcq_model{
   var quetion,op1,op2,op3,op4,corr_op;

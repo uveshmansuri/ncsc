@@ -1,4 +1,5 @@
 import 'package:NCSC/faculty/CreateTest.dart';
+import 'package:NCSC/faculty/Test_Report.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,23 +23,22 @@ class _Test_listState extends State<Test_list> {
   void fetch_tests() async{
     var ref = FirebaseDatabase.instance.ref("Test/${widget.dept}/${widget.sem}");
     await ref.orderByChild("sub").equalTo(widget.sub)
-        .onValue.listen(
+        .onChildAdded.listen(
             (event){
               if (event.snapshot.exists){
-                for(DataSnapshot sp in event.snapshot.children){
-                  var id=sp.key;
-                  var title=sp.child("title").value.toString();
-                  var no=sp.child("no_ques").value.toString();
-                  var start=sp.child("starting").value.toString();
-                  var end=sp.child("ending").value.toString();
-                  var level=sp.child("level").value.toString();
-                  var time_per_que=sp.child("time_que").value.toString();
-                  test_list.add(test_model(
-                      id: id, title: title, no: no, start: start, end: end, 
-                      level: level,time_que: time_per_que
-                  ));
-                  setState(() {});
-                }
+                DataSnapshot sp=event.snapshot;
+                var id=sp.key;
+                var title=sp.child("title").value.toString();
+                var no=sp.child("no_ques").value.toString();
+                var start=sp.child("starting").value.toString();
+                var end=sp.child("ending").value.toString();
+                var level=sp.child("level").value.toString();
+                var time_per_que=sp.child("time_que").value.toString();
+                test_list.add(test_model(
+                    id: id, title: title, no: no, start: start, end: end,
+                    level: level,time_que: time_per_que
+                ));
+                setState(() {});
               }
             }
     );
@@ -73,6 +73,15 @@ class _Test_listState extends State<Test_list> {
                       "Total Questions:${test_list[i].no}\nLevel:${test_list[i].level}",
                       style: TextStyle(fontSize: 15,color: Colors.black45),
                     ),
+                    onTap: (){
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context)=>
+                              TestReportScreen(dept: widget.dept,sem: widget.sem,test_id: test_list[i].id,)
+                          )
+                      );
+                    },
                   ),
                 );
               }
