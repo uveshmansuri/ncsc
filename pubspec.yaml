@@ -45,7 +45,7 @@ dependencies:
   fluttertoast: ^8.2.10
 
   #shared_preferences:
-#  shared_preferences: ^2.3.5
+  shared_preferences: ^2.5.2
 
   #firebase
   firebase_database: ^11.2.0
