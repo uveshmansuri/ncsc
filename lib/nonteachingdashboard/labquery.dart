@@ -25,7 +25,6 @@ class _FetchComputerLabQueriesState extends State<FetchComputerLabQueries> {
         List<Map<String, dynamic>> tempList = [];
 
         if (rawData is List<dynamic>) {
-          // ✅ Case: `Query/computerlab` is a List with Maps inside
           for (var item in rawData) {
             if (item is Map<dynamic, dynamic>) {
               item.forEach((queryId, queryData) {
@@ -100,8 +99,6 @@ class _FetchComputerLabQueriesState extends State<FetchComputerLabQueries> {
         String path = studId != null && studId.isNotEmpty
             ? 'Query/computerlab/$studId/$queryId'
             : 'Query/computerlab/$queryId';
-
-        // Update the existing query to add the 'resolved' field
         await _database.child(path).update({'resolved': true});
         setState(() {
           computerLabQueries[index]['resolved'] = true;

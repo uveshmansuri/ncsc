@@ -277,7 +277,7 @@ class _LabQueryPageState extends State<LabQueryPage> {
 
 
 
-
+//createlabquery
 class CreateLabQueryPage extends StatefulWidget {
   final String stud_id;
   final String dept;
@@ -348,7 +348,7 @@ class _CreateLabQueryPageState extends State<CreateLabQueryPage> {
       if (uploadedImageUrl != null && uploadedImageUrl.isNotEmpty) {
         queryData['image'] = uploadedImageUrl;
       }
-      
+
       DatabaseReference ref = FirebaseDatabase.instance
           .ref("Query/$labType/${widget.stud_id}")
           .push();
