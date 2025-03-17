@@ -16,7 +16,6 @@ class _FetchComputerLabQueriesState extends State<FetchComputerLabQueries> {
     _fetchAllQueries();
   }
 
-  /// ✅ Fetch Queries (Handles Both List & Map Cases)
   void _fetchAllQueries() async {
     try {
       DatabaseEvent event = await _database.child('Query/computerlab').once();
@@ -43,7 +42,7 @@ class _FetchComputerLabQueriesState extends State<FetchComputerLabQueries> {
             }
           }
         } else if (rawData is Map<dynamic, dynamic>) {
-          // ✅ Case: `Query/computerlab/{stud_id}/{query_id}`
+
           rawData.forEach((studId, queries) {
             if (queries is Map<dynamic, dynamic>) {
               queries.forEach((queryId, queryData) {
@@ -79,7 +78,6 @@ class _FetchComputerLabQueriesState extends State<FetchComputerLabQueries> {
 
   void _resolveQuery(String? studId, String queryId, int index) async {
     try {
-      // Show confirmation dialog before resolving
       bool confirm = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -99,7 +97,6 @@ class _FetchComputerLabQueriesState extends State<FetchComputerLabQueries> {
       );
 
       if (confirm == true) {
-        // Construct the correct path using studId and queryId
         String path = studId != null && studId.isNotEmpty
             ? 'Query/computerlab/$studId/$queryId'
             : 'Query/computerlab/$queryId';
@@ -115,11 +112,6 @@ class _FetchComputerLabQueriesState extends State<FetchComputerLabQueries> {
     }
   }
 
-
-
-
-
-  /// ✅ Show Image Dialog (Full-Screen)
   void _showImageDialog(String imageUrl) {
     showDialog(
       context: context,

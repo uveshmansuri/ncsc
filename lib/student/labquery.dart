@@ -128,7 +128,7 @@ class _LabQueryPageState extends State<LabQueryPage> {
         'description': description,
       });
 
-      fetchQueries();  // Refresh the list
+      fetchQueries();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Query updated successfully")),
       );
@@ -229,7 +229,7 @@ class _LabQueryPageState extends State<LabQueryPage> {
             icon: Icon(Icons.image, color: Colors.blue),
             onPressed: () => _showImage(query['image']),
           )
-              : null, // No image button if resolved or image is absent
+              : null,
           onLongPress: isResolved ? null : () => _showDeleteConfirmationDialog(query['key']),
         ),
       ),
@@ -348,8 +348,7 @@ class _CreateLabQueryPageState extends State<CreateLabQueryPage> {
       if (uploadedImageUrl != null && uploadedImageUrl.isNotEmpty) {
         queryData['image'] = uploadedImageUrl;
       }
-
-      // Using push() to generate a unique ID for each query
+      
       DatabaseReference ref = FirebaseDatabase.instance
           .ref("Query/$labType/${widget.stud_id}")
           .push();
