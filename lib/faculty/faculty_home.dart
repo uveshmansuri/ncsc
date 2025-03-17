@@ -13,7 +13,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? _base64Image;
+  String? _base64Image,post,dept;
   bool isLoading = true;
 
   @override
@@ -30,6 +30,8 @@ class _HomePageState extends State<HomePage> {
       if (data != null && data is Map) {
         setState(() {
           _base64Image = data["image"];
+          post=data['post'];
+          dept=data['department'];
           isLoading = false;
         });
       } else {
@@ -58,16 +60,24 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          buildCard(context, "Schedule", Icons.schedule, SchedulePage()),
-          buildCard(context, "Attendance", Icons.check_circle, faculty_sub_lst(widget.fid, 0)),
-          buildCard(context, "Internal Marks", Icons.score, faculty_sub_lst(widget.fid, 1)),
-          buildCard(context, "Assignment", Icons.menu_book, faculty_sub_lst(widget.fid, 2)),
-          buildCard(context, "Test", Icons.assignment, faculty_sub_lst(widget.fid, 3)),
-        ],
+          ?
+      Center(child: CircularProgressIndicator())
+          :
+      SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              if(post=="HOD")
+                build_Hod_widgets(),
+              buildCard(context, "Schedule", Icons.schedule, SchedulePage()),
+              buildCard(context, "Attendance", Icons.check_circle, faculty_sub_lst(widget.fid, 0,false,dept)),
+              buildCard(context, "Internal Marks", Icons.score, faculty_sub_lst(widget.fid, 1,false,dept)),
+              buildCard(context, "Assignment", Icons.menu_book, faculty_sub_lst(widget.fid, 2,false,dept)),
+              buildCard(context, "Test", Icons.assignment, faculty_sub_lst(widget.fid, 3,false,dept)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -84,6 +94,16 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(context, MaterialPageRoute(builder: (context) => page));
         },
       ),
+    );
+  }
+
+  Widget build_Hod_widgets(){
+    return Column(
+      children: [
+        buildCard(context, "Department Attendance Report", Icons.report, faculty_sub_lst(widget.fid, 0,true,dept)),
+        buildCard(context, "Department Internal Marks Report", Icons.report, faculty_sub_lst(widget.fid, 1,true,dept)),
+        buildCard(context, "Department Assignment Report", Icons.report, faculty_sub_lst(widget.fid, 2,true,dept)),
+      ],
     );
   }
 }

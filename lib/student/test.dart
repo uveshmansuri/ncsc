@@ -159,7 +159,7 @@ class _Test_detailsState extends State<Test_details> {
                     }else if(currentDateTime.isAfter(end_date_time)){
                       Fluttertoast.showToast(msg: "Test is Expired");
                     }else{
-                      generate_ques();
+                      //generate_ques();
                     }
                   }, child: Text("Start Test")),
                 ],
@@ -214,12 +214,12 @@ class _Test_detailsState extends State<Test_details> {
         List<String> lines=response.text!.split("~=~=");
         for(var len in lines){
           List<String> que_content=len.split("###");
-          print("Q."+que_content[0]);
-          print("A."+que_content[1]);
-          print("B."+que_content[2]);
-          print("C."+que_content[3]);
-          print("D."+que_content[4]);
-          print("Right."+que_content[5]);
+          //print("Q."+que_content[0]);
+          //print("A."+que_content[1]);
+          //print("B."+que_content[2]);
+          //print("C."+que_content[3]);
+          //print("D."+que_content[4]);
+          //print("Right."+que_content[5]);
           mcq_list.add(mcq_model(
               quetion: que_content[0], op1: que_content[1],
               op2: que_content[2], op3: que_content[3], op4: que_content[4],
@@ -240,30 +240,30 @@ class _Test_detailsState extends State<Test_details> {
           )
       );
     }
-    print(mcq_list.length);
-    // var model=AzureAIChat();
-    // var response=await model.getChatResponse(prompt);
-    //   List<String> lines=response.split("~=~=");
-    //   for(var len in lines){
-    //     List<String> que_content=len.split("###");
-    //     print("Q."+que_content[0]);
-    //     print("A."+que_content[1]);
-    //     print("B."+que_content[2]);
-    //     print("C."+que_content[3]);
-    //     print("D."+que_content[4]);
-    //     print("Right."+que_content[5]);
-    //     mcq_list.add(mcq_model(
-    //             quetion: que_content[0], op1: que_content[1],
-    //             op2: que_content[2], op3: que_content[3], op4: que_content[4],
-    //             corr_op: que_content[5]
-    //     ));
-    //   }
-      //print(lines.length);
-    //print(prompt);
-  }
-
+  //   print(mcq_list.length);
+  //   // var model=AzureAIChat();
+  //   // var response=await model.getChatResponse(prompt);
+  //   //   List<String> lines=response.split("~=~=");
+  //   //   for(var len in lines){
+  //   //     List<String> que_content=len.split("###");
+  //   //     print("Q."+que_content[0]);
+  //   //     print("A."+que_content[1]);
+  //   //     print("B."+que_content[2]);
+  //   //     print("C."+que_content[3]);
+  //   //     print("D."+que_content[4]);
+  //   //     print("Right."+que_content[5]);
+  //   //     mcq_list.add(mcq_model(
+  //   //             quetion: que_content[0], op1: que_content[1],
+  //   //             op2: que_content[2], op3: que_content[3], op4: que_content[4],
+  //   //             corr_op: que_content[5]
+  //   //     ));
+  //   //   }
+  //   //   print(lines.length);
+  //   //print(prompt);
+  // }
+  //
 }
-
+}
 
 
 class mcq_model{
@@ -276,17 +276,16 @@ class mcq_model{
   });
 }
 
-
 // class AzureAIChat {
-//   final String apiKey = "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";
+//   //final String apiKey = "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";
 //   final String apiKey ="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";
 //   final String endpoint = "https://models.inference.ai.azure.com";
-//   var point= "https://models.inference.ai.azure.com/openai/deployments/gpt-4o-deployment/chat/completions?api-version=2024-02-01";
+//   //var point= "https://models.inference.ai.azure.com/openai/deployments/gpt-4o-deployment/chat/completions?api-version=2024-02-01";
 //   final String model = "gpt-4o";
 //
 //   Future<String> getChatResponse(String userMessage) async {
 //     final url = Uri.parse("$endpoint/v1/chat/completions");
-//     final url=Uri.parse("$point");
+//     //final url=Uri.parse("$point");
 //     final headers = {
 //       "Content-Type": "application/json",
 //       "Authorization": "Bearer $apiKey",

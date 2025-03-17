@@ -7,8 +7,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class faculty_sub_lst extends StatefulWidget{
-  var fid,flag;
-  faculty_sub_lst(this.fid,this.flag);
+  var fid,flag,dept;
+  bool ishod;
+  faculty_sub_lst(this.fid,this.flag,this.ishod,this.dept);
   @override
   State<faculty_sub_lst> createState() => _faculty_sub_lstState();
 }
@@ -30,16 +31,31 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
       if(sp.child("ass_faculties").exists){
         assing_faculties.addAll(sp.child("ass_faculties").value as List<dynamic>);
       }
-      if(assing_faculties.contains(widget.fid)){
-        var sub,sid,dept,sem;
-        sub=sp.child("name").value.toString();
-        sid=sp.key;
-        dept=sp.child("dept").value.toString();
-        sem=sp.child("sem").value.toString();
-        sub_list.add(subject(sid, sub, fid, dept, sem));
-        setState(() {
-          flag=true;
-        });
+      if(widget.ishod){
+        if(sp.child("dept").value.toString()==widget.dept){
+          var sub,sid,dept,sem;
+          sub=sp.child("name").value.toString();
+          sid=sp.key;
+          dept=sp.child("dept").value.toString();
+          sem=sp.child("sem").value.toString();
+          sub_list.add(subject(sid, sub, fid, dept, sem));
+          setState(() {
+            flag=true;
+          });
+        }
+      }
+      else{
+        if(assing_faculties.contains(widget.fid)){
+          var sub,sid,dept,sem;
+          sub=sp.child("name").value.toString();
+          sid=sp.key;
+          dept=sp.child("dept").value.toString();
+          sem=sp.child("sem").value.toString();
+          sub_list.add(subject(sid, sub, fid, dept, sem));
+          setState(() {
+            flag=true;
+          });
+        }
       }
     }
     print(flag);

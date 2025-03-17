@@ -16,7 +16,7 @@ class splash extends StatefulWidget{
 class _splashState extends State<splash> {
   @override
   void initState(){
-    Timer(Duration(seconds: 4),() async {
+    Timer(Duration(seconds: 4),() {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
       // final SharedPreferences prefs =await SharedPreferences.getInstance();
       // if(prefs.getBool("login_flag")==true){
