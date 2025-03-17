@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'Facultylist.dart';
 
 class DepartmentList extends StatefulWidget {
   @override
@@ -10,11 +11,13 @@ class DepartmentList extends StatefulWidget {
 class _DepartmentListState extends State<DepartmentList> {
   final DatabaseReference dbRef = FirebaseDatabase.instance.ref("department");
   List<Map<String, String>> departments = [];
+
   @override
   void initState() {
     super.initState();
     fetchDepartments();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,20 +62,17 @@ class _DepartmentListState extends State<DepartmentList> {
                 dept['department']!,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),
               ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FacultyListPage(departmentName: dept['department']!),
+                  ),
+                );
+              },
             ),
           );
         },
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.blue,
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 5),
-          child: Text(
-            '© NARMADA COLLEGE SCIENCE AND COMMERCE',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 12),
-          ),
-        ),
       ),
     );
   }

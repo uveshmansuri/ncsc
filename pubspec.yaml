@@ -129,6 +129,7 @@ flutter:
   assets:
     - assets/images/
     - assets/animations/
+    - assets/loading.gif/
   #  - images/logo1.png
   #  - images/a_dot_ham.jpeg
 
