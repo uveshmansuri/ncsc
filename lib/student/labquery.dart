@@ -80,18 +80,61 @@ class _LabQueryPageState extends State<LabQueryPage> {
     );
   }
 
-  void _editQuery(Map<String, dynamic> query) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CreateLabQueryPage(
-          stud_id: widget.stud_id,
-          dept: widget.dept,
-          existingQuery: query,
+  void _showEditDialog(Map<String, dynamic> query) {
+    TextEditingController pcController = TextEditingController(text: query['pcnumber']);
+    TextEditingController descController = TextEditingController(text: query['description']);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Edit Query"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: pcController,
+              decoration: InputDecoration(labelText: "PC Number"),
+            ),
+            TextField(
+              controller: descController,
+              decoration: InputDecoration(labelText: "Description"),
+            ),
+          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              _editQuery(query['key'], pcController.text, descController.text);
+              Navigator.pop(context);
+            },
+            child: Text("Save"),
+          ),
+        ],
       ),
     );
-    fetchQueries();
+  }
+
+  Future<void> _editQuery(String key, String pcNumber, String description) async {
+    try {
+      String labType = widget.dept == "BCA" ? "computerlab" : "sciencelab";
+      DatabaseReference ref = FirebaseDatabase.instance.ref("Query/$labType/${widget.stud_id}/$key");
+
+      await ref.update({
+        'pcnumber': pcNumber,
+        'description': description,
+      });
+
+      fetchQueries();  // Refresh the list
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Query updated successfully")),
+      );
+    } catch (e) {
+      print("Error updating query: $e");
+    }
   }
 
   void _showDeleteConfirmationDialog(String key) {
@@ -122,53 +165,53 @@ class _LabQueryPageState extends State<LabQueryPage> {
       String labType = widget.dept == "BCA" ? "computerlab" : "sciencelab";
       await FirebaseDatabase.instance.ref("Query/$labType/${widget.stud_id}/$key").remove();
       fetchQueries();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Query deleted successfully")),
+      );
     } catch (e) {
       print("Error deleting query: $e");
     }
   }
 
   Widget _buildQueryCard(Map<String, dynamic> query) {
-    return Card(
-      margin: EdgeInsets.all(10),
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: ListTile(
-        title: Text(
-          "PC Number: ${query['pcnumber']}",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Description: ${query['description']}",
-              style: TextStyle(fontSize: 16),
-            ),
-            Text(
-              "Student Name: $studentName",
-              style: TextStyle(fontSize: 16),
-            ),
-            if (query.containsKey('image') && query['image'].isNotEmpty)
-              IconButton(
-                icon: Icon(Icons.image, color: Colors.blue),
-                onPressed: () => _showImage(query['image']),
-              ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(Icons.edit, color: Colors.green),
-              onPressed: () => _editQuery(query),
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () => _showDeleteConfirmationDialog(query['key']),
-            ),
-          ],
+    return Dismissible(
+      key: Key(query['key']),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        color: Colors.blue,
+        padding: EdgeInsets.only(right: 20),
+        child: Icon(Icons.edit, color: Colors.white),
+      ),
+      onDismissed: (direction) {
+        _showEditDialog(query);
+      },
+      child: Card(
+        margin: EdgeInsets.all(10),
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: ListTile(
+          title: Text(
+            "PC Number: ${query['pcnumber']}",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Description: ${query['description']}", style: TextStyle(fontSize: 16)),
+              Text("Student Name: $studentName", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          trailing: query.containsKey('image') && query['image'].isNotEmpty
+              ? IconButton(
+            icon: Icon(Icons.image, color: Colors.blue),
+            onPressed: () => _showImage(query['image']),
+          )
+              : null, // Keeps layout clean if there's no image
+          onLongPress: () => _showDeleteConfirmationDialog(query['key']),
         ),
       ),
+
     );
   }
 
@@ -208,6 +251,7 @@ class _LabQueryPageState extends State<LabQueryPage> {
     );
   }
 }
+
 
 
 
