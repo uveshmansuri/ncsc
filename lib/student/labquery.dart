@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:io';
-
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
-
 import 'package:photo_view/photo_view.dart';
 
 
@@ -40,8 +37,10 @@ class _LabQueryPageState extends State<LabQueryPage> {
       if (snapshot.exists) {
         snapshot.children.forEach((child) {
           Map<String, dynamic> queryData = Map<String, dynamic>.from(child.value as Map);
-          queryData['key'] = child.key;
-          queryList.add(queryData);
+          if (queryData["stud_id"] == widget.stud_id) {
+            queryData['key'] = child.key;
+            queryList.add(queryData);
+          }
         });
       }
 
@@ -91,27 +90,25 @@ class _LabQueryPageState extends State<LabQueryPage> {
   Widget _buildQueryCard(Map<String, dynamic> query) {
     return Dismissible(
       key: Key(query['key']),
+      direction: DismissDirection.horizontal,
       background: Container(
+        color: Colors.green,
         alignment: Alignment.centerLeft,
         padding: EdgeInsets.symmetric(horizontal: 20),
-        color: Colors.green,
         child: Icon(Icons.edit, color: Colors.white),
       ),
       secondaryBackground: Container(
+        color: Colors.red,
         alignment: Alignment.centerRight,
         padding: EdgeInsets.symmetric(horizontal: 20),
-        color: Colors.red,
         child: Icon(Icons.delete, color: Colors.white),
       ),
-      confirmDismiss: (direction) async {
+      onDismissed: (direction) {
         if (direction == DismissDirection.startToEnd) {
           _editQuery(query);
-          return false;
         } else if (direction == DismissDirection.endToStart) {
           deleteQuery(query['key']);
-          return true;
         }
-        return false;
       },
       child: Card(
         margin: EdgeInsets.all(10),
