@@ -19,28 +19,45 @@ class LabQueryPage extends StatefulWidget {
 class _LabQueryPageState extends State<LabQueryPage> {
   List<Map<String, dynamic>> _queries = [];
   bool isLoading = true;
+  String studentName = "";
 
   @override
   void initState() {
     super.initState();
+    fetchStudentName();
     fetchQueries();
+  }
+
+  Future<void> fetchStudentName() async {
+    try {
+      DatabaseReference ref = FirebaseDatabase.instance.ref("Students/${widget.stud_id}");
+      DataSnapshot snapshot = await ref.get();
+
+      if (snapshot.exists) {
+        setState(() {
+          studentName = snapshot.child("name").value.toString();
+        });
+      } else {
+        print("Student not found");
+      }
+    } catch (e) {
+      print("Error fetching student name: $e");
+    }
   }
 
   Future<void> fetchQueries() async {
     setState(() => isLoading = true);
     try {
       String labType = widget.dept == "BCA" ? "computerlab" : "sciencelab";
-      DatabaseReference ref = FirebaseDatabase.instance.ref("Query/$labType");
+      DatabaseReference ref = FirebaseDatabase.instance.ref("Query/$labType/${widget.stud_id}");
       DataSnapshot snapshot = await ref.get();
 
       List<Map<String, dynamic>> queryList = [];
       if (snapshot.exists) {
         snapshot.children.forEach((child) {
           Map<String, dynamic> queryData = Map<String, dynamic>.from(child.value as Map);
-          if (queryData["stud_id"] == widget.stud_id) {
-            queryData['key'] = child.key;
-            queryList.add(queryData);
-          }
+          queryData['key'] = child.key!;
+          queryList.add(queryData);
         });
       }
 
@@ -63,16 +80,6 @@ class _LabQueryPageState extends State<LabQueryPage> {
     );
   }
 
-  Future<void> deleteQuery(String key) async {
-    try {
-      String labType = widget.dept == "BCA" ? "computerlab" : "sciencelab";
-      await FirebaseDatabase.instance.ref("Query/$labType/$key").remove();
-      fetchQueries();
-    } catch (e) {
-      print("Error deleting query: $e");
-    }
-  }
-
   void _editQuery(Map<String, dynamic> query) async {
     await Navigator.push(
       context,
@@ -87,47 +94,79 @@ class _LabQueryPageState extends State<LabQueryPage> {
     fetchQueries();
   }
 
-  Widget _buildQueryCard(Map<String, dynamic> query) {
-    return Dismissible(
-      key: Key(query['key']),
-      direction: DismissDirection.horizontal,
-      background: Container(
-        color: Colors.green,
-        alignment: Alignment.centerLeft,
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Icon(Icons.edit, color: Colors.white),
-      ),
-      secondaryBackground: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Icon(Icons.delete, color: Colors.white),
-      ),
-      onDismissed: (direction) {
-        if (direction == DismissDirection.startToEnd) {
-          _editQuery(query);
-        } else if (direction == DismissDirection.endToStart) {
-          deleteQuery(query['key']);
-        }
-      },
-      child: Card(
-        margin: EdgeInsets.all(10),
-        elevation: 5,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: ListTile(
-          title: Text("PC Number: ${query['pcnumber']}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Description: ${query['description']}", style: TextStyle(fontSize: 16)),
-              Text("Student Name: ${query['nameofstud']}", style: TextStyle(fontSize: 16)),
-              if (query.containsKey('image') && query['image'].isNotEmpty)
-                IconButton(
-                  icon: Icon(Icons.image, color: Colors.blue),
-                  onPressed: () => _showImage(query['image']),
-                ),
-            ],
+  void _showDeleteConfirmationDialog(String key) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Delete Query"),
+        content: Text("Are you sure you want to delete this query?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
           ),
+          TextButton(
+            onPressed: () {
+              deleteQuery(key);
+              Navigator.pop(context);
+            },
+            child: Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> deleteQuery(String key) async {
+    try {
+      String labType = widget.dept == "BCA" ? "computerlab" : "sciencelab";
+      await FirebaseDatabase.instance.ref("Query/$labType/${widget.stud_id}/$key").remove();
+      fetchQueries();
+    } catch (e) {
+      print("Error deleting query: $e");
+    }
+  }
+
+  Widget _buildQueryCard(Map<String, dynamic> query) {
+    return Card(
+      margin: EdgeInsets.all(10),
+      elevation: 5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: ListTile(
+        title: Text(
+          "PC Number: ${query['pcnumber']}",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Description: ${query['description']}",
+              style: TextStyle(fontSize: 16),
+            ),
+            Text(
+              "Student Name: $studentName",
+              style: TextStyle(fontSize: 16),
+            ),
+            if (query.containsKey('image') && query['image'].isNotEmpty)
+              IconButton(
+                icon: Icon(Icons.image, color: Colors.blue),
+                onPressed: () => _showImage(query['image']),
+              ),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.edit, color: Colors.green),
+              onPressed: () => _editQuery(query),
+            ),
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _showDeleteConfirmationDialog(query['key']),
+            ),
+          ],
         ),
       ),
     );
@@ -225,7 +264,6 @@ class _CreateLabQueryPageState extends State<CreateLabQueryPage> {
 
   Future<void> _submitQuery() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => isLoading = true);
 
     try {
@@ -236,16 +274,20 @@ class _CreateLabQueryPageState extends State<CreateLabQueryPage> {
         uploadedImageUrl = await _uploadImage(_imageFile!);
       }
 
-      DatabaseReference ref = widget.existingQuery != null
-          ? FirebaseDatabase.instance.ref("Query/$labType/${widget.existingQuery!['key']}")
-          : FirebaseDatabase.instance.ref("Query/$labType").push();
-
-      await ref.set({
+      Map<String, dynamic> queryData = {
         'pcnumber': pcNumberController.text,
         'description': descriptionController.text,
-        'nameofstud': "Student Name", // Replace with actual student name
-        if (uploadedImageUrl != null) 'image': uploadedImageUrl,
-      });
+      };
+
+      if (uploadedImageUrl != null && uploadedImageUrl.isNotEmpty) {
+        queryData['image'] = uploadedImageUrl;
+      }
+
+      // Using push() to generate a unique ID for each query
+      DatabaseReference ref = FirebaseDatabase.instance
+          .ref("Query/$labType/${widget.stud_id}")
+          .push();
+      await ref.set(queryData);
 
       Navigator.pop(context);
     } catch (e) {
@@ -258,12 +300,9 @@ class _CreateLabQueryPageState extends State<CreateLabQueryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.existingQuery != null ? "Edit Lab Query" : "Create Lab Query"),
-        backgroundColor: Colors.blue,
-      ),
+      appBar: AppBar(title: Text("Create/Edit Lab Query")),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -276,26 +315,22 @@ class _CreateLabQueryPageState extends State<CreateLabQueryPage> {
               TextFormField(
                 controller: descriptionController,
                 decoration: InputDecoration(labelText: 'Description'),
+                maxLines: 3,
                 validator: (value) => value!.isEmpty ? 'Please enter a description' : null,
               ),
-              SizedBox(height: 20),
-              _imageFile != null
-                  ? Image.file(_imageFile!, height: 150, fit: BoxFit.cover)
-                  : imageUrl != null
-                  ? Image.network(imageUrl!, height: 150, fit: BoxFit.cover)
-                  : Text("No Image Selected"),
               SizedBox(height: 10),
-              ElevatedButton.icon(
+              ElevatedButton(
                 onPressed: _pickImage,
-                icon: Icon(Icons.image),
-                label: Text("Pick Image"),
+                child: Text('Pick Image'),
               ),
+              if (_imageFile != null)
+                Image.file(_imageFile!, height: 150, width: 150),
               SizedBox(height: 20),
               isLoading
                   ? CircularProgressIndicator()
                   : ElevatedButton(
                 onPressed: _submitQuery,
-                child: Text(widget.existingQuery != null ? "Update Query" : "Submit Query"),
+                child: Text('Submit'),
               ),
             ],
           ),
