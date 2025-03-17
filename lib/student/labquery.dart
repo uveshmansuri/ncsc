@@ -172,48 +172,70 @@ class _LabQueryPageState extends State<LabQueryPage> {
       print("Error deleting query: $e");
     }
   }
-
   Widget _buildQueryCard(Map<String, dynamic> query) {
+    bool isResolved = query['resolved'] == true;
+
     return Dismissible(
       key: Key(query['key']),
-      direction: DismissDirection.endToStart,
-      background: Container(
+      direction: isResolved ? DismissDirection.none : DismissDirection.endToStart,
+      background: isResolved
+          ? Container()
+          : Container(
         alignment: Alignment.centerRight,
         color: Colors.blue,
         padding: EdgeInsets.only(right: 20),
         child: Icon(Icons.edit, color: Colors.white),
       ),
-      onDismissed: (direction) {
+      onDismissed: isResolved
+          ? null
+          : (direction) {
         _showEditDialog(query);
       },
       child: Card(
         margin: EdgeInsets.all(10),
         elevation: 5,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        color: isResolved ? Colors.grey[300] : Colors.white, // Grey if resolved
         child: ListTile(
           title: Text(
             "PC Number: ${query['pcnumber']}",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isResolved ? Colors.grey[700] : Colors.black, // Grey text if resolved
+            ),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Description: ${query['description']}", style: TextStyle(fontSize: 16)),
-              Text("Student Name: $studentName", style: TextStyle(fontSize: 16)),
+              Text(
+                "Description: ${query['description']}",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: isResolved ? Colors.grey[600] : Colors.black, // Grey text if resolved
+                ),
+              ),
+              Text(
+                "Student Name: $studentName",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: isResolved ? Colors.grey[600] : Colors.black, // Grey text if resolved
+                ),
+              ),
             ],
           ),
-          trailing: query.containsKey('image') && query['image'].isNotEmpty
+          trailing: (!isResolved && query.containsKey('image') && query['image'].isNotEmpty)
               ? IconButton(
             icon: Icon(Icons.image, color: Colors.blue),
             onPressed: () => _showImage(query['image']),
           )
-              : null, // Keeps layout clean if there's no image
-          onLongPress: () => _showDeleteConfirmationDialog(query['key']),
+              : null, // No image button if resolved or image is absent
+          onLongPress: isResolved ? null : () => _showDeleteConfirmationDialog(query['key']),
         ),
       ),
-
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

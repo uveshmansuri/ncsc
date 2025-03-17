@@ -10,6 +10,7 @@ import 'complainnonteaching.dart';
 import 'computerlabdashboard.dart';
 import 'notesforall.dart';
 import 'officesupriender.dart';
+import 'labquery.dart';
 import 'sciencelabdashboard.dart';
 
 class RoleBasedDashboard extends StatefulWidget {
@@ -322,9 +323,9 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
 
                   if (userRoles.contains("Lab Assistant")) ...[
                     buildDashboardItem(
-                      title: "Lab Assistant Page",
+                      title: "Lab Query",
                       icon: Icons.computer,
-                      page: CalendarScreen(username: widget.username),
+                      page: FetchComputerLabQueries(),
                     ),
                     buildDashboardItem(
                       title: "Attendance",
