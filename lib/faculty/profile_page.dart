@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../logout.dart';
+
 class ProfilePage extends StatefulWidget {
   final String fid;
   ProfilePage(this.fid);
@@ -175,6 +177,7 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Center(
@@ -198,6 +201,22 @@ class _ProfilePageState extends State<ProfilePage> {
                 buildProfileRow("Experience", facultyData!["experience"] ?? "Not Available"),
                 buildProfileRow("Phone", facultyData!["phone"] ?? "Not Available"),
                 buildProfileRow("Address", facultyData!["address"] ?? "Not Available"),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: (){
+                      logout obj=logout();
+                      obj.show_dialouge(context);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.logout),
+                        Text("Logout")
+                      ],
+                    ),
+                  ),
+                )
               ],
             ),
           ),

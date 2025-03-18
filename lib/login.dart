@@ -9,6 +9,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'nonteachingdashboard/commomdashboard.dart';
 
 class login extends StatefulWidget {
@@ -139,6 +140,8 @@ class _loginState extends State<login> {
     String pass = pass_textcontrol.text.toString();
     bool found = false;
 
+    SharedPreferences prefs=await SharedPreferences.getInstance();
+
     if (username.trim().isEmpty) {
       Fluttertoast.showToast(
         msg: "Enter Username",
@@ -164,14 +167,23 @@ class _loginState extends State<login> {
         if (sp.child("password").value.toString() == pass) {
           String role = sp.child("role").value.toString();
           if (role == "admin") {
+            prefs.setBool('login_flag', true);
+            prefs.setString('uname', username);
+            prefs.setString('role', role);
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => DBA_Dashboard()));
           }
           else if (role == "faculty") {
+            prefs.setBool('login_flag', true);
+            prefs.setString('uname', username);
+            prefs.setString('role', role);
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => FacultyMain(username)));
           }
           else if (role == "student") {
+            prefs.setBool('login_flag', true);
+            prefs.setString('uname', username);
+            prefs.setString('role', role);
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => StudentDashboard(stud_id: username,)));
           }
@@ -224,8 +236,6 @@ class _loginState extends State<login> {
     }
   }
 }
-
-
 
 // import 'package:NCSC/DBADashboard.dart';
 // import 'package:NCSC/admin/admin_portal.dart';

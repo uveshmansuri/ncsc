@@ -92,27 +92,27 @@ class _HomeScreenState extends State<HomeScreen> {
   void fetchStudentDetails() async {
     try {
       var db = await FirebaseDatabase.instance.ref("Students").child(widget.stud_id).get();
+      stud_name = db.child("name").value.toString();
+      dept = db.child("dept").value.toString();
+      sem = db.child("sem").value.toString();
+      email = db.child("email").value.toString();
+      _iconList = [
+        {'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage(stud_id: widget.stud_id)},
+        {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
+        {'icon': Icons.announcement, 'label': 'Announcement', 'page': StudentCircularsPage()},
+        {'icon': Icons.school, 'label': 'Department', 'page': DepartmentList()},
+        {'icon': Icons.grade, 'label': 'Marks', 'page': InternalMarksPage()},
+        {
+          'icon': Icons.assignment,
+          'label': 'Test',
+          'page': TestPage(stud_id: widget.stud_id, dept: dept, sem: sem),
+        },
+      ];
       setState(() {
-        stud_name = db.child("name").value.toString();
-        dept = db.child("dept").value.toString();
-        sem = db.child("sem").value.toString();
-        email = db.child("email").value.toString();
         flag = true;
-        _iconList = [
-          {'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage(stud_id: widget.stud_id)},
-          {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
-          {'icon': Icons.announcement, 'label': 'Announcement', 'page': StudentCircularsPage()},
-          {'icon': Icons.school, 'label': 'Department', 'page': DepartmentList()},
-          {'icon': Icons.grade, 'label': 'Marks', 'page': InternalMarksPage()},
-          {
-            'icon': Icons.assignment,
-            'label': 'Test',
-            'page': TestPage(stud_id: widget.stud_id, dept: dept, sem: sem),
-          },
-        ];
       });
     } catch (e) {
-      print("Error fetching student details: $e");
+      //print("Error fetching student details: $e");
     }
   }
 
@@ -230,4 +230,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

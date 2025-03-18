@@ -6,12 +6,11 @@ import 'package:lottie/lottie.dart';
 import 'admin/Circulars.dart';
 import 'admin/Subjects.dart';
 import 'fundir/department.dart';
-import 'fundir/circular.dart';
 import 'fundir/leave.dart';
 import 'fundir/log.dart';
 import 'fundir/reco.dart';
 import 'fundir/setting.dart';
-import 'fundir/stu_man.dart';
+import 'logout.dart';
 
 class DBA_Dashboard extends StatefulWidget {
   @override
@@ -151,6 +150,20 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
                 page: SettingsPage(),
                 context: context,
               ),
+              TextButton(
+                onPressed: (){
+                  logout obj=logout();
+                  obj.show_dialouge(context);
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.logout),
+                    Text("Logout")
+                  ],
+                ),
+              )
             ],
           ),
         ),
