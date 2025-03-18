@@ -6,7 +6,7 @@ import 'package:NCSC/login.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:shared_preferences/shared_preferences.dart';
 
 class splash extends StatefulWidget{
   @override
@@ -18,7 +18,7 @@ class _splashState extends State<splash> {
   void initState(){
     Timer(Duration(seconds: 4),() async{
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
-      final SharedPreferences prefs =await SharedPreferences.getInstance();
+      //final SharedPreferences prefs =await SharedPreferences.getInstance();
       // if(prefs.getBool("login_flag")==true){
       //   //print(prefs.getString("role"));
       //   if(prefs.getString("role")=="admin"){
