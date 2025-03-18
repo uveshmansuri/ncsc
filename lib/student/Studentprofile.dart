@@ -1,3 +1,4 @@
+import 'package:NCSC/logout.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -125,6 +126,20 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                   ),
                 ),
               ),
+              ElevatedButton(
+                onPressed: (){
+                  logout obj=logout();
+                  obj.show_dialouge(context);
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.logout),
+                    Text("Logout")
+                  ],
+                ),
+              )
             ],
           ),
         ),

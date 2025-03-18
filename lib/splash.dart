@@ -3,6 +3,7 @@ import 'package:NCSC/admin/admin_portal.dart';
 import 'package:NCSC/faculty/faculty_home.dart';
 import 'package:NCSC/faculty/main_faculty.dart';
 import 'package:NCSC/login.dart';
+import 'package:NCSC/student/main_student.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -18,29 +19,31 @@ class _splashState extends State<splash> {
   void initState(){
     Timer(Duration(seconds: 4),() async{
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
-      final SharedPreferences prefs =await SharedPreferences.getInstance();
-      // if(prefs.getBool("login_flag")==true){
-      //   //print(prefs.getString("role"));
-      //   if(prefs.getString("role")=="admin"){
-      //     Navigator.pushReplacement(
-      //         context,
-      //         MaterialPageRoute(builder: (context)=>admin_portal()
-      //         )
-      //     );
-      //   }
-      //   if(prefs.getString("role")=="faculty"){
-      //     Navigator.pushReplacement(
-      //         context,
-      //         MaterialPageRoute(builder: (context)=>FacultyMain()
-      //         )
-      //     );
-      //   }
-      // }else{
-      //   Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(builder: (context)=>login())
-      //   );
-      // }
+      final SharedPreferences prefs=await SharedPreferences.getInstance();
+      //print(prefs.getBool("login_flag"));
+      if(prefs.getBool("login_flag")==true){
+        if(prefs.getString("role")=="admin"){
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context)=>admin_portal()
+              )
+          );
+        }
+        else if(prefs.getString("role")=="faculty"){
+          var username=prefs.getString("uname");
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => FacultyMain(username!)));
+        }else if(prefs.getString("role")=="student"){
+          var username=prefs.getString("uname");
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => StudentDashboard(stud_id: username!,)));
+        }
+      }else{
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context)=>login())
+        );
+      }
     });
     super.initState();
   }
