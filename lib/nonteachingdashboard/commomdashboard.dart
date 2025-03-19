@@ -346,14 +346,14 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
 
                   if (userRoles.contains("science_lab_assistant")) ...[
                     buildDashboardItem(
-                      title: "Science Lab Page",
+                      title: "Lab Query",
                       icon: Icons.science,
-                      page: sciencelab(),
+                      page: FetchScienceLabQueries(),
                     ),
                     buildDashboardItem(
                       title: "Material requirement",
                       icon: Icons.science,
-                      page: sciencelab(),
+                      page: FetchScienceLabQueries(),
                     ),
                   ],
 

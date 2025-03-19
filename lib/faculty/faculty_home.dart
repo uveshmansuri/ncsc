@@ -4,6 +4,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'Subject_List_Faculty.dart';
 import 'package:NCSC/faculty/schedule.dart';
 
+import 'hodquery.dart';
+
 class HomePage extends StatefulWidget {
   final String fid;
   HomePage(this.fid);
@@ -72,7 +74,7 @@ class _HomePageState extends State<HomePage> {
                 build_Hod_widgets(),
               buildCard(context, "Schedule", Icons.schedule, SchedulePage()),
               buildCard(context, "Attendance", Icons.check_circle, faculty_sub_lst(widget.fid, 0,false,dept)),
-              buildCard(context, "Internal Marks", Icons.score, faculty_sub_lst(widget.fid, 1,false,dept)),
+              buildCard(context, "Internal Marks", Icons.bookmark_add_sharp, faculty_sub_lst(widget.fid, 1,false,dept)),
               buildCard(context, "Assignment", Icons.menu_book, faculty_sub_lst(widget.fid, 2,false,dept)),
               buildCard(context, "Test", Icons.assignment, faculty_sub_lst(widget.fid, 3,false,dept)),
             ],
@@ -100,9 +102,11 @@ class _HomePageState extends State<HomePage> {
   Widget build_Hod_widgets(){
     return Column(
       children: [
-        buildCard(context, "Department Attendance Report", Icons.report, faculty_sub_lst(widget.fid, 0,true,dept)),
-        buildCard(context, "Department Internal Marks Report", Icons.report, faculty_sub_lst(widget.fid, 1,true,dept)),
-        buildCard(context, "Department Assignment Report", Icons.report, faculty_sub_lst(widget.fid, 2,true,dept)),
+        buildCard(context, "Department Attendance Report", Icons.assignment_turned_in, faculty_sub_lst(widget.fid, 0,true,dept)),
+        buildCard(context, "Department Internal Marks Report", Icons.grade, faculty_sub_lst(widget.fid, 1,true,dept)),
+        buildCard(context, "Department Assignment Report", Icons.assignment_ind_outlined, faculty_sub_lst(widget.fid, 2,true,dept)),
+        buildCard(context, "Students Query", Icons.question_answer, HodDepartmentQuery(dept: dept!)),
+
       ],
     );
   }

@@ -36,7 +36,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
       body: Column(
         children: [
-          // Header Row
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -52,8 +51,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ),
           ),
           const Divider(),
-
-          // User List
           Expanded(
             child: ListView.builder(
               itemCount: users.length,
@@ -63,13 +60,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                   child: Row(
                     children: [
-                      // User ID
                       Expanded(flex: 2, child: Text(user['id'])),
-
-                      // User Name
                       Expanded(flex: 3, child: Text(user['name'])),
-
-                      // Edit Button
                       Expanded(
                         flex: 1,
                         child: IconButton(
@@ -77,8 +69,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           onPressed: () => _editUser(user),
                         ),
                       ),
-
-                      // Update Button
                       Expanded(
                         flex: 1,
                         child: IconButton(
@@ -86,8 +76,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           onPressed: () => _updateUser(user),
                         ),
                       ),
-
-                      // Delete Button
                       Expanded(
                         flex: 1,
                         child: IconButton(
@@ -95,8 +83,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           onPressed: () => _deleteUser(user),
                         ),
                       ),
-
-                      // View Button
                       Expanded(
                         flex: 1,
                         child: IconButton(
@@ -104,8 +90,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           onPressed: () => _viewUser(user),
                         ),
                       ),
-
-                      // Checkbox for selection
                       Expanded(
                         flex: 1,
                         child: Checkbox(
@@ -128,21 +112,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  // Function to edit a user
   void _editUser(Map<String, dynamic> user) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Edit User: ${user['name']}')),
     );
   }
-
-  // Function to update a user
   void _updateUser(Map<String, dynamic> user) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Update User: ${user['name']}')),
     );
   }
 
-  // Function to delete a user
   void _deleteUser(Map<String, dynamic> user) {
     setState(() {
       users.removeWhere((u) => u['id'] == user['id']);
@@ -153,7 +133,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  // Function to view a user
   void _viewUser(Map<String, dynamic> user) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('View User: ${user['name']}')),

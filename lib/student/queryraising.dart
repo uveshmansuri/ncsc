@@ -53,13 +53,13 @@ class _QueryPageState extends State<QueryPage> {
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildQueryCard(context, 'Department Query', Icons.business, DepartmentQueryPage()),
+            _buildQueryCard(context, 'Department Query', Icons.business, DepartmentQuery(stud_id: widget.stud_id,)),
             if (department == 'BCA') ...[
               SizedBox(height: 16),
               _buildQueryCard(context, 'Lab Query', Icons.computer, LabQueryPage(stud_id: widget.stud_id,dept: "BCA",)),
             ] else if (department == 'BSC') ...[
               SizedBox(height: 16),
-              _buildQueryCard(context, 'Science Lab Query', Icons.science, ScienceLabQueryPage()),
+              _buildQueryCard(context, 'Science Lab Query', Icons.science, ScienceLabQueryPage(stud_id: widget.stud_id,dept: "BSC",)),
             ],
           ],
         ),
