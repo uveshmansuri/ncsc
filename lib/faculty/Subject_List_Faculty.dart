@@ -16,7 +16,7 @@ class faculty_sub_lst extends StatefulWidget{
 
 class _faculty_sub_lstState extends State<faculty_sub_lst> {
   List<subject> sub_list=[];
-  bool flag=false;
+  bool is_loading=false;
   @override
   void initState() {
     super.initState();
@@ -24,6 +24,14 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
   }
 
   void fetch_subjects(var fid) async{
+    var db=await FirebaseDatabase.instance.ref("Current_Sem").get();
+    var crr_sem=db.value.toString();
+    var c_sem=[];
+    if(crr_sem=="Odd"){
+      c_sem=["1","3","5"];
+    }else{
+      c_sem=["2","4","6"];
+    }
     sub_list.clear();
     var db_ref=await FirebaseDatabase.instance.ref("Subjects").get();
     for(DataSnapshot sp in db_ref.children){
@@ -34,31 +42,35 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
       if(widget.ishod){
         if(sp.child("dept").value.toString()==widget.dept){
           var sub,sid,dept,sem;
-          sub=sp.child("name").value.toString();
-          sid=sp.key;
-          dept=sp.child("dept").value.toString();
           sem=sp.child("sem").value.toString();
-          sub_list.add(subject(sid, sub, fid, dept, sem));
+          if(c_sem.contains(sem)){
+            sub=sp.child("name").value.toString();
+            sid=sp.key;
+            dept=sp.child("dept").value.toString();
+            sub_list.add(subject(sid, sub, fid, dept, sem));
+          }
           setState(() {
-            flag=true;
+            is_loading=true;
           });
         }
       }
       else{
         if(assing_faculties.contains(widget.fid)){
           var sub,sid,dept,sem;
-          sub=sp.child("name").value.toString();
-          sid=sp.key;
-          dept=sp.child("dept").value.toString();
           sem=sp.child("sem").value.toString();
-          sub_list.add(subject(sid, sub, fid, dept, sem));
+          if(c_sem.contains(sem)){
+            sub=sp.child("name").value.toString();
+            sid=sp.key;
+            dept=sp.child("dept").value.toString();
+            sub_list.add(subject(sid, sub, fid, dept, sem));
+          }
           setState(() {
-            flag=true;
+            is_loading=true;
           });
         }
       }
     }
-    print(flag);
+    print(is_loading);
   }
 
   @override
@@ -79,7 +91,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
             stops: [0.3,1.0], // Defines the stops for the gradient
           ),
         ),
-        child: Column(
+        child: is_loading==true?Column(
           children: [
             if(widget.flag==0)
               get_title("Attendance"),
@@ -142,7 +154,11 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
               ),
             ),
           ],
-        ),
+        )
+            :
+        Center(
+            child: CircularProgressIndicator()
+        )
       )
     );
   }

@@ -106,6 +106,7 @@ class _TestReportScreenState extends State<TestReportScreen> {
       ),
     );
   }
+
   Color get_Color(int i){
     if(studentReport[i].result=="Not Attempted"){
       return Color(0x91FFFB00);
@@ -120,6 +121,7 @@ class _TestReportScreenState extends State<TestReportScreen> {
 
   void show_summery() {
     int remaining = total_students - (attempted + terminated);
+    int finished=attempted-terminated;
     showDialog(
       context: context,
       builder: (context) {
@@ -135,7 +137,7 @@ class _TestReportScreenState extends State<TestReportScreen> {
                   PieChartData(
                     sections: [
                       PieChartSectionData(
-                        value: attempted.toDouble(),
+                        value: finished.toDouble(),
                         title: '',
                         color: Colors.green,
                         radius: 60,
@@ -159,11 +161,15 @@ class _TestReportScreenState extends State<TestReportScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              _buildLegend(Colors.green, 'Attempted:$attempted'),
+              _buildLegend(Colors.green, 'Finished:$finished'),
               const SizedBox(height: 10),
               _buildLegend(Colors.red, 'Terminated:$terminated'),
               const SizedBox(height: 10),
               _buildLegend(Color(0x91FFFB00), 'Remaining:$remaining'),
+              const SizedBox(height: 20),
+              Center(
+                child: Text("Total Students Attempted:${attempted}"),
+              ),
             ],
           ),
           actions: [
@@ -186,5 +192,4 @@ class _TestReportScreenState extends State<TestReportScreen> {
       ],
     );
   }
-
 }

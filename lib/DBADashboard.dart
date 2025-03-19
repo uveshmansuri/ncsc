@@ -2,6 +2,8 @@ import 'package:NCSC/admin/students.dart';
 import 'package:NCSC/facultywhole/staffmanag.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'admin/Circulars.dart';
 import 'admin/Subjects.dart';
@@ -20,6 +22,7 @@ class DBA_Dashboard extends StatefulWidget {
 class _DBA_DashboardState extends State<DBA_Dashboard> {
   int dept_count=0,stud_count=0;
   bool flag=false;
+  var crr_sem="";
   DatabaseReference ref=FirebaseDatabase.instance.ref();
 
   @override
@@ -45,11 +48,11 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
           });
         }
       });
-      // DataSnapshot sp=await ref.child("department").get();
-      // dept_count=sp.children.length;
-      // sp=await ref.child("Students").get();
-      // stud_count=sp.children.length;
-      // print(stud_count);
+      ref.child("Current_Sem").onValue.listen((event){
+        setState(() {
+          crr_sem=event.snapshot.value.toString();
+        });
+      });
     } finally {
       flag=true;
     }
@@ -61,6 +64,7 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
     return AbsorbPointer(
       absorbing: !flag,
       child: Scaffold(
+        
         appBar: AppBar(
           title: Text(
             'DBA Dashboard',
@@ -167,6 +171,7 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
             ],
           ),
         ),
+
         body: Container(
           decoration: BoxDecoration(
             gradient: RadialGradient(
@@ -234,6 +239,31 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
                           // ),
                         ],
                       ),
+                      Card(
+                        elevation: 4,
+                        child: GestureDetector(
+                          onTap: (){
+                            change_sem();
+                          },
+                          child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Current Semester",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    crr_sem,
+                                    style: TextStyle(fontSize: 20, color: Colors.blue),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ),
+                      ),
                       SizedBox(height: 20),
                       _buildSectionTitle('Analytics Overview'),
                       SizedBox(height: 10),
@@ -256,6 +286,32 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
         )
       ),
     );
+  }
+
+  void change_sem(){
+    showDialog(context: context, builder: (context){
+      var next_sem=crr_sem=="Odd"?"Even":"Odd";
+      return AlertDialog(
+        title: Text("Do you want to change current Semester?"),
+        content: Text("Current Semester is ${crr_sem}"),
+        actions: [
+          TextButton(onPressed: (){
+            Navigator.pop(context);
+          }, child: Text("No")),
+          TextButton(onPressed: () async{
+            await FirebaseDatabase.instance
+                .ref("Current_Sem").set("$next_sem")
+                .then((_) async{
+                  await chenge_details_sem_change(next_sem);
+                  Navigator.pop(context);
+                })
+                .catchError((e){
+                  Fluttertoast.showToast(msg: "${e.toString()}");
+                });
+          }, child: Text("Yes"))
+        ],
+      );
+    });
   }
 
   Widget _buildSectionTitle(String title) {
@@ -340,5 +396,42 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
         );
       },
     );
+  }
+
+  Future<void> chenge_details_sem_change(String next_sem) async {
+    DatabaseReference ref = FirebaseDatabase.instance.ref("Students");
+    DataSnapshot snapshot = await ref.get();
+
+    if (!snapshot.exists) {
+      print("No student data found.");
+      return;
+    }
+
+    String currentYear = DateFormat('yyyy').format(
+        DateTime.now()); // Get the current year
+    DatabaseReference backupRef = FirebaseDatabase.instance.ref(
+        "Backup/$currentYear");
+
+    for (var sp in snapshot.children) {
+      String studentId = sp.key ?? "";
+      var semValue = sp
+          .child("sem")
+          .value;
+
+      if (semValue == null) continue;
+
+      int? sem = int.tryParse(semValue.toString());
+
+      if (sem == null) continue;
+
+      if (sem == 6) {
+        await backupRef.child(studentId).set(sp.value);
+        await ref.child(studentId).remove();
+        print("Moved student $studentId to Backup/$currentYear.");
+      } else {
+        await ref.child(studentId).update({"sem": (sem + 1).toString()});
+        print("Updated student $studentId to semester ${sem + 1}.");
+      }
+    }
   }
 }

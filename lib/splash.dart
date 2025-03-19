@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'package:NCSC/admin/admin_portal.dart';
-import 'package:NCSC/faculty/faculty_home.dart';
 import 'package:NCSC/faculty/main_faculty.dart';
 import 'package:NCSC/login.dart';
 import 'package:NCSC/student/main_student.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'DBADashboard.dart';
 
 class splash extends StatefulWidget{
   @override
@@ -20,12 +18,11 @@ class _splashState extends State<splash> {
     Timer(Duration(seconds: 4),() async{
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>login()));
       final SharedPreferences prefs=await SharedPreferences.getInstance();
-      //print(prefs.getBool("login_flag"));
       if(prefs.getBool("login_flag")==true){
         if(prefs.getString("role")=="admin"){
           Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context)=>admin_portal()
+              MaterialPageRoute(builder: (context)=>DBA_Dashboard()
               )
           );
         }
