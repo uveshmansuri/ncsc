@@ -21,6 +21,7 @@ class _loginState extends State<login> {
   TextEditingController user_textcontrol = TextEditingController();
   TextEditingController pass_textcontrol = TextEditingController();
 
+  bool isloading=false;
   bool password_visibility = true;
 
   @override
@@ -37,100 +38,108 @@ class _loginState extends State<login> {
         backgroundColor: Color(0xfff0f9f0),
       ),
       backgroundColor: Color(0xffb5ffff),
-      body: Container(
-        height: double.infinity,
-        decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, 0),
-              radius: 1.0,
-              colors: [
-                Color(0xFFE0F7FA),
-                Color(0xffd1fbff),
-              ],
-              stops: [0.3, 1.0],
-            )),
-        child: SingleChildScrollView(
-          child: Center(
-            child: Column(
-              children: [
-                Image.asset("assets/images/collageimg.jpg"),
-                Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                  child: Card(
-                    color: Color(0xfff0f9f0),
-                    elevation: 20,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            child: Image.asset("assets/images/logo1.png"),
-                            height: 150,
-                            width: 150,
-                          ),
-                          SizedBox(height: 10),
-                          TextFormField(
-                            controller: user_textcontrol,
-                            decoration: InputDecoration(
-                                labelText: "Enter User Name",
-                                prefixIcon: Icon(Icons.person),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(width: 1.5),
-                                )),
-                          ),
-                          SizedBox(height: 10),
-                          TextFormField(
-                            obscureText: password_visibility,
-                            controller: pass_textcontrol,
-                            decoration: InputDecoration(
-                                labelText: "Enter Password",
-                                prefixIcon: Icon(Icons.lock),
-                                suffixIcon: IconButton(
+      body: Stack(
+        children: [
+          Container(
+            height: double.infinity,
+            decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0, 0),
+                  radius: 1.0,
+                  colors: [
+                    Color(0xFFE0F7FA),
+                    Color(0xffd1fbff),
+                  ],
+                  stops: [0.3, 1.0],
+                )),
+            child: SingleChildScrollView(
+              child: Center(
+                child: Column(
+                  children: [
+                    Image.asset("assets/images/collageimg.jpg"),
+                    Padding(
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      child: Card(
+                        color: Color(0xfff0f9f0),
+                        elevation: 20,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                child: Image.asset("assets/images/logo1.png"),
+                                height: 150,
+                                width: 150,
+                              ),
+                              SizedBox(height: 10),
+                              TextFormField(
+                                controller: user_textcontrol,
+                                decoration: InputDecoration(
+                                    labelText: "Enter User Name",
+                                    prefixIcon: Icon(Icons.person),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(width: 1.5),
+                                    )),
+                              ),
+                              SizedBox(height: 10),
+                              TextFormField(
+                                obscureText: password_visibility,
+                                controller: pass_textcontrol,
+                                decoration: InputDecoration(
+                                    labelText: "Enter Password",
+                                    prefixIcon: Icon(Icons.lock),
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          password_visibility = !password_visibility;
+                                        });
+                                      },
+                                      icon: password_visibility
+                                          ? Icon(Icons.visibility)
+                                          : Icon(Icons.visibility_off),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(width: 1.5),
+                                    )),
+                              ),
+                              SizedBox(height: 10),
+                              ElevatedButton(
+                                  onPressed: loin_in,
+                                  child: Text(
+                                    "Login",
+                                    style: TextStyle(
+                                        fontSize: 20, color: Color(0xff0000f0)),
+                                  )),
+                              TextButton(
                                   onPressed: () {
-                                    setState(() {
-                                      password_visibility = !password_visibility;
-                                    });
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => regestration()));
                                   },
-                                  icon: password_visibility
-                                      ? Icon(Icons.visibility)
-                                      : Icon(Icons.visibility_off),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(width: 1.5),
-                                )),
+                                  child: Text(
+                                    "Click Here for Registration",
+                                    style: TextStyle(color: Colors.black),
+                                  ))
+                            ],
                           ),
-                          SizedBox(height: 10),
-                          ElevatedButton(
-                              onPressed: loin_in,
-                              child: Text(
-                                "Login",
-                                style: TextStyle(
-                                    fontSize: 20, color: Color(0xff0000f0)),
-                              )),
-                          TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => regestration()));
-                              },
-                              child: Text(
-                                "Click Here for Registration",
-                                style: TextStyle(color: Colors.black),
-                              ))
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          if(isloading==true)
+            Center(
+              child: CircularProgressIndicator(),
+            )
+        ],
       ),
     );
   }
@@ -159,6 +168,9 @@ class _loginState extends State<login> {
       return;
     }
 
+    setState(() {
+      isloading=true;
+    });
     final databaseRef = FirebaseDatabase.instance.ref();
     DataSnapshot usersSnapshot = await databaseRef.child("Users").get();
     for (DataSnapshot sp in usersSnapshot.children) {
@@ -187,7 +199,11 @@ class _loginState extends State<login> {
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => StudentDashboard(stud_id: username,)));
           }
-        } else {
+        }
+        else {
+          setState(() {
+            isloading=false;
+          });
           Fluttertoast.showToast(
             msg: "Invalid Password",
             toastLength: Toast.LENGTH_SHORT,
@@ -215,6 +231,9 @@ class _loginState extends State<login> {
                     builder: (context) =>
                         RoleBasedDashboard(username: username)));
           } else {
+            setState(() {
+              isloading=false;
+            });
             Fluttertoast.showToast(
               msg: "Invalid Password",
               toastLength: Toast.LENGTH_SHORT,
@@ -227,6 +246,9 @@ class _loginState extends State<login> {
     }
 
     if (!found) {
+      setState(() {
+        isloading=false;
+      });
       Fluttertoast.showToast(
         msg: "Invalid Username",
         toastLength: Toast.LENGTH_SHORT,
