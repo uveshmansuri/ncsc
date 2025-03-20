@@ -1,4 +1,6 @@
+import 'package:NCSC/student/About_University.dart';
 import 'package:NCSC/student/departmentlist.dart';
+import 'package:NCSC/student/feeportal.dart';
 import 'package:NCSC/student/internalmarks.dart';
 import 'package:NCSC/student/queryraising.dart';
 import 'package:NCSC/student/syllabus.dart';
@@ -101,12 +103,26 @@ class _HomeScreenState extends State<HomeScreen> {
         {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
         {'icon': Icons.announcement, 'label': 'Announcement', 'page': StudentCircularsPage()},
         {'icon': Icons.school, 'label': 'Department', 'page': DepartmentList()},
-        {'icon': Icons.grade, 'label': 'Marks', 'page': InternalMarksPage()},
+        {
+          'icon': Icons.grade,
+          'label': 'Marks',
+          'page': InternalMarksPage(stud_id: widget.stud_id,dept: dept,sem: sem,)
+        },
         {
           'icon': Icons.assignment,
           'label': 'Test',
           'page': TestPage(stud_id: widget.stud_id, dept: dept, sem: sem),
         },
+        {
+          'icon':Icons.credit_card,
+          'label':'Fees Portal',
+          'page':Fees_Portal()
+        },
+        {
+          'icon':Icons.account_balance,
+          'label':'About University',
+          'page':About_Univercity()
+        }
       ];
       setState(() {
         flag = true;
