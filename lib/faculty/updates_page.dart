@@ -13,10 +13,10 @@ class UpdatesPage extends StatelessWidget {
         padding: EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [                                       //quizzzzzzzzzzzzzz
+          children: [
             CustomCard(title: "Alert", navigateTo: AlertPage()),
             SizedBox(height: 16),
-            CustomCard(title: "News for you", navigateTo:  NewsScreen()),
+            CustomCard(title: "News for you", navigateTo:  FacultyCircularsPage()),
           ],
         ),
       ),

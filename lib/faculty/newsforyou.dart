@@ -1,94 +1,165 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 
-class NewsScreen extends StatefulWidget {
-  const NewsScreen({Key? key}) : super(key: key);
-
+class FacultyCircularsPage extends StatefulWidget {
   @override
-  State<NewsScreen> createState() => _NewsScreenState();
+  _FacultyCircularsPageState createState() => _FacultyCircularsPageState();
 }
 
-class _NewsScreenState extends State<NewsScreen> {
-  final DatabaseReference databaseRef = FirebaseDatabase.instance.ref("Circulars");
+class _FacultyCircularsPageState extends State<FacultyCircularsPage> {
+  final DatabaseReference _database = FirebaseDatabase.instance.ref().child('Circulars');
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Faculty News'),
+        backgroundColor: Colors.blueAccent,
+        title: Text(
+          'Faculty Circulars',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+        ),
+        centerTitle: true,
+        elevation: 4.0,
       ),
-      body: StreamBuilder<DatabaseEvent>(
-        stream: databaseRef.onValue,
-        builder: (context, snapshot) {
+      body: StreamBuilder(
+        stream: _database.onValue,
+        builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-            Map<dynamic, dynamic> data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-            List<Map<String, dynamic>> circulars = [];
-
-            data.forEach((key, value) {
-              if (value is Map && value["faculty_rev"] == true) {
-                circulars.add({
-                  "title": value["title"] ?? "No Title",
-                  "description": value["description"] ?? "No Description",
-                  "date": value["published_date"] ?? "Unknown Date",
-                });
-              }
-            });
-
-            if (circulars.isEmpty) {
-              return const Center(child: Text("No faculty circulars available."));
-            }
-
-            return ListView.builder(
-              itemCount: circulars.length,
-              itemBuilder: (context, index) {
-                final circular = circulars[index];
-                return Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.notifications, color: Colors.blue),
-                    title: Text(circular['title']!),
-                    subtitle: Text('Date: ${circular['date']}'),
-                    onTap: () {
-                      _showCircularDetails(context, circular);
-                    },
-                  ),
-                );
-              },
+          if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+            return Center(
+              child: Text(
+                'No circulars available',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
             );
-          } else {
-            return const Center(child: Text("No circulars found."));
           }
+
+          Map<dynamic, dynamic> circulars = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+          List<Map<String, dynamic>> facultyCirculars = [];
+
+          circulars.forEach((key, value) {
+            if (value['faculty_rev'] == true) {
+              facultyCirculars.add({
+                'id': key,
+                'title': value['title'],
+                'description': value['description'],
+                'published_date': value['published_date'],
+              });
+            }
+          });
+
+          return ListView.builder(
+            padding: EdgeInsets.all(8),
+            itemCount: facultyCirculars.length,
+            itemBuilder: (context, index) {
+              return Card(
+                elevation: 5.0,
+                margin: EdgeInsets.symmetric(vertical: 8.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: ListTile(
+                  contentPadding: EdgeInsets.all(16.0),
+                  title: Text(
+                    facultyCirculars[index]['title'] ?? 'No Title',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Published on: ${facultyCirculars[index]['published_date']}',
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FacultyCircularPreview(
+                          title: facultyCirculars[index]['title'],
+                          description: facultyCirculars[index]['description'],
+                          publishedDate: facultyCirculars[index]['published_date'],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          );
         },
       ),
     );
   }
+}
 
-  void _showCircularDetails(BuildContext context, Map<String, dynamic> circular) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(circular['title']!),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Date: ${circular['date']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text(circular['description']!),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+class FacultyCircularPreview extends StatelessWidget {
+  final String title;
+  final String description;
+  final String publishedDate;
+
+  FacultyCircularPreview({
+    required this.title,
+    required this.description,
+    required this.publishedDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Circular Details"),
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Image.asset("assets/images/logo1.png", height: 150, width: 120),
+            ),
+            SizedBox(height: 10),
+            Center(
+              child: Text(
+                "NARMADA COLLEGE OF SCIENCE & COMMERCE",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Center(
+              child: Text(
+                "Zadeshwar, Bharuch(Gujarat) 392011",
+                style: TextStyle(fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              "Date: $publishedDate",
+              style: TextStyle(fontSize: 14),
+            ),
+            Divider(thickness: 1, height: 20),
+            Center(
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              description,
+              style: TextStyle(fontSize: 14, color: Colors.black87),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }

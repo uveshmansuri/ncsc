@@ -21,7 +21,7 @@ class _loginState extends State<login> {
   TextEditingController user_textcontrol = TextEditingController();
   TextEditingController pass_textcontrol = TextEditingController();
   bool password_visibility = true;
-  bool isLoading = false; // Added a loading state
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +106,7 @@ class _loginState extends State<login> {
                               ),
                               SizedBox(height: 10),
                               ElevatedButton(
-                                onPressed: isLoading ? null : loin_in, // Disable button if loading
+                                onPressed: isLoading ? null : loin_in,
                                 child: Text(
                                   "Login",
                                   style: TextStyle(
@@ -138,11 +138,10 @@ class _loginState extends State<login> {
             ),
           ),
 
-          // Show CircularProgressIndicator only when loading
           if (isLoading)
             Positioned.fill(
               child: Container(
-                color: Colors.black.withOpacity(0.3), // Transparent overlay
+                color: Colors.black.withOpacity(0.3),
                 child: Center(
                   child: CircularProgressIndicator(),
                 ),
@@ -155,7 +154,7 @@ class _loginState extends State<login> {
 
   void loin_in() async {
     setState(() {
-      isLoading = true; // Start showing loader
+      isLoading = true;
     });
 
     String username = user_textcontrol.text.toString();
@@ -167,7 +166,7 @@ class _loginState extends State<login> {
     if (username.trim().isEmpty) {
       Fluttertoast.showToast(msg: "Enter Username");
       setState(() {
-        isLoading = false; // Hide loader
+        isLoading = false;
       });
       return;
     }
@@ -193,7 +192,7 @@ class _loginState extends State<login> {
 
           Future.delayed(Duration(seconds: 2), () {
             setState(() {
-              isLoading = false; // Hide loader before navigation
+              isLoading = false;
             });
 
             if (role == "admin") {
