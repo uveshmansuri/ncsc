@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'Createschedulepage.dart';
 
 class SchedulePage extends StatefulWidget {
   var dept,fid;
@@ -49,10 +50,16 @@ class _SchedulePageState extends State<SchedulePage> {
           ),
         ],
       ),
+
       floatingActionButton: widget.ishod==true&&is_schedule==false
           ?
       FloatingActionButton(
-        onPressed: (){},
+        onPressed: (){
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Createschedulepage(department:widget.dept)),
+          );
+        },
         child: Icon(Icons.add),
       )
           :
