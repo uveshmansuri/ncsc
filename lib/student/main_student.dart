@@ -1,9 +1,9 @@
+import 'package:NCSC/student/About_Collage.dart';
 import 'package:NCSC/student/About_University.dart';
 import 'package:NCSC/student/departmentlist.dart';
 import 'package:NCSC/student/feeportal.dart';
 import 'package:NCSC/student/internalmarks.dart';
 import 'package:NCSC/student/queryraising.dart';
-import 'package:NCSC/student/syllabus.dart';
 import 'package:NCSC/student/test.dart';
 import 'package:NCSC/student/timetable.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -114,6 +114,11 @@ class _HomeScreenState extends State<HomeScreen> {
           'page': TestPage(stud_id: widget.stud_id, dept: dept, sem: sem),
         },
         {
+          'icon':Icons.business_rounded,
+          'label':'About College',
+          'page':About_Collage()
+        },
+        {
           'icon':Icons.credit_card,
           'label':'Fees Portal',
           'page':Fees_Portal()
@@ -122,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'icon':Icons.account_balance,
           'label':'About University',
           'page':About_Univercity()
-        }
+        },
       ];
       setState(() {
         flag = true;

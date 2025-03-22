@@ -16,6 +16,8 @@ class _InternalMarksPageState extends State<InternalMarksPage> {
 
   int total_marks=0;
 
+  bool isloading=false;
+
   bool flag=false;
   @override
   void initState() {
@@ -23,6 +25,11 @@ class _InternalMarksPageState extends State<InternalMarksPage> {
   }
 
   void fetch_marks() async{
+    total_marks=0;
+    marks_list.clear();
+    setState(() {
+      isloading=true;
+    });
     var db=await FirebaseDatabase.instance.ref("internal_marks/${widget.dept}/${selectedSemester}/${widget.stud_id}").get();
     if(db.exists){
       total_marks=0;
@@ -30,15 +37,16 @@ class _InternalMarksPageState extends State<InternalMarksPage> {
         total_marks+=int.parse(sp.value.toString());
         marks_list.add(marks_model(sub: sp.key, marks: int.parse(sp.value.toString())));
         setState(() {
+          isloading=false;
           flag=true;
         });
       }
     }
     else{
       setState(() {
+        isloading=false;
         flag=false;
       });
-      print("Marks Not avilable");
     }
   }
 
@@ -47,78 +55,86 @@ class _InternalMarksPageState extends State<InternalMarksPage> {
     return Scaffold(
       appBar: AppBar(title: Text("Internal Marks")),
       body: Center(
-          child: Column(
+          child: Stack(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Column(
                 children: [
-                  DropdownButton<String>(
-                    value: selectedSemester,
-                    items: semester_lst.map((sem) {
-                      return DropdownMenuItem<String>(
-                        value: sem,
-                        child: Text("$sem"),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedSemester = value!;
-                        if(selectedSemester!="Select Semester"){
-                          marks_list.clear();
-                          fetch_marks();
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      DropdownButton<String>(
+                        value: selectedSemester,
+                        items: semester_lst.map((sem) {
+                          return DropdownMenuItem<String>(
+                            value: sem,
+                            child: Text("$sem"),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedSemester = value!;
+                            marks_list.clear();
+                            fetch_marks();
+                          });
+                        },
+                      ),//For SEM Filter
+                    ],
+                  ),
+                  if(flag == false)
+                    selectedSemester=="Select Semester"
+                        ?
+                    Text("Please Select the Semester")
+                        :
+                    Text("Marks is Not Avilable"),
+
+                  if(flag==true)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 20,),
+                        Text("Total Marks:$total_marks"),
+                        Card(
+                            child: ListTile(
+                              title: Text(
+                                "Subject",
+                                style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),
+                              ),
+                              trailing: Text(
+                                "Marks",
+                                style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                        itemCount: marks_list.length,
+                        itemBuilder: (context,i){
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 1),
+                            child: Card(
+                              child: ListTile(
+                                title: Text(
+                                  marks_list[i].sub,
+                                  style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),
+                                ),
+                                trailing: Text(
+                                  marks_list[i].marks.toString(),
+                                  style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),
+                                ),
+                              ),
+                            ),
+                          );
                         }
-                      });
-                    },
-                  ),//For SEM Filter
+                    ),
+                  ),
                 ],
               ),
-              flag==false
-                  ?
-              Text("Marks is Not Avilable")
-                  :
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Column(
-                  children: [
-                    SizedBox(height: 20,),
-                    Text("Total Marks:$total_marks"),
-                    Card(
-                        child: ListTile(
-                          title: Text(
-                            "Subject",
-                            style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),
-                          ),
-                          trailing: Text(
-                            "Marks",
-                            style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                    itemCount: marks_list.length,
-                    itemBuilder: (context,i){
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 1),
-                        child: Card(
-                          child: ListTile(
-                            title: Text(
-                              marks_list[i].sub,
-                              style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),
-                            ),
-                            trailing: Text(
-                              marks_list[i].marks.toString(),
-                              style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                ),
-              ),
+              if(isloading==true)
+                Center(child: CircularProgressIndicator()),
             ],
           ),
       ),

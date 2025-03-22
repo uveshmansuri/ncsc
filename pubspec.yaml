@@ -93,6 +93,8 @@ dependencies:
   awesome_snackbar_content: ^0.1.5
   flutter_inappwebview: ^6.1.5
   webview_flutter: ^4.10.0
+  flutter_map: ^8.1.1
+  latlong2: ^0.9.1
 
 
   #
