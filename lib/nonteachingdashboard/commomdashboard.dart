@@ -1,9 +1,15 @@
 import 'dart:convert';
+import 'package:NCSC/nonteachingdashboard/profilenonteaching.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:image_picker/image_picker.dart';
 import '../admin/students.dart';
+import '../logout.dart';
 import 'circularnonteaching.dart';
 import 'clerkpage.dart';
 import 'complainnonteaching.dart';
@@ -25,43 +31,37 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
   List<String> userRoles = [];
   bool isLoading = true;
-
-  // Controllers for profile editing
+  int _selectedIndex = 0;
   TextEditingController phoneController = TextEditingController();
   TextEditingController addressController = TextEditingController();
   TextEditingController qualificationController = TextEditingController();
-
-  // Profile image stored as a base64 string
   String? _base64Image;
 
   @override
   void initState() {
     super.initState();
-    // Fetch roles and profile details from Firebase.
     fetchUserRoles();
     fetchProfileDetails();
   }
 
   Future<void> fetchUserRoles() async {
     try {
-      // Convert the username to uppercase if your keys are stored that way.
       String key = widget.username.trim().toUpperCase();
-      print("Querying roles for non_teaching with key: $key");
-
       DatabaseEvent event = await _dbRef
           .child('Staff')
           .child('non_teaching')
           .child(key)
           .child('roles')
           .once();
-      print("Fetched roles snapshot: ${event.snapshot.value}");
       var rolesData = event.snapshot.value;
       List<String> rolesList = [];
       if (rolesData != null) {
         if (rolesData is List) {
-          rolesList = List<String>.from(rolesData.where((role) => role != null));
+          rolesList =
+          List<String>.from(rolesData.where((role) => role != null));
         } else if (rolesData is Map) {
-          var sortedKeys = rolesData.keys.toList()..sort();
+          var sortedKeys = rolesData.keys.toList()
+            ..sort();
           for (var k in sortedKeys) {
             if (rolesData[k] != null) {
               rolesList.add(rolesData[k].toString());
@@ -83,6 +83,20 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
     }
   }
 
+  void onTabTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+
+  void navigateToPage(BuildContext context, Widget page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
+  }
+
   Future<void> fetchProfileDetails() async {
     try {
       String key = widget.username.trim().toUpperCase();
@@ -91,14 +105,15 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
           .child('non_teaching')
           .child(key)
           .once();
-      // Assuming profile details are stored as key/value pairs in this node.
+
       var data = event.snapshot.value as Map<dynamic, dynamic>?;
       if (data != null) {
         setState(() {
           phoneController.text = data['phone']?.toString() ?? '';
           addressController.text = data['address']?.toString() ?? '';
-          qualificationController.text = data['qualification']?.toString() ?? '';
-          _base64Image = data['profileImage']?.toString();
+          qualificationController.text =
+              data['qualification']?.toString() ?? '';
+          _base64Image = data['profileI']?.toString();
         });
       }
     } catch (e) {
@@ -106,12 +121,6 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
     }
   }
 
-  void navigateToPage(BuildContext context, Widget page) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
-  }
 
   Widget buildDashboardItem({
     required String title,
@@ -126,7 +135,9 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
         leading: Icon(
           icon,
           size: 30,
-          color: Theme.of(context).primaryColor,
+          color: Theme
+              .of(context)
+              .primaryColor,
         ),
         title: Text(
           title,
@@ -138,161 +149,25 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
     );
   }
 
-  void showEditDialog() {
-    String? tempImage = _base64Image;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title:
-          Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.bold)),
-          content: StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Tap to pick a new image
-                    GestureDetector(
-                      onTap: () => _pickImage((image) {
-                        setStateDialog(() {
-                          tempImage = image;
-                        });
-                      }),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: tempImage != null
-                            ? MemoryImage(base64Decode(tempImage!))
-                            : null,
-                        backgroundColor: Colors.blueAccent,
-                        child: tempImage == null
-                            ? Icon(Icons.person, size: 50, color: Colors.white)
-                            : null,
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    TextField(
-                      controller: phoneController,
-                      decoration: InputDecoration(
-                        labelText: "Phone",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      keyboardType: TextInputType.phone,
-                    ),
-                    SizedBox(height: 15),
-                    TextField(
-                      controller: addressController,
-                      decoration: InputDecoration(
-                        labelText: "Address",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 15),
-                    TextField(
-                      controller: qualificationController,
-                      decoration: InputDecoration(
-                        labelText: "Qualification",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cancel", style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              onPressed: () => saveDetails(tempImage),
-              child: Text("Save"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Use image_picker package to pick an image from the gallery.
-  Future<void> _pickImage(Function(String image) callback) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? imageFile = await picker.pickImage(source: ImageSource.gallery);
-    if (imageFile != null) {
-      final bytes = await imageFile.readAsBytes();
-      String base64Image = base64Encode(bytes);
-      callback(base64Image);
-    }
-  }
-
-  // Save updated profile details to Firebase under non-teaching staff.
-  Future<void> saveDetails(String? tempImage) async {
-    setState(() {
-      _base64Image = tempImage;
-    });
-    String key = widget.username.trim().toUpperCase();
-    try {
-      await _dbRef.child('Staff').child('non_teaching').child(key).update({
-        'phone': phoneController.text,
-        'address': addressController.text,
-        'qualification': qualificationController.text,
-        'profileImage': _base64Image,
-      });
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Profile updated successfully")));
-    } catch (e) {
-      print("Error updating profile: $e");
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Failed to update profile")));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    String rolesDisplay =
-    userRoles.isNotEmpty ? userRoles.join(", ") : "Unknown";
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard'),
-        centerTitle: true,
-        actions: [
-          // Profile icon on top-right opens the edit dialog.
-          IconButton(
-            icon: CircleAvatar(
-              backgroundImage: _base64Image != null
-                  ? MemoryImage(base64Decode(_base64Image!))
-                  : null,
-              backgroundColor: Colors.white,
-              child: _base64Image == null
-                  ? Icon(Icons.person, color: Colors.blue)
-                  : null,
-            ),
-            onPressed: showEditDialog,
-          ),
-        ],
-      ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
+  Widget buildHomePage() {
+    return isLoading
+        ? Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Header card displaying the username and roles.
+            // User Info Card
             Card(
               elevation: 3,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: Theme
+                      .of(context)
+                      .primaryColor,
                   child: Text(
                     widget.username.substring(0, 1).toUpperCase(),
                     style: TextStyle(color: Colors.white, fontSize: 20),
@@ -300,99 +175,103 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
                 ),
                 title: Text(
                   "Welcome, ${widget.username}",
-                  style: TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text("Roles: $rolesDisplay"),
+                subtitle: Text(
+                  userRoles.isNotEmpty
+                      ? "Roles: ${userRoles.join(", ")}"
+                      : "Roles: Unknown",
+                ),
               ),
             ),
             SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                children: [
-                  buildDashboardItem(
-                    title: "Circular",
-                    icon: Icons.campaign,
-                    page: circularnonteaching(),
-                  ),
-                  buildDashboardItem(
-                    title: "Complaint",
-                    icon: Icons.report_problem,
-                    page: complainnonteaching(),
-                  ),
 
-                  if (userRoles.contains("Lab Assistant")) ...[
-                    buildDashboardItem(
-                      title: "Lab Query",
-                      icon: Icons.computer,
-                      page: FetchComputerLabQueries(),
-                    ),
-                    buildDashboardItem(
-                      title: "Attendance",
-                      icon: Icons.computer,
-                      page: computerlabdashboard(),
-                    ),
-                    buildDashboardItem(
-                      title: "Library",
-                      icon: Icons.computer,
-                      page: computerlabdashboard(),
-                    ),
-                    buildDashboardItem(
-                      title: "Notes",
-                      icon: Icons.computer,
-                      page: CalendarScreen(username: widget.username),
-                    ),
-                  ],
-
-                  if (userRoles.contains("science_lab_assistant")) ...[
-                    buildDashboardItem(
-                      title: "Lab Query",
-                      icon: Icons.science,
-                      page: FetchScienceLabQueries(),
-                    ),
-                    buildDashboardItem(
-                      title: "Material requirement",
-                      icon: Icons.science,
-                      page: FetchScienceLabQueries(),
-                    ),
-                  ],
-
-                  if (userRoles.contains("Clerk")) ...[
-                    buildDashboardItem(
-                      title: "Clerk Page",
-                      icon: Icons.assignment_ind,
-                      page: ClerkPage(),
-                    ),
-                    buildDashboardItem(
-                      title: "Student",
-                      icon: Icons.computer,
-                      page: Students(),
-                    ),
-                    buildDashboardItem(
-                      title: "Notes",
-                      icon: Icons.computer,
-                      page: CalendarScreen(username: widget.username),
-                    ),
-                  ],
-
-                  if (userRoles.contains("office_superintendent")) ...[
-                    buildDashboardItem(
-                      title: "Office Superintendent Page",
-                      icon: Icons.apartment,
-                      page: OfficeSuperintendentPage(),
-                    ),
-                    buildDashboardItem(
-                      title: "Request",
-                      icon: Icons.request_page,
-                      page: OfficeSuperintendentPage(),
-                    ),
-                  ],
-                ],
-              ),
-
+            // Common Dashboard Items for All Roles
+            buildDashboardItem(
+              title: "Circular",
+              icon: Icons.campaign,
+              page: StaffCircularsPage(),
             ),
+            buildDashboardItem(
+              title: "TimeTable",
+              icon: Icons.calendar_today,
+              page: complainnonteaching(),
+            ),
+
+            SizedBox(height: 20),
+
+            // Role-Specific Dashboard Items
+            if (userRoles.contains("Lab Assistant")) ...[
+              buildDashboardItem(
+                title: "Lab Query",
+                icon: Icons.computer,
+                page: FetchComputerLabQueries(),
+              ),
+              buildDashboardItem(
+                title: "Notes",
+                icon: Icons.sticky_note_2,
+                page: CalendarScreen(username: widget.username),
+              ),
+            ],
+
+            if (userRoles.contains("Science Lab Assistant")) ...[
+              buildDashboardItem(
+                title: "Lab Query",
+                icon: Icons.science,
+                page: FetchScienceLabQueries(),
+              ),
+              buildDashboardItem(
+                title: "Attendance",
+                icon: Icons.account_circle_outlined,
+                page: FetchScienceLabQueries(),
+              ),
+            ],
+
+            if (userRoles.contains("Clerk")) ...[
+              buildDashboardItem(
+                title: "Documentation Request",
+                icon: Icons.assignment_ind,
+                page: ClerkPage(),
+              ),
+              buildDashboardItem(
+                title: "Student",
+                icon: Icons.person,
+                page: Students(),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> pages = [
+      buildHomePage(),
+      ProfilePage(username: widget.username),  // Added ProfilePage here
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Dashboard'),
+        centerTitle: true,
+      ),
+      body: pages[_selectedIndex], // Accessing the selected page from the list
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: onTabTapped,
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profile",
+          ),
+        ],
       ),
     );
   }

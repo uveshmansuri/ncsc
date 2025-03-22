@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-
 import 'facultywholeinfo.dart';
 
 class FacultyListPage extends StatefulWidget {
@@ -64,8 +63,6 @@ class _FacultyListPageState extends State<FacultyListPage> {
                 faculty['name']!,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),
               ),
-              subtitle: Text("Experience: ${faculty['experience']} years",
-                  style: TextStyle(fontSize: 16, color: Colors.black54)),
               onTap: () {
                 Navigator.push(
                   context,
@@ -80,8 +77,6 @@ class _FacultyListPageState extends State<FacultyListPage> {
       ),
     );
   }
-
-  /// Fetches faculty based on department
   void fetchFaculty() async {
     try {
       final snapshot = await dbRef.get();
