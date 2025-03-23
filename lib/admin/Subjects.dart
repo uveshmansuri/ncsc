@@ -300,7 +300,9 @@ class assing_faulty extends StatefulWidget{
 class _assing_faultyState extends State<assing_faulty> {
   List<faculty> faculty_list = [];
   List<faculty> temp_faculty_list = [];
+
   List<String> dept_lst = [];
+
   List<dynamic> assing_faculties = [];
   List<faculty> ass_faculty_list = [];
 
