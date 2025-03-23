@@ -45,7 +45,8 @@ class _About_CollageState extends State<About_Collage> {
                 AnimatedSwitcher(
                   duration: Duration(milliseconds: 300),
                   child: isScrolled
-                      ? Hero(
+                      ?
+                  Hero(
                         tag:"coll",
                         child: Row(
                             key: ValueKey("RowView"),
@@ -87,7 +88,8 @@ class _About_CollageState extends State<About_Collage> {
                             ],
                           ),
                       )
-                      : Hero(
+                      :
+                  Hero(
                         tag:"coll",
                         child: Column(
                             key: ValueKey("ColumnView"),

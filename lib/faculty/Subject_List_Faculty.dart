@@ -47,7 +47,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
             sub=sp.child("name").value.toString();
             sid=sp.key;
             dept=sp.child("dept").value.toString();
-            sub_list.add(subject(sid, sub, fid, dept, sem));
+            sub_list.add(subject(sid, sub,fid, dept, sem));
           }
           setState(() {
             is_loading=true;

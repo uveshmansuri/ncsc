@@ -58,6 +58,7 @@ class _RegistrationState extends State<regestration> {
   }
 
   Widget buildRegistrationForm(String role) {
+
     return Center(
       child: SingleChildScrollView(
         child: Padding(
@@ -82,7 +83,7 @@ class _RegistrationState extends State<regestration> {
                       ),
                       SizedBox(width: 30),
                       Text(
-                        "${role.capitalize()}\nRegistration",
+                        "${role}\nRegistration",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 30,
@@ -95,7 +96,7 @@ class _RegistrationState extends State<regestration> {
                   TextFormField(
                     controller: userTextController,
                     decoration: InputDecoration(
-                        labelText: "Enter ${role.capitalize()} ID",
+                        labelText: "Enter ${role} ID",
                         prefixIcon: Icon(Icons.person),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -176,8 +177,7 @@ class _RegistrationState extends State<regestration> {
 
 
 
-  void processRegistration(
-      DatabaseReference dbRef, String role, Widget Function(String) homePage) async {
+  void processRegistration(DatabaseReference dbRef, String role, Widget Function(String) homePage) async {
     if (validateInput()) {
       final snapshot = await dbRef.get();
       bool exists = false;
@@ -241,19 +241,6 @@ class _RegistrationState extends State<regestration> {
     return true;
   }
 }
-
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1)}";
-  }
-}
-
-
-
-
-
-
-
 
 
 // import 'package:NCSC/admin/admin_portal.dart';
