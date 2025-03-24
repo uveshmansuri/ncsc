@@ -10,6 +10,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'Studentprofile.dart';
 import 'annoucementstudent.dart';
+import 'requests.dart';
 
 // Main Student Dashboard
 class StudentDashboard extends StatefulWidget {
@@ -103,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
         {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
         {'icon': Icons.announcement, 'label': 'Announcement', 'page': StudentCircularsPage()},
         {'icon': Icons.school, 'label': 'Department', 'page': DepartmentList()},
+        {'icon': Icons.school, 'label': 'Request', 'page': RequestPage(studentId: widget.stud_id, department: dept, semester: sem)},
         {
           'icon': Icons.grade,
           'label': 'Marks',

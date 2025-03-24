@@ -135,8 +135,8 @@ class _CreateschedulepageState extends State<Createschedulepage> {
           : sub_list.isEmpty
           ? Center(child: Text("No subjects available"))
           : ListView.builder(
-                  itemCount: sub_list.length,
-                  itemBuilder: (context, index) {
+        itemCount: sub_list.length,
+        itemBuilder: (context, index) {
           String subjectName = sub_list[index].sname!;
           return Card(
             margin: EdgeInsets.all(10),
@@ -159,8 +159,8 @@ class _CreateschedulepageState extends State<Createschedulepage> {
               ),
             ),
           );
-                  },
-                ),
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
           _showTimePickerDialog();
@@ -239,10 +239,10 @@ class _CreateschedulepageState extends State<Createschedulepage> {
     var subject_details=[];
     print(sub_list.length);
     for(int i=0;i<sub_list.length;i++){
-     var temp =("Subject:${sub_list[i].sname},Semester:${sub_list[i].sem},"
-         "Faculty:${sub_list[i].fid.join(",")},"
-         "Sessions per weak:${ed_list[i]!.text}");
-     subject_details.add(temp);
+      var temp =("Subject:${sub_list[i].sname},Semester:${sub_list[i].sem},"
+          "Faculty:${sub_list[i].fid.join(",")},"
+          "Sessions per weak:${ed_list[i]!.text}");
+      subject_details.add(temp);
     }
 
     // String prompt="Generate a weekly timetable for the following subjects, their assigned faculty, and the required number "

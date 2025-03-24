@@ -231,7 +231,7 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
               buildDashboardItem(
                 title: "Documentation Request",
                 icon: Icons.assignment_ind,
-                page: ClerkPage(),
+                page: ClerkRequestPage(),
               ),
               buildDashboardItem(
                 title: "Student",

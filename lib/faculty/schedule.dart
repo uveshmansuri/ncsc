@@ -23,47 +23,47 @@ class _SchedulePageState extends State<SchedulePage> {
   void fetch_schedule() async{
     var db=await FirebaseDatabase.instance.ref("department").get();
     for(DataSnapshot sp in db.children){
-     if(sp.child("department").value.toString()==widget.dept){
-       setState(() {
-         is_schedule=sp.child("Schedule").exists;
-       });
-       break;
-     }
+      if(sp.child("department").value.toString()==widget.dept){
+        setState(() {
+          is_schedule=sp.child("Schedule").exists;
+        });
+        break;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Schedule")),
-      body:
-      Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if(is_schedule==false)
-          Center(
-              child:
-              Text(
-                "Schedule is not avilable",
-                style: TextStyle(fontSize: 24)
+        appBar: AppBar(title: Text("Schedule")),
+        body:
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if(is_schedule==false)
+              Center(
+                child:
+                Text(
+                    "Schedule is not avilable",
+                    style: TextStyle(fontSize: 24)
+                ),
               ),
-          ),
-        ],
-      ),
+          ],
+        ),
 
-      floatingActionButton: widget.ishod==true&&is_schedule==false
-          ?
-      FloatingActionButton(
-        onPressed: (){
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => Createschedulepage(department:widget.dept)),
-          );
-        },
-        child: Icon(Icons.add),
-      )
-          :
-      null
+        floatingActionButton: widget.ishod==true&&is_schedule==false
+            ?
+        FloatingActionButton(
+          onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Createschedulepage(department:widget.dept)),
+            );
+          },
+          child: Icon(Icons.add),
+        )
+            :
+        null
     );
   }
 }
