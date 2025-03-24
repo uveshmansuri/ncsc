@@ -19,6 +19,8 @@ class _CreateschedulepageState extends State<Createschedulepage> {
   List<TextEditingController> ed_list=[];
   bool isLoading = true;
 
+  bool is_generating=false;
+
   TimeOfDay? startTime;
   TimeOfDay? endTime;
 
@@ -45,7 +47,7 @@ class _CreateschedulepageState extends State<Createschedulepage> {
     var db_ref=await FirebaseDatabase.instance.ref("Subjects").get();
 
     for(DataSnapshot sp in db_ref.children){
-      List<dynamic> assing_faculties = [];
+
       if(sp.child("dept").value.toString()==widget.department){
         var sub,sid,dept,sem;
         sem=sp.child("sem").value.toString();
@@ -65,7 +67,6 @@ class _CreateschedulepageState extends State<Createschedulepage> {
             ass_faculty_name.add(db.value.toString());
             ed_list.add(_ctr);
           }
-
           sub_list.add(subject(sid, sub, ass_faculty_name, dept, sem));
         }
       }
@@ -131,36 +132,69 @@ class _CreateschedulepageState extends State<Createschedulepage> {
     return Scaffold(
       appBar: AppBar(title: Text("Subjects for ${widget.department}")),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : sub_list.isEmpty
-          ? Center(child: Text("No subjects available"))
-          : ListView.builder(
-                  itemCount: sub_list.length,
-                  itemBuilder: (context, index) {
-          String subjectName = sub_list[index].sname!;
-          return Card(
-            margin: EdgeInsets.all(10),
-            child: ListTile(
-              title: Text("Subject: ${sub_list[index].sname!}"),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Semester: ${sub_list[index].sem!}"),
-                  Text("Faculty: ${sub_list[index].fid.join(",")}"),
-                  SizedBox(height: 10),
-                  TextField(
-                    keyboardType: TextInputType.number,
-                    controller: ed_list[index],
-                    decoration: InputDecoration(
-                      label: Text("Enter Marks"),
-                    ),
+          ?
+      Center(child: CircularProgressIndicator())
+          :
+      sub_list.isEmpty
+          ?
+      Center(child: Text("No subjects available"))
+          :
+      Stack(
+        children: [
+          ListView.builder(
+                      itemCount: sub_list.length,
+                      itemBuilder: (context, index) {
+              String subjectName = sub_list[index].sname!;
+              return Card(
+                margin: EdgeInsets.all(10),
+                child: ListTile(
+                  title: Text("Subject: ${sub_list[index].sname!}"),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Semester: ${sub_list[index].sem!}"),
+                      Text("Faculty: ${sub_list[index].fid.join(",")}"),
+                      SizedBox(height: 10),
+                      TextField(
+                        keyboardType: TextInputType.number,
+                        controller: ed_list[index],
+                        decoration: InputDecoration(
+                          label: Text("Enter Slots per Weak"),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          );
-                  },
                 ),
+              );
+                      },
+                    ),
+          if(is_generating==true)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        strokeWidth: 6,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                      ),
+                      SizedBox(height: 5,),
+                      Text(
+                        "Generating Time Table",
+                        style: TextStyle(
+                            fontSize: 20,fontWeight: FontWeight.bold,color: Colors.black
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
           _showTimePickerDialog();
@@ -221,9 +255,6 @@ class _CreateschedulepageState extends State<Createschedulepage> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                print(startTime);
-                print(endTime);
-                print(sub_list);
                 genrate_timetable();
                 // You can use startTime and endTime here as needed
               },
@@ -236,6 +267,7 @@ class _CreateschedulepageState extends State<Createschedulepage> {
   }
 
   void genrate_timetable() async{
+
     var subject_details=[];
     print(sub_list.length);
     for(int i=0;i<sub_list.length;i++){
@@ -270,22 +302,29 @@ class _CreateschedulepageState extends State<Createschedulepage> {
                         - Keys: Day of week (Monday to Saturday).
                         - Nested keys: Time slots from $startTime to $endTime.
                         - Values: An object mapping semester numbers (e.g., [1, 3, 5]) to either "free" or a string formatted as "subject, faculty".
-                        
+
                         Subject Details:
                         Use the provided variable ${subject_details}, which contains the subjects, their assigned faculty, and the required number of sessions per week.
-                        
+
                         Constraints:
                         - Ensure no faculty member is scheduled to teach more than one subject simultaneously.
                         - Populate each time slot for each semester accordingly, marking it as "free" if no class is scheduled.
                         - Also arange subjects and time slot properly without messing up and  each session must be 1 hour long
-                        - Also add half hour break to each semester every  day (e.g., [1, 3, 5]) to either "free" or "break" or a string formatted as "subject, faculty
-                        -Also consider that every day have proper classes and work load is equally distributed 
-                                                                  
+                        - Also consider that required number of sessions per week for ecah subject of semester
+                        - Also add half hour break to each semester every  day (e.g., [1, 3, 5]) to either "free" or "break" or a string formatted as "subject, faculty                       
+                        - Important: Guarantee that every day has classes scheduled; 
+                        ensure that no day is completely free and that the daily workload is approximately equal.                                             
+
                         Output only the JSON data without any extra information.""";
+
 
     var key="AIzaSyC9KMLHWS9IBy3ZqRTuarkbA1L085JxWcQ";
     final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: key);
     final content = [Content.text(prompt)];
+
+    setState(() {
+      is_generating=true;
+    });
     final response = await model.generateContent(content);
 
     var res=response.text;
@@ -299,9 +338,15 @@ class _CreateschedulepageState extends State<Createschedulepage> {
     }
     debugPrint(res);
     try{
+      setState(() {
+        is_generating=false;
+      });
       jsonDecode(res);
       Navigator.push(context, MaterialPageRoute(builder: (context)=>timetable_preview(timtable_data: res!.trim())));
     }catch(ex){
+      setState(() {
+        is_generating=false;
+      });
       print(ex.toString());
     }
   }
@@ -312,7 +357,7 @@ class timetable_preview extends StatelessWidget{
   timetable_preview({required this.timtable_data});
   @override
   Widget build(BuildContext context) {
-    // Parse JSON String to Map
+
     Map<String, dynamic> timetable = jsonDecode(timtable_data);
 
     return Scaffold(
