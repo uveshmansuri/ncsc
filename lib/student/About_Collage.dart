@@ -132,18 +132,18 @@ class _About_CollageState extends State<About_Collage> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        _buildPrincipalMessageCard(
-                            name:
-                            "Nilay MC",
-                            //"Dr. A.K Sing",
-                            msg:
-                            "Do not Study to hard Fall for rich Girls Money Will come from their fathers Bank Account!!!",
-                            // 'Welcome to Narmada College of Science and Commerce. '
-                            // 'Our institution is committed to providing quality education and fostering an environment of '
-                            // 'academic excellence. We believe in holistic development and strive to equip our students with the '
-                            // 'skills and knowledge necessary to excel in their respective fields.',
-                            img: "assets/images/imgNCSC1010001.png"
-                        ),
+                        // _buildPrincipalMessageCard(
+                        //     name:
+                        //     "Nilay MC",
+                        //     //"Dr. A.K Sing",
+                        //     msg:
+                        //     "Do not Study to hard Fall for rich Girls Money Will come from their fathers Bank Account!!!",
+                        //     // 'Welcome to Narmada College of Science and Commerce. '
+                        //     // 'Our institution is committed to providing quality education and fostering an environment of '
+                        //     // 'academic excellence. We believe in holistic development and strive to equip our students with the '
+                        //     // 'skills and knowledge necessary to excel in their respective fields.',
+                        //     img: "assets/images/imgNCSC1010001.png"
+                        // ),
 
                         _buildInfoCard(
                           title: 'Overview',

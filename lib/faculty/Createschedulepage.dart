@@ -17,9 +17,15 @@ class Createschedulepage extends StatefulWidget {
 
 class _CreateschedulepageState extends State<Createschedulepage> {
   List<TextEditingController> ed_list=[];
+
+  TextEditingController ed1=TextEditingController();
+  TextEditingController ed2=TextEditingController();
+  TextEditingController ed3=TextEditingController();
   bool isLoading = true;
 
   bool is_generating=false;
+
+  var is_check=false;
 
   TimeOfDay? startTime;
   TimeOfDay? endTime;
@@ -141,33 +147,115 @@ class _CreateschedulepageState extends State<Createschedulepage> {
           :
       Stack(
         children: [
-          ListView.builder(
-                      itemCount: sub_list.length,
-                      itemBuilder: (context, index) {
-              String subjectName = sub_list[index].sname!;
-              return Card(
-                margin: EdgeInsets.all(10),
-                child: ListTile(
-                  title: Text("Subject: ${sub_list[index].sname!}"),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Semester: ${sub_list[index].sem!}"),
-                      Text("Faculty: ${sub_list[index].fid.join(",")}"),
-                      SizedBox(height: 10),
-                      TextField(
-                        keyboardType: TextInputType.number,
-                        controller: ed_list[index],
-                        decoration: InputDecoration(
-                          label: Text("Enter Slots per Weak"),
+          Column(
+            children: [
+              Column(
+                children: [
+                  ListTile(
+                    title: Text(startTime != null
+                        ? "Start Time: ${startTime!.format(context)}"
+                        : "Pick Start Time"),
+                    trailing: const Icon(Icons.access_time),
+                    onTap: () => _selectTime(context, true),
+                  ),
+                  ListTile(
+                    title: Text(endTime != null
+                        ? "End Time: ${endTime!.format(context)}"
+                        : "Pick End Time"),
+                    trailing: const Icon(Icons.access_time),
+                    onTap: () => _selectTime(context, false),
+                  ),
+                ],
+              ),
+
+              Expanded(
+                flex: 9,
+                child: ListView.builder(
+                  itemCount: sub_list.length,
+                  itemBuilder: (context, index) {
+                    String subjectName = sub_list[index].sname!;
+                    return Card(
+                      margin: EdgeInsets.all(10),
+                      child: ListTile(
+                        title: Text("Subject: ${sub_list[index].sname!}"),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Semester: ${sub_list[index].sem!}"),
+                            Text("Faculty: ${sub_list[index].fid.join(",")}"),
+                            SizedBox(height: 10),
+                            TextField(
+                              keyboardType: TextInputType.number,
+                              controller: ed_list[index],
+                              decoration: InputDecoration(
+                                label: Text("Enter Slots per Weak"),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-                      },
-                    ),
+              ),
+
+              // Expanded(
+              //   flex: 2,
+              //     child: SingleChildScrollView(
+              //       child: Column(
+              //         children: [
+              //           Row(
+              //             mainAxisAlignment: MainAxisAlignment.center,
+              //             children: [
+              //               Text("Lab is Avilable?"),
+              //               Checkbox(
+              //                   value: is_check,
+              //                   onChanged: (value){
+              //                     setState(() {
+              //                       is_check=value!;
+              //                     });
+              //                   }
+              //               ),
+              //             ],
+              //           ),
+              //           if(is_check)
+              //             Padding(
+              //               padding: const EdgeInsets.symmetric(horizontal: 18),
+              //               child: Column(
+              //                 children: [
+              //                   TextField(
+              //                     keyboardType: TextInputType.number,
+              //                     controller: ed1,
+              //                     decoration: InputDecoration(
+              //                       label: Text("Enter Lab Slot per day for Sem1"),
+              //                     ),
+              //                   ),
+              //                   SizedBox(height: 10,),
+              //                   TextField(
+              //                     keyboardType: TextInputType.number,
+              //                     controller: ed2,
+              //                     decoration: InputDecoration(
+              //                       label: Text("Enter Lab Slot per day for Sem3"),
+              //                     ),
+              //                   ),
+              //                   SizedBox(height: 10,),
+              //                   TextField(
+              //                     keyboardType: TextInputType.number,
+              //                     controller: ed3,
+              //                     decoration: InputDecoration(
+              //                       label: Text("Enter Lab Slot per day for Sem5"),
+              //                     ),
+              //                   ),
+              //                   SizedBox(height: 10,),
+              //                 ],
+              //               ),
+              //             ),
+              //         ],
+              //       ),
+              //     )
+              // ),
+            ],
+          ),
           if(is_generating==true)
             Positioned.fill(
               child: Container(
@@ -227,7 +315,7 @@ class _CreateschedulepageState extends State<Createschedulepage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Select Start & End Time"),
+          title: const Text("Confirm Start & End Time"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -236,14 +324,12 @@ class _CreateschedulepageState extends State<Createschedulepage> {
                     ? "Start Time: ${startTime!.format(context)}"
                     : "Pick Start Time"),
                 trailing: const Icon(Icons.access_time),
-                onTap: () => _selectTime(context, true),
               ),
               ListTile(
                 title: Text(endTime != null
                     ? "End Time: ${endTime!.format(context)}"
                     : "Pick End Time"),
                 trailing: const Icon(Icons.access_time),
-                onTap: () => _selectTime(context, false),
               ),
             ],
           ),
@@ -296,25 +382,51 @@ class _CreateschedulepageState extends State<Createschedulepage> {
     //     " given formate day of weak->time->sem [1,3,5] -> {free or subject:faculty} here free if no class their"
     //     " also generate json file compleately and for weak days from monday to saturday";
 
+    String pr='''
+    Generate a weekly timetable in JSON format with the following requirements:
+                        Timetable Structure:
+                        -Time table cvers monday to saturday
+                        -Each day consists of Time slots from  $startTime to $endTime.
+                        -Each Time sloat contains schedule for 3 grops sem1,sem2,sem3.
+                        -If sloat has no schedule then it should be marks as "free"
+                        -Also arange subjects and time slot properly and each session must be 1 hour long
+                        -Also add half hour break to each semester every  
+                        day (e.g., [1, 3, 5]) to either "free" or "lab" or "break" or a string formatted as "subject, faculty                       
+                        -Each subject assing to faculty member represent by initial ex(Uv for Uvesh)
+                        -Use the provided variable ${subject_details}, which contains the subjects, their assigned faculty, 
+                        and the required number of sessions per week.
+                         Constraints:
+                        - Ensure no faculty member is scheduled to teach more than one subject simultaneously.    
+                        Important Note:
+                        -Guarantee that every day has classes scheduled for each semester ensure that 
+                        no day is completely free and that the daily workload is approximately equal.
+                        -And properly initialize slots for subjects per weak for each semester                                            
+                        
+                        Output only the JSON data without any extra information.              
+    ''';
 
     String prompt = """Generate a weekly timetable in JSON format with the following requirements:
                         Timetable Structure:
                         - Keys: Day of week (Monday to Saturday).
                         - Nested keys: Time slots from $startTime to $endTime.
-                        - Values: An object mapping semester numbers (e.g., [1, 3, 5]) to either "free" or a string formatted as "subject, faculty".
-
+                        - Values: An object mapping semester numbers (e.g., [1, 3, 5]) to either "free" or a string formatted as 
+                        "subject, faculty".                                        
                         Subject Details:
-                        Use the provided variable ${subject_details}, which contains the subjects, their assigned faculty, and the required number of sessions per week.
-
+                        Use the provided variable ${subject_details}, which contains the subjects, their assigned faculty, 
+                        and the required number of sessions per week.
+                        
                         Constraints:
                         - Ensure no faculty member is scheduled to teach more than one subject simultaneously.
                         - Populate each time slot for each semester accordingly, marking it as "free" if no class is scheduled.
-                        - Also arange subjects and time slot properly without messing up and  each session must be 1 hour long
+                        - Also arange subjects and time slot properly without messing up and each session must be 1 hour long
                         - Also consider that required number of sessions per week for ecah subject of semester
-                        - Also add half hour break to each semester every  day (e.g., [1, 3, 5]) to either "free" or "break" or a string formatted as "subject, faculty                       
-                        - Important: Guarantee that every day has classes scheduled; 
-                        ensure that no day is completely free and that the daily workload is approximately equal.                                             
-
+                        - Also add half hour break to each semester every  day (e.g., [1, 3, 5]) to either "free" or "lab" or "break" or a string formatted as "subject, faculty                       
+                       
+                        Important Note:
+                        -Guarantee that every day has classes scheduled for each semester ensure that 
+                        no day is completely free and that the daily workload is approximately equal.
+                        -And properly initialize slots for subjects per weak for each semester                                            
+                        
                         Output only the JSON data without any extra information.""";
 
 
