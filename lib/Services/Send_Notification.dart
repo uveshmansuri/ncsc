@@ -35,6 +35,7 @@ class SendNotification{
       body: jsonEncode(msg),
     );
 
+    print(response.body.toString());
     if(response.statusCode==200){
       print("Notification Send");
     }else{

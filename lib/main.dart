@@ -12,6 +12,8 @@ import 'DBADashboard.dart';
 import 'faculty/Subject_List_Faculty.dart';
 import 'faculty/main_faculty.dart';
 import 'firebase_options.dart';
+import 'librarywhole/Library_DashBoard.dart';
+import 'librarywhole/Library_temp2.dart';
 import 'nonteachingdashboard/notesforall.dart';
 
 @pragma("vm:entry-point")
@@ -38,7 +40,7 @@ class MY_APP extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'NCSC',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: splash()
+      home: Library_Main()
     );
   }
 }
