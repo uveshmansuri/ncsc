@@ -1,6 +1,7 @@
 import 'package:NCSC/Services/Notification_Service.dart';
 import 'package:NCSC/student/About_Collage.dart';
 import 'package:NCSC/student/About_University.dart';
+import 'package:NCSC/student/Assingments.dart';
 import 'package:NCSC/student/departmentlist.dart';
 import 'package:NCSC/student/feeportal.dart';
 import 'package:NCSC/student/internalmarks.dart';
@@ -122,6 +123,11 @@ class _HomeScreenState extends State<HomeScreen> {
           'icon': Icons.grade,
           'label': 'Marks',
           'page': InternalMarksPage(stud_id: widget.stud_id,dept: dept,sem: sem,)
+        },
+        {
+          'icon': Icons.assignment_outlined,
+          'label': 'Assignment',
+          'page':Assingments(dept: dept, sem: sem)
         },
         {
           'icon': Icons.assignment,
