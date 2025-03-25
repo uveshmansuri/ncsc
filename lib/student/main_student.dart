@@ -1,3 +1,4 @@
+import 'package:NCSC/Services/Notification_Service.dart';
 import 'package:NCSC/student/About_Collage.dart';
 import 'package:NCSC/student/About_University.dart';
 import 'package:NCSC/student/departmentlist.dart';
@@ -8,6 +9,7 @@ import 'package:NCSC/student/test.dart';
 import 'package:NCSC/student/timetable.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import '../Services/Get_Server_key.dart';
 import 'Studentprofile.dart';
 import 'annoucementstudent.dart';
 import 'requests.dart';
@@ -82,6 +84,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Notification_Service noti_service=Notification_Service();
+
   List<Map<String, dynamic>> _iconList = [];
   String stud_name = "", dept = "", sem = "", email = "";
   bool flag = false;
@@ -89,11 +93,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    noti_service.get_permission();
+    noti_service.setupInteractMsg(context);
+    noti_service.firebaseInit(context);
     fetchStudentDetails();
   }
 
   void fetchStudentDetails() async {
     try {
+      //-------------Getting Server Key-------------
+      // get_server_key obj=get_server_key();
+      // var key=await obj.get_ServerKeyToken();
+      // print("$key");
+      //---------------------------------------------
+
       var db = await FirebaseDatabase.instance.ref("Students").child(widget.stud_id).get();
       stud_name = db.child("name").value.toString();
       dept = db.child("dept").value.toString();

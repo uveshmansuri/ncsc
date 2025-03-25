@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'Services/Notification_Service.dart';
 import 'nonteachingdashboard/commomdashboard.dart';
 
 class login extends StatefulWidget {
@@ -181,6 +182,8 @@ class _loginState extends State<login> {
     final databaseRef = FirebaseDatabase.instance.ref();
     DataSnapshot usersSnapshot = await databaseRef.child("Users").get();
 
+    var token=await Notification_Service.getDeviceToken();
+
     for (DataSnapshot sp in usersSnapshot.children) {
       if (sp.child("user_name").value.toString() == username) {
         found = true;
@@ -190,11 +193,13 @@ class _loginState extends State<login> {
           prefs.setString('uname', username);
           prefs.setString('role', role);
 
-          Future.delayed(Duration(seconds: 2), () {
-            setState(() {
-              isLoading = false;
+          await FirebaseDatabase.instance.ref("Users/$username")
+              .child("token").set(token).then((_){
+            Future.delayed(Duration(seconds: 2), () {
+              setState(() {
+                isLoading = false;
+              });
             });
-
             if (role == "admin") {
               Navigator.pushReplacement(
                   context, MaterialPageRoute(builder: (context) => DBA_Dashboard()));

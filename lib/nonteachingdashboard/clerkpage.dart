@@ -1,5 +1,7 @@
+import 'package:NCSC/Services/Send_Notification.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class ClerkRequestPage extends StatefulWidget {
   const ClerkRequestPage({Key? key}) : super(key: key);
@@ -77,16 +79,25 @@ class _RequestListPageState extends State<RequestListPage> {
 
         for (var semester in department.children) {
           String semesterKey = semester.key ?? "UnknownSem";
-
           for (var student in semester.children) {
             String studentId = student.key ?? "UnknownID";
+            var token=await FirebaseDatabase.instance.ref("Users/${studentId}")
+                .child("token").get();
+            var name=await FirebaseDatabase.instance.ref("Students/${studentId}/name").get();
+            //print("Token:${token.value.toString()}");
             String requestDate = student.child("date").value?.toString() ?? "Unknown Date";
             bool isSolved = student.child("solve").value == true;
 
-            tempRequests["$departmentKey/$semesterKey/$studentId"] = {
+            tempRequests["$studentId"] = {
+              "dept":departmentKey,
+              "sem":semesterKey,
+              "name":name.value.toString(),
+              "token":token.value?.toString()??"No Token",
               "date": requestDate,
               "solved": isSolved,
             };
+            print(studentRequests[studentId]?["token"]);
+            print(tempRequests);
           }
         }
       }
@@ -99,9 +110,26 @@ class _RequestListPageState extends State<RequestListPage> {
 
   // Mark the request as solved
   Future<void> markRequestAsSolved(String path) async {
-    await _database.child("Request").child(widget.passType).child(path).update({"solve": true});
-    fetchStudentRequests();
-    Navigator.pop(context);
+    await _database.child("Request").child(widget.passType)
+        .child(studentRequests[path]?["dept"])
+        .child(studentRequests[path]?["sem"])
+        .child(path)
+        .update({"solve": true})
+        .then((_)async{
+          if (studentRequests[path]?["token"]!="No Token"){
+            await SendNotification.sendNotificationbyAPI(
+                token: studentRequests[path]?["token"],
+                title: "NCSC",
+                body: "Your Request for ${widget.passType} is accepted\n"
+                    "Kindly Collect it from Admin Office in Working Hours"
+            );
+          }
+          Fluttertoast.showToast(msg: "Notification Send to user");
+          fetchStudentRequests();
+          Navigator.pop(context);
+        }).catchError((error){
+          Fluttertoast.showToast(msg: "${error.toString()}");
+        });
   }
 
   // Show confirmation dialog
@@ -135,17 +163,31 @@ class _RequestListPageState extends State<RequestListPage> {
         itemCount: studentRequests.length,
         itemBuilder: (context, index) {
           String path = studentRequests.keys.elementAt(index);
-          String studentId = path.split('/').last;
           String requestDate = studentRequests[path]?["date"] ?? "Unknown Date";
+          String name = studentRequests[path]?["name"] ?? "Unknown";
           bool isSolved = studentRequests[path]?["solved"] ?? false;
+          String dept= studentRequests[path]?["dept"];
+          String sem= studentRequests[path]?["sem"];
 
           return Card(
             margin: const EdgeInsets.all(8),
             color: isSolved ? Colors.lightGreen[200] : Colors.white,
             child: ListTile(
-              title: Text("Student ID: $studentId"),
+              title: Text("$path\n$name"),
               subtitle: Text("Requested on: $requestDate"),
-              onTap: () => showConfirmationDialog(path),
+              trailing: Text("$dept\nSem:$sem"),
+              onTap: () {
+                if(isSolved==false)
+                showConfirmationDialog(path);
+                else{
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("${widget.passType} Request Solved"),
+                      duration: Duration(seconds: 1),
+                    )
+                  );
+                }
+              },
             ),
           );
         },
