@@ -99,7 +99,7 @@ class _AssingBookState extends State<AssingBook> {
                             if(notify)
                               IconButton(
                                   onPressed: (){
-                                    Remainder_Student(obj.stud_id);
+                                    Remainder_Student(obj.stud_id,i);
                                   },
                                   icon: Icon(Icons.notifications_on_sharp,color: Colors.white,),
                               ),
@@ -141,7 +141,6 @@ class _AssingBookState extends State<AssingBook> {
                   labelText: 'Student ID',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.number,
               ),
               SizedBox(height: 10),
               Text("Due Date:$formattedDate"),
@@ -198,7 +197,6 @@ class _AssingBookState extends State<AssingBook> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Invalid Student Id")));
     }
   }
-
 
   void book_return(int index){
     int fineAmount=0;
@@ -263,11 +261,30 @@ class _AssingBookState extends State<AssingBook> {
         });
   }
 
-  void Remainder_Student(String stud_id) async{
+  void Remainder_Student(String stud_id,i) async{
     var db=await FirebaseDatabase.instance.ref("Users/$stud_id/token").get();
     String token=db.value.toString();
-    String msg="Return the Book";
-    SendNotification.sendNotificationbyAPI(token: token, title: "Book Return Alert", body: msg);
+    String msg;
+    int fineAmount=0;
+    int daysLate=0;
+    DateTime currentDate = DateTime.now();
+    DateTime dueDate = DateFormat("yyyy-MM-dd").parse(assing_book_list[i].due_date);
+
+    if (currentDate.isAfter(dueDate)) {
+      daysLate = currentDate.difference(dueDate).inDays;
+      fineAmount = daysLate * 5;
+    } else {
+      fineAmount = 0;
+    }
+
+    if(fineAmount==0){
+      msg="Reminder: Kindly return ${widget.book_data.name} to the library today between 11:00 AM and 4:30 PM to avoid a fine of ₹5 per day. Thank you!";
+    }else{
+      msg="Reminder: Your book ${widget.book_data.name} is $daysLate days overdue. "
+          "A fine of ₹$fineAmount has been applied. Please return it as soon as possible to avoid further charges!";
+    }
+
+    SendNotification.sendNotificationbyAPI(token: token, title: "NCSC Library", body: msg);
   }
 }
 
