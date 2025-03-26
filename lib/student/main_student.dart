@@ -1,4 +1,5 @@
 import 'package:NCSC/Services/Notification_Service.dart';
+import 'package:NCSC/nonteachingdashboard/notesforall.dart';
 import 'package:NCSC/student/About_Collage.dart';
 import 'package:NCSC/student/About_University.dart';
 import 'package:NCSC/student/Assingments.dart';
@@ -15,7 +16,6 @@ import 'Studentprofile.dart';
 import 'annoucementstudent.dart';
 import 'requests.dart';
 
-// Main Student Dashboard
 class StudentDashboard extends StatefulWidget {
   final String stud_id;
   StudentDashboard({required this.stud_id});
@@ -29,12 +29,13 @@ class _StudentDashboardState extends State<StudentDashboard> {
   late String stud_id;
   late List<Widget> _pages;
 
+
   @override
   void initState() {
     super.initState();
     stud_id = widget.stud_id;
     _pages = [
-      Center(child: Text("🔔 Updates", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+      CalendarScreen(username: stud_id),
       HomeScreen(stud_id: stud_id),
       StudentProfilePage(stud_id: stud_id),
     ];
@@ -75,7 +76,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
   }
 }
 
-// Home Screen with features
 class HomeScreen extends StatefulWidget {
   final String stud_id;
   HomeScreen({required this.stud_id});

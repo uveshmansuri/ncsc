@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-
 import 'Subject_List_Faculty.dart';
 
 class Createschedulepage extends StatefulWidget {
@@ -388,7 +387,7 @@ class _CreateschedulepageState extends State<Createschedulepage> {
                         -Time table cvers monday to saturday
                         -Each day consists of Time slots from  $startTime to $endTime.
                         -Each Time sloat contains schedule for 3 grops sem1,sem2,sem3.
-                        -If sloat has no schedule then it should be marks as "free"
+                        -If sloat has no schedule then it should be marks as "free",Fill "free" slots intelligently by spreading out subjects.
                         -Also arange subjects and time slot properly and each session must be 1 hour long
                         -Also add half hour break to each semester every  
                         day (e.g., [1, 3, 5]) to either "free" or "lab" or "break" or a string formatted as "subject, faculty                       
@@ -396,7 +395,7 @@ class _CreateschedulepageState extends State<Createschedulepage> {
                         -Use the provided variable ${subject_details}, which contains the subjects, their assigned faculty, 
                         and the required number of sessions per week.
                          Constraints:
-                        - Ensure no faculty member is scheduled to teach more than one subject simultaneously.    
+                        - Ensure no faculty member is scheduled to teach more than one subject simultaneously,Ensure no faculty is assigned multiple classes at the same time.    
                         Important Note:
                         -Guarantee that every day has classes scheduled for each semester ensure that 
                         no day is completely free and that the daily workload is approximately equal.
@@ -432,7 +431,7 @@ class _CreateschedulepageState extends State<Createschedulepage> {
 
     var key="AIzaSyC9KMLHWS9IBy3ZqRTuarkbA1L085JxWcQ";
     final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: key);
-    final content = [Content.text(prompt)];
+    final content = [Content.text(pr)];
 
     setState(() {
       is_generating=true;
@@ -454,7 +453,7 @@ class _CreateschedulepageState extends State<Createschedulepage> {
         is_generating=false;
       });
       jsonDecode(res);
-      Navigator.push(context, MaterialPageRoute(builder: (context)=>timetable_preview(timtable_data: res!.trim())));
+      Navigator.push(context, MaterialPageRoute(builder: (context)=>TimetablePreview(timetableData: res!.trim())));
     }catch(ex){
       setState(() {
         is_generating=false;
@@ -464,67 +463,87 @@ class _CreateschedulepageState extends State<Createschedulepage> {
   }
 }
 
-class timetable_preview extends StatelessWidget{
-  final String timtable_data;
-  timetable_preview({required this.timtable_data});
+
+class TimetablePreview extends StatelessWidget {
+  final String timetableData;
+  TimetablePreview({required this.timetableData});
+
   @override
   Widget build(BuildContext context) {
-
-    Map<String, dynamic> timetable = jsonDecode(timtable_data);
+    Map<String, dynamic> timetable = jsonDecode(timetableData);
 
     return Scaffold(
       appBar: AppBar(title: Text("Timetable")),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: ListView(
-          children: timetable.keys.map((day) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SingleChildScrollView(
+            child: Table(
+              border: TableBorder.all(),
+              columnWidths: {
+                0: FixedColumnWidth(100.0), // Time column
+                1: FlexColumnWidth(),
+                2: FlexColumnWidth(),
+                3: FlexColumnWidth(),
+                4: FlexColumnWidth(),
+              },
               children: [
-                Text(
-                  day,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 5),
-                Table(
-                  border: TableBorder.all(),
-                  columnWidths: {
-                    0: FixedColumnWidth(80.0),
-                    1: FlexColumnWidth(),
-                    2: FlexColumnWidth(),
-                    3: FlexColumnWidth(),
-                  },
+                // Table Header
+                TableRow(
+                  decoration: BoxDecoration(color: Colors.grey[300]),
                   children: [
-                    // Table Header
-                    TableRow(
-                      decoration: BoxDecoration(color: Colors.grey[300]),
-                      children: [
-                        _tableCell("Time", isHeader: true),
-                        _tableCell("Semester 1", isHeader: true),
-                        _tableCell("Semester 3", isHeader: true),
-                        _tableCell("Semester 5", isHeader: true),
-                      ],
-                    ),
-                    // Table Rows
-                    ...timetable[day].entries.map((entry) {
-                      String time = entry.key;
-                      Map<String, dynamic> batches = entry.value;
-                      return TableRow(children: [
-                        _tableCell(time),
-                        _tableCell(batches["1"] ?? "-"),
-                        _tableCell(batches["3"] ?? "-"),
-                        _tableCell(batches["5"] ?? "-"),
-                      ]);
-                    }).toList(),
+                    _tableCell("Time", isHeader: true),
+                    _tableCell("Monday", isHeader: true),
+                    _tableCell("Tuesday", isHeader: true),
+                    _tableCell("Wednesday", isHeader: true),
+                    _tableCell("Thursday", isHeader: true),
+                    _tableCell("Friday", isHeader: true),
+                    _tableCell("Saturday", isHeader: true),
                   ],
                 ),
-                SizedBox(height: 20),
+                // Generate rows for each time slot
+                ..._generateTimeSlots(timetable),
               ],
-            );
-          }).toList(),
+            ),
+          ),
         ),
       ),
     );
+  }
+
+  List<TableRow> _generateTimeSlots(Map<String, dynamic> timetable) {
+    List<String> timeSlots = _getAllTimeSlots(timetable);
+    List<TableRow> rows = [];
+
+    for (String time in timeSlots) {
+      rows.add(
+        TableRow(
+          children: [
+            _tableCell(time, isHeader: true), // Time Column
+            ...["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map(
+                  (day) {
+                var daySchedule = timetable[day] ?? {};
+                var session = daySchedule[time] ?? {"sem1": "-", "sem2": "-", "sem3": "-"};
+                return _tableCell(
+                    "${session["sem1"]}\n${session["sem2"]}\n${session["sem3"]}");
+              },
+            ).toList(),
+          ],
+        ),
+      );
+    }
+
+    return rows;
+  }
+
+  List<String> _getAllTimeSlots(Map<String, dynamic> timetable) {
+    Set<String> allSlots = {};
+    timetable.forEach((day, schedule) {
+      allSlots.addAll(schedule.keys);
+    });
+    List<String> sortedSlots = allSlots.toList()..sort();
+    return sortedSlots;
   }
 
   Widget _tableCell(String text, {bool isHeader = false}) {

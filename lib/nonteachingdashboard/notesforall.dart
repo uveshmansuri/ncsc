@@ -61,60 +61,79 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
   }
 
-  /// Show dialog to create a new event
   void _showAddEventDialog() {
     TextEditingController titleController = TextEditingController();
     TextEditingController descController = TextEditingController();
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true, // Ensures proper keyboard behavior
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+      ),
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: Text("Create Event - ${_formatDate(_selectedDay)}"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  labelText: "Title",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: descController,
-                decoration: InputDecoration(
-                  labelText: "Description",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-            ],
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom, // Adjusts for keyboard
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cancel", style: TextStyle(color: Colors.red)),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Prevents unnecessary height expansion
+              children: [
+                Text(
+                  "Create Event - ${_formatDate(_selectedDay)}",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    labelText: "Title",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextField(
+                  controller: descController,
+                  maxLines: 3, // Restricts height growth
+                  decoration: InputDecoration(
+                    labelText: "Description",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text("Cancel", style: TextStyle(color: Colors.red)),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        _saveEvent(titleController.text, descController.text);
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: Text("Save"),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                _saveEvent(titleController.text, descController.text);
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: Text("Save"),
-            ),
-          ],
+          ),
         );
       },
     );
   }
 
-  /// Save event to Firebase
   void _saveEvent(String title, String description) {
     String formattedDate = _formatDate(_selectedDay);
     _dbRef.child(formattedDate).set({
@@ -131,7 +150,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Event Calendar")),
+      appBar: AppBar(
+        title: Text(
+          "Event Calendar",
+          style: TextStyle(color: Colors.white), // Set text color to white
+        ),
+        backgroundColor:Colors.teal,
+      ),
+
       body: Column(
         children: [
           /// 📆 Table Calendar UI

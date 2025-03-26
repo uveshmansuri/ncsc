@@ -1,4 +1,5 @@
 import 'package:NCSC/faculty/newsforyou.dart';
+import 'package:NCSC/nonteachingdashboard/notesforall.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'addassignment.dart';
@@ -6,6 +7,8 @@ import 'alertpage.dart';
 import 'circularpage.dart';
 
 class UpdatesPage extends StatelessWidget {
+  final String fid;
+  UpdatesPage(this.fid);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,7 +17,7 @@ class UpdatesPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CustomCard(title: "Alert", navigateTo: AlertPage()),
+            CustomCard(title: "Calendar", navigateTo: CalendarScreen(username: fid)),
             SizedBox(height: 16),
             CustomCard(title: "News for you", navigateTo:  FacultyCircularsPage()),
           ],

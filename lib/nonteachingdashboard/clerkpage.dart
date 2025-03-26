@@ -66,16 +66,17 @@ class _RequestListPageState extends State<RequestListPage> {
     fetchStudentRequests();
   }
 
+  // Fetch all student requests for the given pass type
   Future<void> fetchStudentRequests() async {
     DatabaseReference passRef = _database.child("Request").child(widget.passType);
     DataSnapshot snapshot = await passRef.get();
-
     if (snapshot.exists) {
       Map<String, Map<String, dynamic>> tempRequests = {};
 
       // Iterate over departments
       for (var department in snapshot.children) {
         String departmentKey = department.key ?? "UnknownDept";
+
         for (var semester in department.children) {
           String semesterKey = semester.key ?? "UnknownSem";
           for (var student in semester.children) {

@@ -23,7 +23,7 @@ class _FacultyMainState extends State<FacultyMain> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> _pages = [
-      UpdatesPage(),
+      UpdatesPage(widget.fid),
       HomePage(widget.fid),
       ProfilePage(widget.fid),
     ];
