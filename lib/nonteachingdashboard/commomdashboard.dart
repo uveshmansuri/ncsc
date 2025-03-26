@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:NCSC/librarywhole/Library_DashBoard.dart';
 import 'package:NCSC/nonteachingdashboard/profilenonteaching.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -192,11 +193,11 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
               icon: Icons.campaign,
               page: StaffCircularsPage(),
             ),
-            buildDashboardItem(
-              title: "TimeTable",
-              icon: Icons.calendar_today,
-              page: complainnonteaching(),
-            ),
+            // buildDashboardItem(
+            //   title: "TimeTable",
+            //   icon: Icons.calendar_today,
+            //   page: complainnonteaching(),
+            // ),
 
             SizedBox(height: 20),
 
@@ -206,6 +207,19 @@ class _RoleBasedDashboardState extends State<RoleBasedDashboard> {
                 title: "Lab Query",
                 icon: Icons.computer,
                 page: FetchComputerLabQueries(),
+              ),
+              buildDashboardItem(
+                title: "Notes",
+                icon: Icons.sticky_note_2,
+                page: CalendarScreen(username: widget.username),
+              ),
+            ],
+
+            if (userRoles.contains("Librarian")) ...[
+              buildDashboardItem(
+                title: "Books",
+                icon: Icons.book,
+                page: Library_Main(),
               ),
               buildDashboardItem(
                 title: "Notes",

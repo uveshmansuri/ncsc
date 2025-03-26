@@ -40,7 +40,7 @@ class MY_APP extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'NCSC',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: Library_Main()
+      home: splash()
     );
   }
 }

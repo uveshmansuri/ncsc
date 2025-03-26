@@ -170,6 +170,10 @@ class _AssingBookState extends State<AssingBook> {
   }
 
   void assing_toStudent(var stud_id,var due_date) async{
+    if(widget.book_data.total_copies==0){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Book's Copies Not Available")));
+      return;
+    }
     var db=await FirebaseDatabase.instance.ref("Students/$stud_id").get();
     if(db.exists){
       if(db.child("dept").value.toString()==widget.book_data.dept){
@@ -253,6 +257,7 @@ class _AssingBookState extends State<AssingBook> {
               .ref("Books/${widget.book_data.book_id}/copies")
               .set(remaining)
               .then((_){
+            widget.book_data.total_copies=remaining;
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Book Collected")));
             setState(() {
               assing_book_list.removeAt(i);

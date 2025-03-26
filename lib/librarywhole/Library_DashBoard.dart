@@ -110,7 +110,8 @@ class _Library_MainState extends State<Library_Main> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Library DashBoard"),
+        title: Text("Library Work Space"),
+        backgroundColor: Colors.lightBlue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
