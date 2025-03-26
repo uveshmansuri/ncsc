@@ -3,6 +3,7 @@ import 'package:NCSC/nonteachingdashboard/notesforall.dart';
 import 'package:NCSC/student/About_Collage.dart';
 import 'package:NCSC/student/About_University.dart';
 import 'package:NCSC/student/Assingments.dart';
+import 'package:NCSC/student/StudentLibrary.dart';
 import 'package:NCSC/student/departmentlist.dart';
 import 'package:NCSC/student/feeportal.dart';
 import 'package:NCSC/student/internalmarks.dart';
@@ -133,6 +134,11 @@ class _HomeScreenState extends State<HomeScreen> {
           'icon': Icons.assignment,
           'label': 'Test',
           'page': TestPage(stud_id: widget.stud_id, dept: dept, sem: sem),
+        },
+        {
+          'icon':Icons.account_balance_sharp,
+          'label':'Library',
+          'page':Students_Library(dept: dept),
         },
         {
           'icon':Icons.business_rounded,

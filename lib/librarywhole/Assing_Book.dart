@@ -73,28 +73,43 @@ class _AssingBookState extends State<AssingBook> {
                   itemBuilder: (context,i){
                     int daysLate=0;
                     Color? color=null;
+                    bool notify=false;
                     DateTime currentDate = DateTime.now();
                     DateTime dueDate = DateFormat("yyyy-MM-dd").parse(assing_book_list[i].due_date);
                     if (currentDate.isAfter(dueDate)) {
                       daysLate = currentDate.difference(dueDate).inDays;
+                      notify=true;
                       if(daysLate==0){
                         color=Colors.blueAccent;
                       }else{
                         color=Colors.redAccent;
                       }
                     }
+                    print(daysLate);
                     var obj=assing_book_list[i];
                     return Card(
                       color: color,
                       child: ListTile(
                         leading: Text(obj.stud_id),
                         title: Text(obj.sname),
-                        trailing: Text(obj.due_date),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(obj.due_date),
+                            if(notify)
+                              IconButton(
+                                  onPressed: (){
+                                    Remainder_Student(obj.stud_id);
+                                  },
+                                  icon: Icon(Icons.notifications_on_sharp,color: Colors.white,),
+                              ),
+                          ],
+                        ),
                         onTap: (){
                           book_return(i);
                         },
                         onLongPress: (){
-                          Remainder_Student(obj.stud_id);
+
                         },
                       ),
                     );

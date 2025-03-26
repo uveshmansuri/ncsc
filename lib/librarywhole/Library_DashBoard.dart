@@ -25,6 +25,11 @@ class _Library_MainState extends State<Library_Main> {
   List<books_model> books_list=[];
   List<books_model> temp_book_list=[];
 
+  bool is_loading=true;
+
+  String loading_msg="Loading Books Details";
+
+  bool is_assinged=false;
 
   @override
   void initState() {
@@ -74,7 +79,9 @@ class _Library_MainState extends State<Library_Main> {
           temp_book_list.add(obj);
         }
 
-        setState(() {}); // Update UI with the latest data
+        setState(() {
+          is_loading=false;
+        });
       }
     });
   }
@@ -83,6 +90,10 @@ class _Library_MainState extends State<Library_Main> {
     List<books_model> filteredList = temp_book_list;
     if (dept != "All") {
       filteredList = filteredList.where((s) => s.dept == dept).toList();
+    }
+
+    if(is_assinged==true){
+      filteredList=filteredList.where((s)=>s.assing_copies>0).toList();
     }
 
     String query = searchController.text.toLowerCase();
@@ -103,93 +114,131 @@ class _Library_MainState extends State<Library_Main> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            Text("List of Book"),
-            SizedBox(height:10,),
-            TextField(
-              controller: searchController,
-              onChanged: (value) => applyFilters(),
-              decoration: InputDecoration(
-                labelText: "Search Book",
-                prefixIcon: Icon(Icons.search),
-                suffixIcon: searchController.text.isNotEmpty
-                    ? IconButton(
-                  icon: Icon(Icons.clear),
-                  onPressed: () {
-                    searchController.clear();
-                    applyFilters();
-                  },
-                )
-                    : null,
-                border: OutlineInputBorder(),
-              ),
-            ),
-            Row(
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(width: 30,),
-                Text("Select Department"),
-                SizedBox(width: 30,),
-                DropdownButton<String>(
-                  value: dept,
-                  hint: Text("Select Department"),
-                  items: dept_lst
-                      .map((group) =>
-                      DropdownMenuItem<String>(
-                        value: group,
-                        child: Text(group),
-                      ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      dept = value!;
-                      selectedDept=dept;
+                TextField(
+                  controller: searchController,
+                  onChanged: (value) => applyFilters(),
+                  decoration: InputDecoration(
+                    labelText: "Search Book",
+                    prefixIcon: Icon(Icons.search),
+                    suffixIcon: searchController.text.isNotEmpty
+                        ? IconButton(
+                      icon: Icon(Icons.clear),
+                      onPressed: () {
+                        searchController.clear();
+                        applyFilters();
+                      },
+                    )
+                        : null,
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                Row(
+                  children: [
+                    SizedBox(width: 30,),
+                    Text("Select Department"),
+                    SizedBox(width: 30,),
+                    DropdownButton<String>(
+                      value: dept,
+                      hint: Text("Select Department"),
+                      items: dept_lst
+                          .map((group) =>
+                          DropdownMenuItem<String>(
+                            value: group,
+                            child: Text(group),
+                          ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          dept = value!;
+                          selectedDept=dept;
+                          applyFilters();
+                          // if(dept=="All"){
+                          // //   stud_list.clear();
+                          // //   stud_list.addAll(temp_stud_list);
+                          // //   setState(() {
+                          // //     count=stud_list.length;
+                          // //   });
+                          //   applyFilters();
+                          // }else{
+                          //   //int index = dept_lst.indexOf(value!);
+                          //   applyFilters();
+                          // }
+                        });
+                      },
+                    ),//For DEPT Filter
+                  ],
+                ),
+                CheckboxListTile(
+                    value: is_assinged,
+                    title: Text("Assinged Books"),
+                    onChanged: (val){
+                      is_assinged=val!;
+                      setState(() {});
                       applyFilters();
-                      // if(dept=="All"){
-                      // //   stud_list.clear();
-                      // //   stud_list.addAll(temp_stud_list);
-                      // //   setState(() {
-                      // //     count=stud_list.length;
-                      // //   });
-                      //   applyFilters();
-                      // }else{
-                      //   //int index = dept_lst.indexOf(value!);
-                      //   applyFilters();
-                      // }
-                    });
-                  },
-                ),//For DEPT Filter
+                    }
+                ),
+                SizedBox(height:10,),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount:books_list.length,
+                    itemBuilder: (context,i){
+                      return Card(
+                        elevation: 5,
+                        margin: EdgeInsets.symmetric(vertical: 10,horizontal: 5),
+                        shadowColor: Colors.cyanAccent.shade200,
+                        color: books_list[i].total_copies!=0?Colors.tealAccent.shade100:Colors.redAccent,
+                        child: ListTile(
+                          title: Text(
+                            books_list[i].name,
+                            style: TextStyle(fontSize:15,fontWeight: FontWeight.bold,color: Colors.black),
+                          ),
+                          subtitle: Text(
+                            "${books_list[i].author}\nDepartment:${books_list[i].dept}",
+                            style: TextStyle(fontSize:10,color: Colors.black87),
+                          ),
+                          trailing: Text(
+                            "Remaining Copies:${books_list[i].total_copies}\n"
+                                "Assing Copies:${books_list[i].assing_copies}",
+                            style: TextStyle(fontSize:15,fontWeight: FontWeight.bold,color: Colors.black87),
+                          ),
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>AssingBook(books_list[i])));
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                )
               ],
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount:books_list.length,
-                itemBuilder: (context,i){
-                  return Card(
-                    color: books_list[i].total_copies!=0?Colors.cyanAccent.shade100:Colors.redAccent,
-                    child: ListTile(
-                      title: Text(
-                        books_list[i].name,
-                        style: TextStyle(fontSize:15,fontWeight: FontWeight.bold,color: Colors.black),
-                      ),
-                      subtitle: Text(
-                        "${books_list[i].author}\nDepartment:${books_list[i].dept}",
-                        style: TextStyle(fontSize:10,color: Colors.black87),
-                      ),
-                      trailing: Text(
-                        "Remaining Copies:${books_list[i].total_copies}\n"
-                            "Assing Copies:${books_list[i].assing_copies}",
-                        style: TextStyle(fontSize:15,fontWeight: FontWeight.bold,color: Colors.black87),
-                      ),
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=>AssingBook(books_list[i])));
-                      },
+            if(is_loading==true)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.5), // Dim background
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(
+                          strokeWidth: 6,
+                          backgroundColor: Colors.grey[300],
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          "$loading_msg",
+                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
-            )
           ],
         ),
       ),
@@ -241,7 +290,7 @@ class _Library_MainState extends State<Library_Main> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['xlsx'],
-      withData: true, // Ensures bytes are available on Web
+      withData: true,
     );
 
     if (result == null) return;
@@ -278,7 +327,6 @@ class _Library_MainState extends State<Library_Main> {
       booksData = tempBooks;
     });
 
-    // Navigate to edit screen
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => Preview(booksData)),

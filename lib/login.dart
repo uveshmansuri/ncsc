@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:NCSC/DBADashboard.dart';
 import 'package:NCSC/admin/admin_portal.dart';
 import 'package:NCSC/faculty/faculty_home.dart';
@@ -6,6 +8,7 @@ import 'package:NCSC/main.dart';
 import 'package:NCSC/registration.dart';
 import 'package:NCSC/student/main_student.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -182,7 +185,12 @@ class _loginState extends State<login> {
     final databaseRef = FirebaseDatabase.instance.ref();
     DataSnapshot usersSnapshot = await databaseRef.child("Users").get();
 
-    var token=await Notification_Service.getDeviceToken();
+    if(!kIsWeb){
+      var token=await Notification_Service.getDeviceToken();
+      await FirebaseDatabase.instance.ref("Users/$username")
+          .child("token").set(token).then((_){
+          });
+    }
 
     for (DataSnapshot sp in usersSnapshot.children) {
       if (sp.child("user_name").value.toString() == username) {
@@ -193,24 +201,22 @@ class _loginState extends State<login> {
           prefs.setString('uname', username);
           prefs.setString('role', role);
 
-          await FirebaseDatabase.instance.ref("Users/$username")
-              .child("token").set(token).then((_){
-            Future.delayed(Duration(seconds: 2), () {
-              setState(() {
-                isLoading = false;
-              });
+          Future.delayed(Duration(seconds: 2), () {
+            setState(() {
+              isLoading = false;
             });
-            if (role == "admin") {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => DBA_Dashboard()));
-            } else if (role == "faculty") {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => FacultyMain(username)));
-            } else if (role == "student") {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => StudentDashboard(stud_id: username,)));
-            }
           });
+
+          if (role == "admin") {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => DBA_Dashboard()));
+          } else if (role == "faculty") {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => FacultyMain(username)));
+          } else if (role == "student") {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => StudentDashboard(stud_id: username,)));
+          }
         } else {
           Fluttertoast.showToast(msg: "Invalid Password");
           setState(() {
