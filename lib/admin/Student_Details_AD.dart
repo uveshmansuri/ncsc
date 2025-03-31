@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-//import 'package:image_picker_web/image_picker_web.dart';
 
 class Stud_AD extends StatefulWidget{
   var stud_id,sname,dept,sem,email;
@@ -223,7 +222,7 @@ class _Stud_ADState extends State<Stud_AD> {
       _response = "Preparing...";
     });
     print("p..");
-    var uri = Uri.parse('http://192.168.1.176:8000/encode');
+    var uri = Uri.parse('http://192.168.2.172:8000/encode');
     List<dynamic>? _faceEncodings;
     print("Starting....");
     var request = http.MultipartRequest('POST', uri)

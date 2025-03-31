@@ -99,7 +99,7 @@ class _AssingBookState extends State<AssingBook> {
                             if(notify)
                               IconButton(
                                   onPressed: (){
-                                    Remainder_Student(obj.stud_id,i);
+                                    Remainder_Student(obj.stud_id);
                                   },
                                   icon: Icon(Icons.notifications_on_sharp,color: Colors.white,),
                               ),
@@ -141,6 +141,7 @@ class _AssingBookState extends State<AssingBook> {
                   labelText: 'Student ID',
                   border: OutlineInputBorder(),
                 ),
+                keyboardType: TextInputType.number,
               ),
               SizedBox(height: 10),
               Text("Due Date:$formattedDate"),
@@ -170,10 +171,6 @@ class _AssingBookState extends State<AssingBook> {
   }
 
   void assing_toStudent(var stud_id,var due_date) async{
-    if(widget.book_data.total_copies==0){
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Book's Copies Not Available")));
-      return;
-    }
     var db=await FirebaseDatabase.instance.ref("Students/$stud_id").get();
     if(db.exists){
       if(db.child("dept").value.toString()==widget.book_data.dept){
@@ -201,6 +198,7 @@ class _AssingBookState extends State<AssingBook> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Invalid Student Id")));
     }
   }
+
 
   void book_return(int index){
     int fineAmount=0;
@@ -257,7 +255,6 @@ class _AssingBookState extends State<AssingBook> {
               .ref("Books/${widget.book_data.book_id}/copies")
               .set(remaining)
               .then((_){
-            widget.book_data.total_copies=remaining;
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Book Collected")));
             setState(() {
               assing_book_list.removeAt(i);
@@ -266,30 +263,11 @@ class _AssingBookState extends State<AssingBook> {
         });
   }
 
-  void Remainder_Student(String stud_id,i) async{
+  void Remainder_Student(String stud_id) async{
     var db=await FirebaseDatabase.instance.ref("Users/$stud_id/token").get();
     String token=db.value.toString();
-    String msg;
-    int fineAmount=0;
-    int daysLate=0;
-    DateTime currentDate = DateTime.now();
-    DateTime dueDate = DateFormat("yyyy-MM-dd").parse(assing_book_list[i].due_date);
-
-    if (currentDate.isAfter(dueDate)) {
-      daysLate = currentDate.difference(dueDate).inDays;
-      fineAmount = daysLate * 5;
-    } else {
-      fineAmount = 0;
-    }
-
-    if(fineAmount==0){
-      msg="Reminder: Kindly return ${widget.book_data.name} to the library today between 11:00 AM and 4:30 PM to avoid a fine of ₹5 per day. Thank you!";
-    }else{
-      msg="Reminder: Your book ${widget.book_data.name} is $daysLate days overdue. "
-          "A fine of ₹$fineAmount has been applied. Please return it as soon as possible to avoid further charges!";
-    }
-
-    SendNotification.sendNotificationbyAPI(token: token, title: "NCSC Library", body: msg);
+    String msg="Return the Book";
+    SendNotification.sendNotificationbyAPI(token: token, title: "Book Return Alert", body: msg);
   }
 }
 

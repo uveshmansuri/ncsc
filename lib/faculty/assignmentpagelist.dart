@@ -19,7 +19,7 @@ class AssignmentDetailPage extends StatefulWidget {
 class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
   final databaseRef = FirebaseDatabase.instance.ref();
   List<Map<String, dynamic>> students = [];
-  Map<String, bool> selectedStudents = {}; // Store checkbox selections
+  Map<String, bool> selectedStudents = {};
 
   @override
   void initState() {
@@ -33,17 +33,21 @@ class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
       DataSnapshot snapshot = event.snapshot;
 
       if (snapshot.exists && snapshot.value is Map) {
-        Map<String, dynamic> studentData = Map<String, dynamic>.from(snapshot.value as Map);
+        Map<String, dynamic> studentData = Map<String, dynamic>.from(
+            snapshot.value as Map);
 
         List<Map<String, dynamic>> studentList = studentData.entries
             .map((entry) => Map<String, dynamic>.from(entry.value))
-            .where((student) => student['dept'] == widget.dept && student['sem'] == widget.sem)
+            .where((student) =>
+        student['dept'] == widget.dept && student['sem'] == widget.sem)
             .toList();
 
         setState(() {
           students = studentList;
-          selectedStudents = {for (var student in students) student['name']: false};
+          selectedStudents =
+          {for (var student in students) student['stud_id']: false};
         });
+
         fetchExistingSubmissions();
       } else {
         setState(() {
@@ -52,7 +56,7 @@ class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
         });
       }
     } catch (e) {
-      print("Error fetching students: $e");
+      print("❌ Error fetching students: $e");
       setState(() {
         students = [];
         selectedStudents = {};
@@ -74,19 +78,21 @@ class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
       DataSnapshot snapshot = event.snapshot;
 
       if (snapshot.exists && snapshot.value is Map) {
-        Map<String, dynamic> submissionData = Map<String, dynamic>.from(snapshot.value as Map);
+        Map<String, dynamic> submissionData = Map<String, dynamic>.from(
+            snapshot.value as Map);
 
         setState(() {
           for (var student in students) {
-            String studentName = student['name'];
-            if (submissionData.containsKey(studentName)) {
-              selectedStudents[studentName] = submissionData[studentName];
+            String studentId = student['stud_id'];
+            if (submissionData.containsKey(studentId)) {
+              selectedStudents[studentId] =
+              submissionData[studentId];
             }
           }
         });
       }
     } catch (e) {
-      print("Error fetching submission status: $e");
+      print("❌ Error fetching submission status: $e");
     }
   }
   Future<void> saveStudentSubmission() async {
@@ -99,18 +105,18 @@ class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
           .child(widget.faculty)
           .child(widget.assignmentKey)
           .child('studentSubmitted');
-
       Map<String, dynamic> studentData = {
-        for (var entry in selectedStudents.entries) entry.key: entry.value
+        for (var entry in selectedStudents.entries) if (entry.value) entry
+            .key: true
       };
 
       await assignmentRef.set(studentData);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Student submissions saved successfully!")),
+        SnackBar(content: Text("✅ Student submissions saved successfully!")),
       );
     } catch (e) {
-      print("Error saving student submissions: $e");
+      print("❌ Error saving student submissions: $e");
     }
   }
 
@@ -123,25 +129,30 @@ class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("📋 Students List", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text("📋 Students List",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             Expanded(
               child: students.isEmpty
-                  ? Center(child: Text("No students found for this department and semester."))
+                  ? Center(child: Text(
+                  "No students found for this department and semester."))
                   : ListView.builder(
                 itemCount: students.length,
                 itemBuilder: (context, index) {
-                  String studentName = students[index]['name'] ?? "Unknown Name";
+                  String studentName = students[index]['name'] ??
+                      "Unknown Name";
+                  String studentId = students[index]['stud_id'];
 
                   return Card(
                     elevation: 3,
                     margin: EdgeInsets.symmetric(vertical: 5),
                     child: ListTile(
                       title: Text(studentName),
+                      subtitle: Text("ID: $studentId"),
                       trailing: Checkbox(
-                        value: selectedStudents[studentName] ?? false,
+                        value: selectedStudents[studentId] ?? false,
                         onChanged: (bool? newValue) {
                           setState(() {
-                            selectedStudents[studentName] = newValue ?? false;
+                            selectedStudents[studentId] = newValue ?? false;
                           });
                         },
                       ),
@@ -151,13 +162,18 @@ class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
               ),
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: saveStudentSubmission,
-              child: Text("Save"),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                textStyle: TextStyle(fontSize: 18),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center, // ✅ Centering in Row
+              children: [
+                ElevatedButton(
+                  onPressed: saveStudentSubmission,
+                  child: Text("Save"),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                    textStyle: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
