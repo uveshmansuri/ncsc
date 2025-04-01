@@ -2,6 +2,7 @@ import 'package:NCSC/Services/Send_Notification.dart';
 import 'package:NCSC/librarywhole/Library_DashBoard.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
 class AssingBook extends StatefulWidget {
@@ -42,88 +43,132 @@ class _AssingBookState extends State<AssingBook> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Assing Book"),
+        title: Text("Book Details"),
+        actions: [
+          // Icon for updating book details.
+          IconButton(
+            icon: Icon(Icons.edit),
+            tooltip: "Update Book Details",
+            onPressed: () {
+              showUpdateBookDialog(context);
+            },
+          ),
+        ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Center(
-          child: Column(
-            children: [
-              Card(
-                child: ListTile(
-                  title: Text(
-                    widget.book_data.name,
-                    style: TextStyle(fontSize:15,fontWeight: FontWeight.bold,color: Colors.black),
-                  ),
-                  subtitle: Text(
-                    "${widget.book_data.author}\nDepartment:${widget.book_data.dept}",
-                    style: TextStyle(fontSize:10,color: Colors.black87),
-                  ),
-                  trailing:IconButton(
-                      onPressed: (){
-                        showAssignBookDialog(context);
-                      },
-                      icon: Icon(Icons.assignment_turned_in_outlined)
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Book details card
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                contentPadding: EdgeInsets.all(16),
+                title: Text(
+                  widget.book_data.name,
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    "${widget.book_data.author}\nDepartment: ${widget.book_data.dept}",
+                    style: TextStyle(fontSize: 14, color: Colors.black87),
                   ),
                 ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: assing_book_list.length,
-                  itemBuilder: (context,i){
-                    int daysLate=0;
-                    Color? color=null;
-                    bool notify=false;
-                    DateTime currentDate = DateTime.now();
-                    DateTime dueDate = DateFormat("yyyy-MM-dd").parse(assing_book_list[i].due_date);
-                    if (currentDate.isAfter(dueDate)) {
-                      daysLate = currentDate.difference(dueDate).inDays;
-                      notify=true;
-                      if(daysLate==0){
-                        color=Colors.blueAccent;
-                      }else{
-                        color=Colors.redAccent;
-                      }
-                    }
-                    print(daysLate);
-                    var obj=assing_book_list[i];
-                    return Card(
-                      color: color,
-                      child: ListTile(
-                        leading: Text(obj.stud_id),
-                        title: Text(obj.sname),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(obj.due_date),
-                            if(notify)
-                              IconButton(
-                                  onPressed: (){
-                                    Remainder_Student(obj.stud_id);
-                                  },
-                                  icon: Icon(Icons.notifications_on_sharp,color: Colors.white,),
-                              ),
-                          ],
-                        ),
-                        onTap: (){
-                          book_return(i);
-                        },
-                        onLongPress: (){
-
-                        },
-                      ),
-                    );
+                trailing: IconButton(
+                  onPressed: () {
+                    showAssignBookDialog(context);
                   },
+                  icon: Icon(Icons.assignment_turned_in_outlined),
                 ),
               ),
-            ],
-          ),
+            ),
+            SizedBox(height: 20),
+            // Assignment list header
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                assing_book_list.isNotEmpty
+                    ? "List of Book Assigned Students"
+                    : "0 Copies Assigned of this Book Currently",
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+            SizedBox(height: 10),
+            // Assignment list
+            Expanded(
+              child: assing_book_list.isEmpty
+                  ? SizedBox()
+                  : ListView.separated(
+                separatorBuilder: (context, index) =>
+                    SizedBox(height: 8),
+                itemCount: assing_book_list.length,
+                itemBuilder: (context, i) {
+                  int daysLate = 0;
+                  Color? cardColor;
+                  bool notify = false;
+                  DateTime currentDate = DateTime.now();
+                  DateTime dueDate = DateFormat("yyyy-MM-dd")
+                      .parse(assing_book_list[i].due_date);
+                  if (currentDate.isAfter(dueDate)) {
+                    daysLate = currentDate.difference(dueDate).inDays;
+                    notify = true;
+                    cardColor = daysLate == 0
+                        ? Colors.blueAccent
+                        : Colors.redAccent;
+                  }
+                  var assignment = assing_book_list[i];
+                  return Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    color: cardColor ?? Colors.white,
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blueGrey,
+                        child: Text(
+                          assignment.stud_id.substring(0, 1).toUpperCase(),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      title: Text(assignment.sname),
+                      subtitle: Text("Due: ${assignment.due_date}"),
+                      trailing: notify
+                          ? IconButton(
+                        icon: Icon(Icons.notifications_active,
+                            color: Colors.white),
+                        onPressed: () {
+                          Remainder_Student(assignment.stud_id, i);
+                        },
+                      )
+                          : null,
+                      onTap: () {
+                        book_return(i);
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   void showAssignBookDialog(BuildContext context) {
+    if(widget.book_data.total_copies==0){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Book's Copies Not Available")));
+      return;
+    }
     DateTime dueDate = DateTime.now().add(Duration(days: 15));
     String formattedDate = DateFormat('yyyy-MM-dd').format(dueDate);
     TextEditingController studentIdController = TextEditingController();
@@ -141,20 +186,25 @@ class _AssingBookState extends State<AssingBook> {
                   labelText: 'Student ID',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.number,
               ),
               SizedBox(height: 10),
               Text("Due Date:$formattedDate"),
               SizedBox(height: 10),
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      assing_toStudent(studentIdController.text,formattedDate);
-                      Navigator.pop(context); // Close the dialog
+                      if(studentIdController.text.isNotEmpty){
+                        assing_toStudent(studentIdController.text,formattedDate);
+                        Navigator.pop(context); // Close the dialog
+                      }else{
+                        Fluttertoast.showToast(msg: "Enter Student ID");
+                      }
                     },
                     child: Text('Assign'),
                   ),
+                  SizedBox(width: 10,),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context); // Close the dialog
@@ -173,32 +223,27 @@ class _AssingBookState extends State<AssingBook> {
   void assing_toStudent(var stud_id,var due_date) async{
     var db=await FirebaseDatabase.instance.ref("Students/$stud_id").get();
     if(db.exists){
-      if(db.child("dept").value.toString()==widget.book_data.dept){
-        int remaining=widget.book_data.total_copies-1;
+      int remaining=widget.book_data.total_copies-1;
+      await FirebaseDatabase.instance
+          .ref("Books/${widget.book_data.book_id}/Assing/$stud_id")
+          .set({
+        "sname": db.child("name").value.toString(),
+        "due_date": due_date
+      }).then((_) async{
         await FirebaseDatabase.instance
-            .ref("Books/${widget.book_data.book_id}/Assing/$stud_id")
-            .set({
-          "sname": db.child("name").value.toString(),
-          "due_date": due_date
-            }).then((_) async{
-              await FirebaseDatabase.instance
-                  .ref("Books/${widget.book_data.book_id}/copies")
-                  .set(remaining)
-                  .then((_){
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Book Assingend to Student")));
-                fetch_assing_students();
-              });
-            });
-      }
-      else{
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Can't assing book to Other Department Student")));
-      }
+            .ref("Books/${widget.book_data.book_id}/copies")
+            .set(remaining)
+            .then((_){
+          widget.book_data.total_copies=remaining;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Book Assingend to Student")));
+          fetch_assing_students();
+        });
+      });
     }
     else{
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Invalid Student Id")));
     }
   }
-
 
   void book_return(int index){
     int fineAmount=0;
@@ -251,6 +296,7 @@ class _AssingBookState extends State<AssingBook> {
         .ref("Books/${widget.book_data.book_id}/Assing/$stud_id")
         .remove()
         .then((_) async{
+      widget.book_data.total_copies=remaining;
           await FirebaseDatabase.instance
               .ref("Books/${widget.book_data.book_id}/copies")
               .set(remaining)
@@ -263,11 +309,115 @@ class _AssingBookState extends State<AssingBook> {
         });
   }
 
-  void Remainder_Student(String stud_id) async{
+  void Remainder_Student(String stud_id,i) async{
     var db=await FirebaseDatabase.instance.ref("Users/$stud_id/token").get();
     String token=db.value.toString();
-    String msg="Return the Book";
-    SendNotification.sendNotificationbyAPI(token: token, title: "Book Return Alert", body: msg);
+
+    String msg;
+    int fineAmount=0;
+    int daysLate=0;
+    DateTime currentDate = DateTime.now();
+    DateTime dueDate = DateFormat("yyyy-MM-dd").parse(assing_book_list[i].due_date);
+
+    if (currentDate.isAfter(dueDate)) {
+      daysLate = currentDate.difference(dueDate).inDays;
+      fineAmount = daysLate * 5;
+    } else {
+      fineAmount = 0;
+    }
+
+    if(fineAmount==0){
+      msg="Reminder: Kindly return ${widget.book_data.name} to the library today between 11:00 AM and 4:30 PM to avoid a fine of ₹5 per day. Thank you!";
+    }else{
+      msg="Reminder: Your book ${widget.book_data.name} is $daysLate days overdue. "
+          "A fine of ₹$fineAmount has been applied. Please return it as soon as possible to avoid further charges!";
+    }
+
+    int res=await SendNotification.sendNotificationbyAPI(token: token, title: "Book Return Alert", body: msg);
+
+    if(res==0){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Student have not logged in into app")));
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Notification Sent to the Student")));
+    }
+  }
+
+  void showUpdateBookDialog(BuildContext context) {
+    TextEditingController nameController =
+    TextEditingController(text: widget.book_data.name);
+    TextEditingController authorController =
+    TextEditingController(text: widget.book_data.author);
+    TextEditingController totalCopiesController = TextEditingController(
+        text: widget.book_data.total_copies.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Update Book Details"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: "Book Name"),
+                ),
+                TextField(
+                  controller: authorController,
+                  decoration: InputDecoration(labelText: "Author"),
+                ),
+                TextField(
+                  controller: totalCopiesController,
+                  decoration: InputDecoration(labelText: "Avilable Copies"),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Prepare data to update in Firebase RTDB.
+                var updatedData = {
+                  "name": nameController.text,
+                  "author": authorController.text,
+                  "copies":
+                  int.tryParse(totalCopiesController.text) ?? 0,
+                };
+
+                DatabaseReference ref = FirebaseDatabase.instance
+                    .ref()
+                    .child("Books")
+                    .child(widget.book_data.book_id);
+                ref.update(updatedData).then((_) {
+                  // Update local state to reflect the new details.
+                  setState(() {
+                    widget.book_data.name = nameController.text;
+                    widget.book_data.author = authorController.text;
+                    widget.book_data.total_copies =
+                        int.tryParse(totalCopiesController.text) ?? 0;
+                  });
+                  Navigator.pop(context);
+                }).catchError((error) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Failed to update details: $error"),
+                    ),
+                  );
+                });
+              },
+              child: Text("Update"),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

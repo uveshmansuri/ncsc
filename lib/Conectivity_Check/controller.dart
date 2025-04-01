@@ -15,34 +15,42 @@ class InternetController extends GetxController {
 
   void _handleConnectivityChanged(List<ConnectivityResult> results) {
     if (results.contains(ConnectivityResult.none)) {
-      if (Get.overlayContext == null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (Get.overlayContext != null) {
-            Get.rawSnackbar(
-              title: 'No Internet',
-              message: 'Connect to the Internet',
-              isDismissible: true,
-              duration: const Duration(days: 365),
-              shouldIconPulse: true,
-              icon: const Icon(Icons.wifi_off_rounded, color: Colors.white),
-            );
-          }
-        });
-      }
-      else {
-        Get.rawSnackbar(
-          title: 'No Internet',
-          message: 'Connect to the Internet',
-          isDismissible: true,
-          duration: const Duration(days: 365),
-          shouldIconPulse: true,
-          icon: const Icon(Icons.wifi_off_rounded, color: Colors.white),
+      if (Get.isDialogOpen != true) {
+        Get.dialog(
+          WillPopScope(
+            onWillPop: () async => false,
+            // Prevents back button from closing it
+            child: Scaffold(
+              backgroundColor: Colors.black.withOpacity(0.8),
+              body: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.wifi_off_rounded, size: 80,
+                        color: Colors.white),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "No Internet Connection",
+                      style: TextStyle(fontSize: 24,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Please check your internet connection.",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         );
       }
     }
     else {
-      if (Get.isSnackbarOpen) {
-        Get.closeCurrentSnackbar();
+      if (Get.isDialogOpen == true) {
+        Get.back();
       }
     }
   }

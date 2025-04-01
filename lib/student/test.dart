@@ -42,8 +42,9 @@ class _TestPageState extends State<TestPage> {
         var time_per_que=sp.child("time_que").value.toString();
         var topics=sp.child("topics").value as List;
         var sub=sp.child("sub").value.toString();
-        if(sp.child("Report/${widget.stud_id}").exists){
+        if(sp.child("${sp.key}/Report/${widget.stud_id}").exists){
           test_result=sp.child("Report/${widget.stud_id}").child("result").value.toString();
+          print(test_result);
         }
         test_list.add(test_model(
             id: id, title: title, no: no, start: start, end: end,

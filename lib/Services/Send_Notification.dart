@@ -4,7 +4,7 @@ import 'package:NCSC/Services/Get_Server_key.dart';
 import 'package:http/http.dart' as http;
 
 class SendNotification{
-  static Future<void> sendNotificationbyAPI({
+  static Future<int> sendNotificationbyAPI({
     required String token,
     required String title,
     required String body,
@@ -36,10 +36,16 @@ class SendNotification{
     );
 
     print(response.body.toString());
+
+    int res=0;
+
     if(response.statusCode==200){
       print("Notification Send");
+      res++;
     }else{
       print(response.body);
     }
+
+    return res;
   }
 }

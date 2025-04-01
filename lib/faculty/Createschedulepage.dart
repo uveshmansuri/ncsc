@@ -6,9 +6,9 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'Subject_List_Faculty.dart';
 
 class Createschedulepage extends StatefulWidget {
-  final String department;
+  final String department,did;
 
-  Createschedulepage({required this.department});
+  Createschedulepage({required this.department,required this.did});
 
   @override
   State<Createschedulepage> createState() => _CreateschedulepageState();
@@ -52,7 +52,6 @@ class _CreateschedulepageState extends State<Createschedulepage> {
     var db_ref=await FirebaseDatabase.instance.ref("Subjects").get();
 
     for(DataSnapshot sp in db_ref.children){
-
       if(sp.child("dept").value.toString()==widget.department){
         var sub,sid,dept,sem;
         sem=sp.child("sem").value.toString();
@@ -354,7 +353,6 @@ class _CreateschedulepageState extends State<Createschedulepage> {
   void genrate_timetable() async{
 
     var subject_details=[];
-    print(sub_list.length);
     for(int i=0;i<sub_list.length;i++){
      var temp =("Subject:${sub_list[i].sname},Semester:${sub_list[i].sem},"
          "Faculty:${sub_list[i].fid.join(",")},"
@@ -384,14 +382,14 @@ class _CreateschedulepageState extends State<Createschedulepage> {
     String pr='''
     Generate a weekly timetable in JSON format with the following requirements:
                         Timetable Structure:
-                        -Time table cvers monday to saturday
+                        -Time table covers monday to saturday
                         -Each day consists of Time slots from  $startTime to $endTime.
-                        -Each Time sloat contains schedule for 3 grops sem1,sem2,sem3.
+                        -Each Time sloat contains schedule for 3 groups FY,SY,TY.
                         -If sloat has no schedule then it should be marks as "free",Fill "free" slots intelligently by spreading out subjects.
                         -Also arange subjects and time slot properly and each session must be 1 hour long
                         -Also add half hour break to each semester every  
-                        day (e.g., [1, 3, 5]) to either "free" or "lab" or "break" or a string formatted as "subject, faculty                       
-                        -Each subject assing to faculty member represent by initial ex(Uv for Uvesh)
+                        day (e.g., [FY,SY,TY]) to either "free" or "lab" or "break" or a string formatted as "subject, faculty                       
+                        -Each subject assing to faculty member represent by their name
                         -Use the provided variable ${subject_details}, which contains the subjects, their assigned faculty, 
                         and the required number of sessions per week.
                          Constraints:
@@ -400,7 +398,7 @@ class _CreateschedulepageState extends State<Createschedulepage> {
                         -Guarantee that every day has classes scheduled for each semester ensure that 
                         no day is completely free and that the daily workload is approximately equal.
                         -And properly initialize slots for subjects per weak for each semester                                            
-                        
+                                              
                         Output only the JSON data without any extra information.              
     ''';
 
@@ -453,97 +451,149 @@ class _CreateschedulepageState extends State<Createschedulepage> {
         is_generating=false;
       });
       jsonDecode(res);
-      Navigator.push(context, MaterialPageRoute(builder: (context)=>TimetablePreview(timetableData: res!.trim())));
+      Navigator.pushReplacement(context, MaterialPageRoute(
+          builder: (context)=>timetable_preview(
+            timtable_data: res!.trim(),dept_id: widget.did,is_hod: true, dept: widget.department,)
+      ));
     }catch(ex){
       setState(() {
         is_generating=false;
       });
-      print(ex.toString());
+      //print(ex.toString());
     }
   }
 }
 
+class timetable_preview extends StatefulWidget{
+  final String timtable_data,dept,dept_id;
+  bool is_hod;
+  timetable_preview({required this.timtable_data, required this.dept_id, required this.is_hod, required this.dept});
 
-class TimetablePreview extends StatelessWidget {
-  final String timetableData;
-  TimetablePreview({required this.timetableData});
+  @override
+  State<timetable_preview> createState() => _timetable_previewState();
+}
+
+class _timetable_previewState extends State<timetable_preview> {
+  late Map<String, dynamic> timetable;
+  Map<String, Map<String, Map<String, TextEditingController>>> controllers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    timetable = jsonDecode(widget.timtable_data)['timetable'];
+
+    var rawTimetable=timetable;
+    List<String> dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    Map<String, dynamic> sortedTimetable = {
+      for (var day in dayOrder)
+        if (rawTimetable.containsKey(day)) day: rawTimetable[day]
+    };
+
+    timetable=sortedTimetable;
+
+    // Initialize controllers
+    timetable.forEach((day, schedule) {
+      controllers[day] = {};
+      schedule.forEach((time, batches) {
+        controllers[day]![time] = {};
+        batches.forEach((batch, value) {
+          controllers[day]![time]![batch] = TextEditingController(text: value);
+        });
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    for (var day in controllers.values) {
+      for (var timeSlot in day.values) {
+        for (var controller in timeSlot.values) {
+          controller.dispose();
+        }
+      }
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic> timetable = jsonDecode(timetableData);
-
     return Scaffold(
-      appBar: AppBar(title: Text("Timetable")),
+      appBar: AppBar(
+        title: const Text("Timetable"),
+        actions: [
+          widget.is_hod==true?
+          IconButton(
+            onPressed: (){
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context)=>Createschedulepage(department: widget.dept, did: widget.dept_id)
+                ),
+              );
+            },
+            icon: Icon(Icons.new_label_rounded),
+            tooltip: "Create New Time  Table",
+          ):Icon(null),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Table(
-              border: TableBorder.all(),
-              columnWidths: {
-                0: FixedColumnWidth(100.0), // Time column
-                1: FlexColumnWidth(),
-                2: FlexColumnWidth(),
-                3: FlexColumnWidth(),
-                4: FlexColumnWidth(),
-              },
+        child: ListView(
+          children: timetable.keys.map((day) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Table Header
-                TableRow(
-                  decoration: BoxDecoration(color: Colors.grey[300]),
+                Text(
+                  day,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                Table(
+                  border: TableBorder.all(),
+                  columnWidths: const {
+                    0: FixedColumnWidth(80.0),
+                    1: FlexColumnWidth(),
+                    2: FlexColumnWidth(),
+                    3: FlexColumnWidth(),
+                  },
                   children: [
-                    _tableCell("Time", isHeader: true),
-                    _tableCell("Monday", isHeader: true),
-                    _tableCell("Tuesday", isHeader: true),
-                    _tableCell("Wednesday", isHeader: true),
-                    _tableCell("Thursday", isHeader: true),
-                    _tableCell("Friday", isHeader: true),
-                    _tableCell("Saturday", isHeader: true),
+                    // Table Header
+                    TableRow(
+                      decoration: BoxDecoration(color: Colors.grey[300]),
+                      children: [
+                        _tableCell("Time", isHeader: true),
+                        _tableCell("FY", isHeader: true),
+                        _tableCell("SY", isHeader: true),
+                        _tableCell("TY", isHeader: true),
+                      ],
+                    ),
+                    // Table Rows
+                    ...timetable[day].keys.map((time) {
+                      return TableRow(
+                        children: [
+                          _tableCell(time),
+                          _editableCell(day, time, "FY"),
+                          _editableCell(day, time, "SY"),
+                          _editableCell(day, time, "TY"),
+                        ],
+                      );
+                    }).toList(),
                   ],
                 ),
-                // Generate rows for each time slot
-                ..._generateTimeSlots(timetable),
+                const SizedBox(height: 20),
               ],
-            ),
-          ),
+            );
+          }).toList(),
         ),
       ),
+      floatingActionButton: widget.is_hod?FloatingActionButton(
+        onPressed: () {
+          _saveTimetable();
+        },
+        child: const Icon(Icons.save),
+      ):null,
     );
-  }
-
-  List<TableRow> _generateTimeSlots(Map<String, dynamic> timetable) {
-    List<String> timeSlots = _getAllTimeSlots(timetable);
-    List<TableRow> rows = [];
-
-    for (String time in timeSlots) {
-      rows.add(
-        TableRow(
-          children: [
-            _tableCell(time, isHeader: true), // Time Column
-            ...["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map(
-                  (day) {
-                var daySchedule = timetable[day] ?? {};
-                var session = daySchedule[time] ?? {"sem1": "-", "sem2": "-", "sem3": "-"};
-                return _tableCell(
-                    "${session["sem1"]}\n${session["sem2"]}\n${session["sem3"]}");
-              },
-            ).toList(),
-          ],
-        ),
-      );
-    }
-
-    return rows;
-  }
-
-  List<String> _getAllTimeSlots(Map<String, dynamic> timetable) {
-    Set<String> allSlots = {};
-    timetable.forEach((day, schedule) {
-      allSlots.addAll(schedule.keys);
-    });
-    List<String> sortedSlots = allSlots.toList()..sort();
-    return sortedSlots;
   }
 
   Widget _tableCell(String text, {bool isHeader = false}) {
@@ -558,5 +608,43 @@ class TimetablePreview extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _editableCell(String day, String time, String batch) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextFormField(
+        controller: controllers[day]![time]![batch],
+        textAlign: TextAlign.center,
+        decoration: const InputDecoration(border: InputBorder.none),
+        maxLines: null,
+        readOnly: !widget.is_hod,
+      ),
+    );
+  }
+
+  void _saveTimetable() {
+    Map<String, dynamic> updatedTimetable = {};
+
+    var _dbRef=FirebaseDatabase.instance.ref("department/${widget.dept_id}").child("timetable");
+    controllers.forEach((day, schedule) {
+      updatedTimetable[day] = {};
+      schedule.forEach((time, batches) {
+        updatedTimetable[day]![time] = {};
+        batches.forEach((batch, controller) {
+          updatedTimetable[day]![time]![batch] = controller.text;
+        });
+      });
+    });
+
+    _dbRef.set(updatedTimetable).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Timetable saved successfully!")),
+      );
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error saving timetable: $error")),
+      );
+    });
   }
 }

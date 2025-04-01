@@ -110,7 +110,7 @@ class _Library_MainState extends State<Library_Main> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Library DashBoard"),
+        title: Text("Library Work Space"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -209,6 +209,9 @@ class _Library_MainState extends State<Library_Main> {
                           onTap: (){
                             Navigator.push(context, MaterialPageRoute(builder: (context)=>AssingBook(books_list[i])));
                           },
+                          onLongPress: (){
+                            delete_book_dialogue(i);
+                          },
                         ),
                       );
                     },
@@ -279,7 +282,9 @@ class _Library_MainState extends State<Library_Main> {
               Icons.book,
             ),
             label: "Add Book",
-            onTap: () {},
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>Add_Book_Screen(dep_list: dept_lst,)));
+            },
           ),
         ],
       ),
@@ -332,6 +337,46 @@ class _Library_MainState extends State<Library_Main> {
       MaterialPageRoute(builder: (context) => Preview(booksData)),
     );
   }
+
+  void delete_book_dialogue(int i){
+    showDialog(context: context, builder: (context){
+      return AlertDialog(
+        title: Text("Confirm Book Delete"),
+        content: Text("Do you Want to Remove '${books_list[i].name}' Book of '${books_list[i].author}'"),
+        actions: [
+          TextButton(onPressed: (){
+            if(books_list[i].assing_copies!=0){
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("You cant Remove this Book it's Assign to Students")),
+              );
+              Navigator.pop(context);
+              return;
+            }
+            delete_book(books_list[i].book_id);
+            Navigator.pop(context);
+          }, child: Text("Confirm")),
+          TextButton(onPressed: (){
+            Navigator.pop(context);
+          }, child: Text("Cancel")),
+        ],
+      );
+    });
+  }
+
+  void delete_book(var book_id) async{
+    await FirebaseDatabase.instance
+        .ref("Books/$book_id").remove()
+        .then((_){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Book Removed Successfully")),
+          );
+        })
+        .catchError((err){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to Remove Book:$err")),
+          );
+        });
+  }
 }
 
 class books_model{
@@ -346,4 +391,196 @@ class books_model{
     required this.assing_copies,
     this.status
   });
+}
+
+
+class Add_Book_Screen extends StatefulWidget {
+  final List<String> dep_list;
+  Add_Book_Screen({Key? key, required this.dep_list});
+  @override
+  State<Add_Book_Screen> createState() => _Add_Book_ScreenState();
+}
+
+class _Add_Book_ScreenState extends State<Add_Book_Screen> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Controllers for form fields
+  final TextEditingController _bookIdController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _authorController = TextEditingController();
+  final TextEditingController _totalCopiesController = TextEditingController();
+
+  // Variable for selected department from the dropdown
+  String? _selectedDept;
+
+  bool _isLoading = false;
+
+  // Function to upload book data to Firebase RTDB
+  Future<void> uploadBookData() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      DatabaseReference bookRef = FirebaseDatabase.instance
+          .ref("Books/${_bookIdController.text.trim()}");
+      try {
+        await bookRef.set({
+          "name": _nameController.text.trim(),
+          "author": _authorController.text.trim(),
+          "dept": _selectedDept,
+          "copies": int.parse(_totalCopiesController.text.trim()),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Book data uploaded successfully")),
+        );
+        // Optionally clear the fields after upload
+        _bookIdController.clear();
+        _nameController.clear();
+        _authorController.clear();
+        _totalCopiesController.clear();
+        setState(() {
+          _selectedDept = null;
+        });
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to upload book data: $error")),
+        );
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Add New Book"),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding:
+          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                // Book ID Field
+                TextFormField(
+                  controller: _bookIdController,
+                  decoration: InputDecoration(
+                    labelText: "Book ID",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.book),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter a book ID";
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.0),
+                // Book Name Field
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: "Book Name",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.title),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter the book name";
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.0),
+                // Author Field
+                TextFormField(
+                  controller: _authorController,
+                  decoration: InputDecoration(
+                    labelText: "Author",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter the author's name";
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.0),
+                // Department Dropdown Field
+                DropdownButtonFormField<String>(
+                  value: _selectedDept,
+                  decoration: InputDecoration(
+                    labelText: "Department",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.school),
+                  ),
+                  items: widget.dep_list.map((dept) {
+                    return DropdownMenuItem<String>(
+                      value: dept,
+                      child: Text(dept),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedDept = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty || _selectedDept=="All") {
+                      return "Please select a department";
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.0),
+                // Total Copies Field
+                TextFormField(
+                  controller: _totalCopiesController,
+                  decoration: InputDecoration(
+                    labelText: "Total Copies",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.format_list_numbered),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter the total copies";
+                    }
+                    if (int.tryParse(value) == null) {
+                      return "Please enter a valid number";
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 24.0),
+                _isLoading
+                    ? CircularProgressIndicator()
+                    : ElevatedButton.icon(
+                  onPressed: uploadBookData,
+                  icon: Icon(Icons.upload_file),
+                  label: Text("Upload Book"),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 24.0, vertical: 12.0),
+                    textStyle: TextStyle(fontSize: 16.0),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

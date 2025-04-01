@@ -116,7 +116,10 @@ class _HomeScreenState extends State<HomeScreen> {
       email = db.child("email").value.toString();
       _iconList = [
         {'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage(stud_id: widget.stud_id)},
-        {'icon': Icons.access_time, 'label': 'Timetable', 'page': TimetablePage()},
+        {
+          'icon': Icons.access_time,
+          'label': 'Timetable',
+          'page': TimetablePage(dept: dept,crr_sem:sem)},
         {'icon': Icons.announcement, 'label': 'Announcement', 'page': StudentCircularsPage()},
         {'icon': Icons.school, 'label': 'Department', 'page': DepartmentList()},
         {'icon': Icons.school, 'label': 'Request', 'page': RequestPage(studentId: widget.stud_id, department: dept, semester: sem)},
