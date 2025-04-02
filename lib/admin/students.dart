@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:NCSC/admin/Student_Detail_Form.dart';
 import 'package:NCSC/admin/Student_Details_AD.dart';
 import 'package:csv/csv.dart';
@@ -8,13 +6,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
-import 'package:http/http.dart' as http;
 
 class Students extends StatefulWidget{
   @override
@@ -89,22 +86,25 @@ class _StudentsState extends State<Students> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['csv'],
+      withData: true,
     );
 
     if (result != null) {
       List<Student_Model> students = [];
-      if (Platform.isAndroid || Platform.isIOS) {
-        // Read file for Android/iOS
-        File file = File(result.files.single.path!);
-        String content = await file.readAsString();
-        students = parseCSV(content);
-      } else {
-        // Read file for Web
-        var fileBytes = result.files.single.bytes;
-        String content = String.fromCharCodes(fileBytes!);
-        students = parseCSV(content);
-      }
-      var res=await Navigator.push(context, MaterialPageRoute(builder: (context)=>preview_data(students)));
+      // if (Platform.isAndroid || Platform.isIOS) {
+      //   // Read file for Android/iOS
+      //   File file = File(result.files.single.path!);
+      //   String content = await file.readAsString();
+      //   students = parseCSV(content);
+      // } else {
+      //   var fileBytes = result.files.single.bytes;
+      //   String content = String.fromCharCodes(fileBytes!);
+      //   students = parseCSV(content);
+      // }
+      var fileBytes = result.files.single.bytes;
+      String content = String.fromCharCodes(fileBytes!);
+      students = parseCSV(content);
+      var res=await Navigator.push(context, MaterialPageRoute(builder: (context)=>preview_data(students,dept_lst)));
       if(res){
         selectedSemester="All";
         dept = 'All';
@@ -117,14 +117,14 @@ class _StudentsState extends State<Students> {
   Future<void> PickandRead_EXCEL() async{
     List<Student_Model> students = [];
     FilePickerResult? res=await FilePicker.platform.pickFiles(
-      type: FileType.custom,allowedExtensions: ['xls','xlsx']
+      type: FileType.custom,allowedExtensions: ['xls','xlsx'],
+      withData: true,
     );
     if(res!=null){
-      File file=File(res.files.single.path!);
-      var bytes=await file.readAsBytes();
+      var bytes=await res.files.single.bytes;
       String content = String.fromCharCodes(bytes!);
       students=parseCSV(content);
-      var res1=await Navigator.push(context, MaterialPageRoute(builder: (context)=>preview_data(students)));
+      var res1=await Navigator.push(context, MaterialPageRoute(builder: (context)=>preview_data(students,dept_lst)));
       if(res1){
         selectedSemester="All";
         dept = 'All';
@@ -138,13 +138,45 @@ class _StudentsState extends State<Students> {
     List<List<dynamic>> csvTable = const CsvToListConverter().convert(csvString);
     return csvTable.skip(1).map((row) {
       return Student_Model(
-        stud_id:row[0].toString(), // stud_id
-        name: row[1].toString(), // name
-        dept: row[2].toString(), // dept
-        email: row[3].toString(), // email
-        semester: row[4].toString()// semester
+        stud_id:row[0].toString(),
+        name: row[1].toString(),
+        dept: row[2].toString(),
+        email: row[3].toString(),
+        semester: row[4].toString()
       );
     }).toList();
+  }
+
+
+  void show_alert_msg(int flag){
+    showDialog(
+      context: context,
+      builder: (context)=>AlertDialog(
+        title: Text("Instruction of Students Details file"),
+        content: Text("Data Must be in Given manner\ni)Student Id\nii) Student Name\niii) Department\niv)Email\nv)Semester"),
+        actions: [
+          TextButton(
+            onPressed: (){
+              flag==0?pickAndReadCSV():PickandRead_EXCEL();
+              Navigator.pop(context);
+            },
+            child: Text(
+              "Procede",
+              style: TextStyle(color: Colors.blue),
+            ),
+          ),
+          TextButton(
+            onPressed: (){
+              Navigator.pop(context);
+            },
+            child: Text(
+              "Cancel",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // void apply_filter(String did){
@@ -333,16 +365,17 @@ class _StudentsState extends State<Students> {
                                       flex: 1,
                                       child: IconButton(onPressed: (){
                                         Navigator.push(context,
-                                            MaterialPageRoute(
-                                                builder: (context)=>Stud_AD(
-                                                    stud_id: stud_list[index].stud_id,
-                                                    sname: stud_list[index].name,
-                                                    email: stud_list[index].email,
-                                                    dept: stud_list[index].dept,
-                                                    sem: stud_list[index].semester,
-                                                    url: stud_list[index].url
-                                                )
-                                            )
+                                          MaterialPageRoute(
+                                            builder: (context)=>Stud_AD(
+                                              stud_id: stud_list[index].stud_id,
+                                              sname: stud_list[index].name,
+                                              email: stud_list[index].email,
+                                              dept: stud_list[index].dept,
+                                              sem: stud_list[index].semester,
+                                              url: stud_list[index].url,
+                                              availableDepts: dept_lst,
+                                            ),
+                                          ),
                                         );
                                       }, icon: Icon(Icons.remove_red_eye)
                                       ),
@@ -398,12 +431,12 @@ class _StudentsState extends State<Students> {
           SpeedDialChild(
             child: Icon(Icons.upload_file),
             label: "Upload CSV",
-            onTap: pickAndReadCSV
+            onTap: ()=>show_alert_msg(0),
           ),
           SpeedDialChild(
             child: Icon(Icons.upload_file_rounded,),
             label: "Upload Excel",
-            onTap: PickandRead_EXCEL,
+            onTap: ()=>show_alert_msg(1),
           ),
           SpeedDialChild(
             child: Icon(Icons.person_add_sharp,),
@@ -472,17 +505,23 @@ class Student_Model{
         required this.dept,
         required this.email,
         required this.semester,
-        this.url});
+        this.url
+      });
 }
 
 class preview_data extends StatefulWidget{
   List<Student_Model> student_list;
-  preview_data(this.student_list);
+  List<String> availableDepts;
+  preview_data(this.student_list,this.availableDepts);
   @override
   State<preview_data> createState() => _preview_dataState();
 }
 
 class _preview_dataState extends State<preview_data> {
+  // Email validation RegExp
+  final RegExp emailRegex =
+  RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+
   bool upload_flag=false;
 
   @override
@@ -505,18 +544,21 @@ class _preview_dataState extends State<preview_data> {
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                     child: Card(
                       child: ListTile(
-                        leading: Text(stud_list[index].stud_id),
-                        title: Text(stud_list[index].name),
-                        subtitle: Text(stud_list[index].email),
-                        trailing: Text("Dept:" +
-                            stud_list[index].dept +
-                            "\nSemester:" +
-                            stud_list[index].semester),
-                        // trailing: IconButton(onPressed: (){
-                        //   setState(() {
-                        //     stud_list.removeAt(index);
-                        //   });
-                        // },icon: Icon(Icons.delete_forever_rounded,color: Colors.red,),)
+                        leading: Text(stud_list[index].stud_id,softWrap: true,),
+                        title: Text(stud_list[index].name,softWrap: true,),
+                        subtitle: Text("Email:"+stud_list[index].email,softWrap: true,),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text("Dept:" +
+                                stud_list[index].dept +
+                                "\nSemester:" +
+                                stud_list[index].semester),
+                            IconButton(onPressed: (){
+                              showEditDialog(stud_list[index], index);
+                            }, icon: Icon(Icons.edit))
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -548,9 +590,154 @@ class _preview_dataState extends State<preview_data> {
       ),
     );
   }
+
+  // Edit Dialog to update student fields with validations
+  void showEditDialog(Student_Model student, int index) {
+    final _formKey = GlobalKey<FormState>();
+    String stud_id = student.stud_id;
+    String name = student.name;
+    String email = student.email;
+    String dept = student.dept;
+    String semester = student.semester;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Edit Student"),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Student ID is displayed but set as read-only
+                  TextFormField(
+                    initialValue: stud_id,
+                    decoration: InputDecoration(labelText: "Student ID"),
+                    readOnly: true,
+                  ),
+                  TextFormField(
+                    initialValue: name,
+                    decoration: InputDecoration(labelText: "Name"),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Name is required";
+                      }
+                      return null;
+                    },
+                    onChanged: (value) => name = value,
+                  ),
+                  TextFormField(
+                    initialValue: email,
+                    decoration: InputDecoration(labelText: "Email"),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Email is required";
+                      }
+                      if (!emailRegex.hasMatch(value.trim())) {
+                        return "Enter a valid email";
+                      }
+                      return null;
+                    },
+                    onChanged: (value) => email = value,
+                  ),
+                  DropdownButtonFormField(
+                    value: dept,
+                    decoration: InputDecoration(labelText: "Department"),
+                    items: widget.availableDepts.map((deptItem) {
+                      return DropdownMenuItem(
+                        value: deptItem,
+                        child: Text(deptItem),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      dept = value.toString();
+                    },
+                    validator: (value) {
+                      if (value == null ||
+                          value.toString().trim().isEmpty ||
+                          !widget.availableDepts.contains(value)||
+                          value=="All"
+                      ) {
+                        return "Select a valid department";
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: semester,
+                    decoration: InputDecoration(labelText: "Semester"),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Semester is required";
+                      }
+                      return null;
+                    },
+                    onChanged: (value) => semester = value,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  // Update the student data in the list
+                  setState(() {
+                    widget.student_list[index] = Student_Model(
+                      stud_id: stud_id.trim(),
+                      name: name.trim(),
+                      email: email.trim(),
+                      dept: dept.trim(),
+                      semester: semester.trim(),
+                    );
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void upload_data() async{
     bool flag=true;
     upload_flag=true;
+
+    for (Student_Model student in widget.student_list) {
+      if (student.stud_id.trim().isEmpty ||
+          student.name.trim().isEmpty ||
+          student.email.trim().isEmpty ||
+          student.dept.trim().isEmpty ||
+          student.semester.trim().isEmpty) {
+        Fluttertoast.showToast(
+            msg: "All fields are required for student: ${student.stud_id}:${student.name}");
+        return;
+      }
+      if (!emailRegex.hasMatch(student.email.trim())) {
+        Fluttertoast.showToast(
+            msg: "Invalid email for student: ${student.name}");
+        return;
+      }
+      if (!widget.availableDepts.contains(student.dept)) {
+        Fluttertoast.showToast(
+            msg: "Invalid department for student: ${student.name}");
+        return;
+      }
+    }
     setState(() {});
     DatabaseReference db_ref=FirebaseDatabase.instance.ref();
     for (Student_Model student in widget.student_list){

@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:pdfx/pdfx.dart';
@@ -49,7 +48,7 @@ class UploadAssignment extends StatefulWidget {
 
 class _UploadAssignmentState extends State<UploadAssignment> {
   String? fileType,fileUrl;
-  File? selectedFile;
+  var selectedFile;
   DateTime? lastDate;
   bool isUploading = false;
 
@@ -72,31 +71,64 @@ class _UploadAssignmentState extends State<UploadAssignment> {
         FilePickerResult? result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['pdf'],
+          withData: kIsWeb,
         );
 
-        if (result != null && result.files.single.path != null) {
-          File file = File(result.files.single.path!);
-          setState(() {
-            selectedFile = file;
-            fileType = "pdf";
-            questionController.clear();
-          });
+        if (result != null) {
+          if (kIsWeb) {
+            // On web, file content is available as bytes
+            final fileBytes = result.files.single.bytes;
+            if (fileBytes != null) {
+              setState(() {
+                selectedFile = fileBytes; // e.g. Uint8List
+                fileType = "pdf";
+                questionController.clear();
+              });
+            }
+          } else if (result.files.single.path != null) {
+            File file = File(result.files.single.path!);
+            setState(() {
+              selectedFile = file;
+              fileType = "pdf";
+              questionController.clear();
+            });
+          }
         }
       } else {
-        final XFile? pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-        if (pickedFile != null) {
-          File file = File(pickedFile.path);
-          setState(() {
-            selectedFile = file;
-            fileType = "image";
-            questionController.clear();
-          });
+        if (kIsWeb) {
+          // For web, use FilePicker for images as ImagePicker might not work as expected.
+          FilePickerResult? result = await FilePicker.platform.pickFiles(
+            type: FileType.image,
+            withData: true,
+          );
+
+          if (result != null) {
+            final fileBytes = result.files.single.bytes;
+            if (fileBytes != null) {
+              setState(() {
+                selectedFile = fileBytes;
+                fileType = "image";
+                questionController.clear();
+              });
+            }
+          }
+        } else {
+          final XFile? pickedFile =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+          if (pickedFile != null) {
+            File file = File(pickedFile.path);
+            setState(() {
+              selectedFile = file;
+              fileType = "image";
+              questionController.clear();
+            });
+          }
         }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error selecting file: $e")));
+        SnackBar(content: Text("Error selecting file: $e")),
+      );
     }
   }
 
@@ -116,7 +148,9 @@ class _UploadAssignmentState extends State<UploadAssignment> {
 
     try {
       final str_ref = storageRef.child("assignments/${DateTime.now().millisecondsSinceEpoch}");
-      final uploadTask = str_ref.putFile(selectedFile!);
+      final uploadTask = kIsWeb
+          ? str_ref.putData(selectedFile!)
+          : str_ref.putFile(selectedFile!);
       final snapshot = await uploadTask.whenComplete(() => {});
       fileUrl = await snapshot.ref.getDownloadURL();
 
@@ -276,13 +310,17 @@ class _UploadAssignmentState extends State<UploadAssignment> {
     if (selectedFile == null) return;
     var pdfController=null;
     if(fileType=="pdf")
-      pdfController= PdfController(document: PdfDocument.openFile(selectedFile!.path));
+      pdfController= kIsWeb
+          ? PdfController(document: PdfDocument.openData(selectedFile))
+          : PdfController(document: PdfDocument.openFile(selectedFile!.path));
     showDialog(
       context: context,
       builder: (_) => Scaffold(
         body: fileType == "image"
             ?
-        Center(child: Image.file(selectedFile!))
+        kIsWeb
+            ? Image.memory(selectedFile!)
+            : Image.file(selectedFile!)
             :
         PdfView(controller: pdfController,),
         floatingActionButton: FloatingActionButton(

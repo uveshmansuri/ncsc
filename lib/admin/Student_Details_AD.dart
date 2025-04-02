@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:NCSC/admin/students.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -11,7 +13,8 @@ import 'package:image_picker/image_picker.dart';
 class Stud_AD extends StatefulWidget{
   var stud_id,sname,dept,sem,email;
   String? url;
-  Stud_AD({required this.stud_id,required this.sname,required this.email,required this.dept,required this.sem,this.url});
+  List<String> availableDepts;
+  Stud_AD({required this.stud_id,required this.sname,required this.email,required this.dept,required this.sem,this.url,required this.availableDepts});
 
   @override
   State<Stud_AD> createState() => _Stud_ADState();
@@ -25,6 +28,25 @@ class _Stud_ADState extends State<Stud_AD> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Student's Detail"),
+        actions: [
+          IconButton(
+            onPressed: (){
+              show_delete_student(
+                Student_Model(
+                  stud_id: widget.stud_id,
+                  name: widget.sname,
+                  dept: widget.dept,
+                  email: widget.email,
+                  semester: widget.sem,
+                ),
+              );
+            },
+            icon: Icon(
+              Icons.delete_sweep_rounded,
+              color: Colors.red,
+            ),
+          ),
+        ],
       ),
       body: Center(
         child: Container(
@@ -50,34 +72,39 @@ class _Stud_ADState extends State<Stud_AD> {
                       child: Stack(
                         alignment: Alignment.bottomRight,
                         children: [
-                          Material(
-                            elevation: 15,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(360),
-                              side: BorderSide(
-                                color: Colors.cyan, // Border color
-                                width: 2,// Border width
+                          GestureDetector(
+                            child: Material(
+                              elevation: 15,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(360),
+                                side: BorderSide(
+                                  color: Colors.cyan, // Border color
+                                  width: 2,// Border width
+                                ),
                               ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(360),
+                                  child:
+                                  (widget.url != null && widget.url!.isNotEmpty)
+                                      ?
+                                  Image.network(
+                                    widget.url!,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  )
+                                      :
+                                  Image.asset(
+                                      "assets/images/student_profile.png",
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.fill,
+                                  ),
+                              )
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(360),
-                                child:
-                                (widget.url != null && widget.url!.isNotEmpty)
-                                    ?
-                                Image.network(
-                                  widget.url!,
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
-                                )
-                                    :
-                                Image.asset(
-                                    "assets/images/student_profile.png",
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.fill,
-                                )
-                            )
+                            onTap: (){
+                              print("Tap");
+                            },
                           ),
                           GestureDetector(
                             onTap: ()=>_pickImage(),
@@ -125,8 +152,22 @@ class _Stud_ADState extends State<Stud_AD> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          showEditDialog(Student_Model(
+            stud_id: widget.stud_id,
+            name: widget.sname,
+            dept: widget.dept,
+            email: widget.email,
+            semester: widget.sem,
+          ),);
+        },
+        child: Icon(Icons.edit),
+        tooltip: "Edit Details",
+      ),
     );
   }
+
   Widget build_item(String value,IconData ic){
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 5),
@@ -192,15 +233,10 @@ class _Stud_ADState extends State<Stud_AD> {
   }
 
   Future<void> _pickImage() async {
-    Uint8List? _imageBytes;
-    File? _imageFile;
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      setState(() {
-        _imageFile = File(image.path);
-      });
-      await _uploadImage(await image.readAsBytes(),_imageFile);
+      await _uploadImage(await image.readAsBytes());
     }
     // if (kIsWeb) {
     //   // Web Image Picker
@@ -216,13 +252,13 @@ class _Stud_ADState extends State<Stud_AD> {
     // }
   }
 
-  Future<void> _uploadImage(Uint8List imageBytes,File? _image) async {
+  Future<void> _uploadImage(Uint8List imageBytes) async {
     setState(() {
       is_uploading=true;
       _response = "Preparing...";
     });
     print("p..");
-    var uri = Uri.parse('http://192.168.2.172:8000/encode');
+    var uri = Uri.parse('http://127.0.0.1:8000/encode');
     List<dynamic>? _faceEncodings;
     print("Starting....");
     var request = http.MultipartRequest('POST', uri)
@@ -264,7 +300,7 @@ class _Stud_ADState extends State<Stud_AD> {
           });
 
           Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
-          UploadTask uploadTask=storageRef.putFile(_image!);
+          UploadTask uploadTask=storageRef.putData(imageBytes!);
 
           TaskSnapshot snapshot = await uploadTask;
           String downloadUrl = await snapshot.ref.getDownloadURL();
@@ -287,15 +323,15 @@ class _Stud_ADState extends State<Stud_AD> {
         else{
           setState(() {
             is_uploading=false;
-            //_response ="Error: ${decodedData['message']}";
+            _response ="Error: ${decodedData['message']}";
           });
           Fluttertoast.showToast(msg: "Error: ${decodedData['message']}");
         }
     } catch (e) {
       setState(() {
         is_uploading=false;
-        //print(e.toString());
-        //_response = "Failed to connect to server";
+        print(e.toString());
+        _response = "Failed to connect to server";
       });
       Fluttertoast.showToast(msg: "Failed to connect to server");
     }finally{
@@ -305,5 +341,217 @@ class _Stud_ADState extends State<Stud_AD> {
         //Fluttertoast.showToast(msg: "Image Successfully Uploaded with Encodings");
       });
     }
+  }
+
+  void showEditDialog(Student_Model student) {
+    final _formKey = GlobalKey<FormState>();
+    String stud_id = student.stud_id;
+    String name = student.name;
+    String email = student.email;
+    String dept = student.dept;
+    String semester = student.semester;
+
+    final RegExp emailRegex =
+    RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Edit Student"),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Student ID is displayed but set as read-only
+                  TextFormField(
+                    initialValue: stud_id,
+                    decoration: InputDecoration(labelText: "Student ID"),
+                    readOnly: true,
+                  ),
+                  TextFormField(
+                    initialValue: name,
+                    decoration: InputDecoration(labelText: "Name"),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Name is required";
+                      }
+                      return null;
+                    },
+                    onChanged: (value) => name = value,
+                  ),
+                  TextFormField(
+                    initialValue: email,
+                    decoration: InputDecoration(labelText: "Email"),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Enter a valid email";
+                      }
+                      if (!emailRegex.hasMatch(value.trim())) {
+                        return "Enter a valid email";
+                      }
+                      return null;
+                    },
+                    onChanged: (value) => email = value,
+                  ),
+                  DropdownButtonFormField(
+                    value: dept,
+                    decoration: InputDecoration(labelText: "Department"),
+                    items: widget.availableDepts.map((deptItem) {
+                      return DropdownMenuItem(
+                        value: deptItem,
+                        child: Text(deptItem),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      dept = value.toString();
+                    },
+                    validator: (value) {
+                      if (value == null ||
+                          value.toString().trim().isEmpty ||
+                          !widget.availableDepts.contains(value)||
+                          value=="All"
+                      ) {
+                        return "Select a valid department";
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: semester,
+                    decoration: InputDecoration(labelText: "Semester"),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Semester is required";
+                      }
+                      return null;
+                    },
+                    onChanged: (value) => semester = value,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async{
+                if (_formKey.currentState!.validate()) {
+                  // Update the student data in the list
+                  await FirebaseDatabase.instance
+                      .ref("Students/$stud_id")
+                      .update({
+                    "name":name,
+                    "dept":dept,
+                    "email":email,
+                    "sem":semester,
+                  }).then((_){
+                    Fluttertoast.showToast(msg: "Students Details Updated");
+                    setState(() {
+                      widget.stud_id = stud_id.trim();
+                      widget.sname = name.trim();
+                      widget.dept = dept;
+                      widget.email = email;
+                      widget.sem = semester;
+                    });
+                  }).catchError((err){
+                    Fluttertoast.showToast(msg: err.toString());
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void show_delete_student(Student_Model obj){
+    showDialog(
+      context: context,
+      builder: (context)=>AlertDialog(
+        title: Text(
+          "Confirm Delete Student",
+          style: TextStyle(color: Colors.black,fontSize: 20,fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          "Student Id:${obj.stud_id}\n"
+              "Name:${obj.name}\n"
+              "Email:${obj.email}\n"
+              "Department:${obj.dept}\n"
+              "Semester:${obj.semester}\n"
+              "Are you Sure to Delete?",
+          style: TextStyle(color: Colors.black87,fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async{
+              try {
+                if(widget.url!=null){
+                  final Reference storageRef = FirebaseStorage.instance.refFromURL(widget.url!);
+                  await storageRef.delete().
+                  then((_) async{
+                    await FirebaseDatabase.instance.ref("Users/${widget.stud_id}").remove();
+                    await FirebaseDatabase.instance
+                        .ref("Students/${widget.stud_id}").remove()
+                        .then((_){
+                          Fluttertoast.showToast(msg: "Students Details Deleted");
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        }).catchError((err){
+                          Fluttertoast.showToast(msg: "${err.toString()}");
+                          Navigator.pop(context);
+                        });
+                  }).catchError((err){
+                    Fluttertoast.showToast(msg: "${err.toString()}");
+                    Navigator.pop(context);
+                  });
+                  return;
+                }
+                await FirebaseDatabase.instance
+                    .ref("Students/${widget.stud_id}").remove()
+                    .then((_) async{
+                      await FirebaseDatabase.instance.ref("Users/${widget.stud_id}").remove();
+                      Fluttertoast.showToast(msg: "Students Details Deleted");
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    }).catchError((err){
+                      Fluttertoast.showToast(msg: "${err.toString()}");
+                      Navigator.pop(context);
+                    });
+              } catch (e) {
+                print('Error deleting file: $e');
+              }
+            },
+            child: Text(
+              "Delete",
+              style: TextStyle(color: Colors.red,fontSize: 15),
+            ),
+          ),
+          TextButton(
+            onPressed: (){
+              Navigator.pop(context);
+            },
+            child: Text(
+              "Cancel",
+              style: TextStyle(color: Colors.blue,fontSize: 15),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -71,7 +71,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               if(post=="HOD")
                 build_Hod_widgets(),
-              buildCard(context, "Schedule", Icons.schedule,SchedulePage(fid: widget.fid, dept: dept, ishod: post=="HOD")),
+              buildCard(context, "Time Table", Icons.schedule,SchedulePage(fid: widget.fid, dept: dept, ishod: post=="HOD")),
               buildCard(context, "Attendance", Icons.check_circle, faculty_sub_lst(widget.fid, 0,false,dept)),
               buildCard(context, "Internal Marks", Icons.bookmark_add_sharp, faculty_sub_lst(widget.fid, 1,false,dept)),
               buildCard(context, "Assignment", Icons.menu_book, faculty_sub_lst(widget.fid, 2,false,dept)),
