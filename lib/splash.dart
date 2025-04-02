@@ -127,7 +127,7 @@ class _splashState extends State<splash> {
           ),
         ),
       ),
-      //bottomNavigationBar: Text("Developed by USM",textAlign: TextAlign.center,),
+      bottomNavigationBar: Text("Developed by Bittu Agarwal,Uvesh,Nillay",textAlign: TextAlign.center,),
     );
   }
 }
