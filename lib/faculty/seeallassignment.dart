@@ -30,35 +30,69 @@ class _AssignmentPageState extends State<AssignmentPage> {
   void initState() {
     super.initState();
     fetchAssignments();
-
   }
 
   Future<void> fetchAssignments() async {
     try {
-      final assignmentRef = databaseRef
-          .child('Assignments')
-          .child(widget.dept)
-          .child(widget.sem)
-          .child(widget.subjectName)
-          .child(widget.faculty);
+      DatabaseReference assignmentRef;
+
+      if (widget.ishod) {
+        assignmentRef = databaseRef
+            .child('Assignments')
+            .child(widget.dept)
+            .child(widget.sem)
+            .child(widget.subjectName);
+      } else {
+
+        assignmentRef = databaseRef
+            .child('Assignments')
+            .child(widget.dept)
+            .child(widget.sem)
+            .child(widget.subjectName)
+            .child(widget.faculty);
+      }
 
       DatabaseEvent event = await assignmentRef.once();
       DataSnapshot snapshot = event.snapshot;
 
       if (snapshot.exists && snapshot.value is Map) {
-        Map<String, dynamic> assignmentsData = Map<String, dynamic>.from(snapshot.value as Map);
+        List<Map<String, dynamic>> tempAssignments = [];
 
-        setState(() {
-          assignments = assignmentsData.entries.map((entry) {
-            final data = Map<String, dynamic>.from(entry.value);
-            return {
-              'title': entry.key,
+        Map<String, dynamic> assignmentData = Map<String, dynamic>.from(snapshot.value as Map);
+
+        if (widget.ishod) {
+
+          assignmentData.forEach((facultyName, facultyAssignments) {
+            if (facultyAssignments is Map) {
+              facultyAssignments.forEach((key, value) {
+                final data = Map<String, dynamic>.from(value);
+                tempAssignments.add({
+                  'title': key,
+                  'subject': data['subjectName'] ?? widget.subjectName,
+                  'lastDate': data['lastDate'] ?? 'No Date',
+                  'fileType': data['fileType'] ?? 'Text',
+                  'content': data['content'],
+                  'faculty': facultyName,
+                });
+              });
+            }
+          });
+        } else {
+
+          assignmentData.forEach((key, value) {
+            final data = Map<String, dynamic>.from(value);
+            tempAssignments.add({
+              'title': key,
               'subject': data['subjectName'] ?? widget.subjectName,
               'lastDate': data['lastDate'] ?? 'No Date',
               'fileType': data['fileType'] ?? 'Text',
-              'content' :data['content']
-            };
-          }).toList();
+              'content': data['content'],
+            });
+          });
+        }
+
+        setState(() {
+          assignments = tempAssignments;
         });
       } else {
         setState(() {
@@ -72,6 +106,8 @@ class _AssignmentPageState extends State<AssignmentPage> {
       print("Error fetching assignments: $e");
     }
   }
+
+
 
   void deleteAssignment(String assignmentKey) async {
     try {

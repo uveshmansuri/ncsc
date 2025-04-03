@@ -7,11 +7,18 @@ import 'alertpage.dart';
 import 'circularpage.dart';
 
 class UpdatesPage extends StatelessWidget {
+
   final String fid;
   UpdatesPage(this.fid);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(" Faculty Updates"),
+
+        backgroundColor: Colors.blueAccent,
+        elevation: 4,
+      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
