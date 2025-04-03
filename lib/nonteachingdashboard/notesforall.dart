@@ -42,8 +42,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
-
-  /// Format date as YYYY-MM-DD
   String _formatDate(DateTime date) {
     return "${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
@@ -52,7 +50,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _events.clear();
     _eventDays.clear();
 
-    // Fetch personal notes (Students or Faculty)
     _dbRef.once().then((DatabaseEvent event) {
       if (event.snapshot.exists) {
         Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
@@ -64,9 +61,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             (eventData as Map<dynamic, dynamic>).forEach((noteKey, noteDetails) {
               _events[eventDate]![noteKey] = {
                 "title": noteDetails["title"] ?? "No Title",
-                "description": noteDetails["description"] ?? "No Description",
-                // ❌ Remove "faculty": "You" for student-created events
-              };
+                "description": noteDetails["description"] ?? "No Description",};
             });
 
             _eventDays.add(eventDate);
@@ -78,8 +73,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }).catchError((error) {
       print("Error fetching personal notes: $error");
     });
-
-    // Fetch faculty-shared notes (only for students)
     DatabaseReference facultyEventRef = FirebaseDatabase.instance.ref().child("event");
     facultyEventRef.once().then((DatabaseEvent event) {
       if (event.snapshot.exists) {
@@ -102,7 +95,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     _events[eventDate]![noteKey] = {
                       "title": noteDetails["title"] ?? "No Title",
                       "description": noteDetails["description"] ?? "No Description",
-                      "faculty": facultyName,  // ✅ Show faculty name only for shared notes
+                      "faculty": facultyName,
                     };
                   });
 
@@ -112,7 +105,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 }
               });
 
-              setState(() {}); // Refresh UI after fetching faculty names
+              setState(() {});
             }).catchError((error) {
               print("Error fetching faculty name for $facultyID: $error");
             });
@@ -123,7 +116,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       print("Error fetching faculty notes: $error");
     });
 
-    setState(() {}); // Refresh UI after fetching
+    setState(() {});
   }
 
 
@@ -132,7 +125,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void _showAddEventDialog() {
     TextEditingController titleController = TextEditingController();
     TextEditingController descController = TextEditingController();
-    String selectedAudience = "Faculty"; // Default selection
+    String selectedAudience = "Faculty";
 
     showModalBottomSheet(
       context: context,
@@ -173,7 +166,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                     SizedBox(height: 10),
 
-                    // **🔹 Only show dropdown for faculty members**
                     if (isFaculty)
                       DropdownButtonFormField<String>(
                         value: selectedAudience,
@@ -230,18 +222,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   void _saveEvent(String title, String description, String audience) {
     String formattedDate = _formatDate(_selectedDay);
-    String noteKey = _dbRef.child(formattedDate).push().key!; // Generate unique key
+    String noteKey = _dbRef.child(formattedDate).push().key!;
 
     DatabaseReference userRef = FirebaseDatabase.instance.ref().child("Users").child(widget.username).child("name");
 
     userRef.once().then((DatabaseEvent event) {
       if (event.snapshot.exists) {
-        String facultyName = event.snapshot.value.toString(); // Get faculty's real name
+        String facultyName = event.snapshot.value.toString();
 
         Map<String, dynamic> newEvent = {
           "title": title,
           "description": description,
-          "faculty": facultyName,  // 🔹 Store actual name
+          "faculty": facultyName,
         };
 
         _dbRef.child(formattedDate).child(noteKey).set(newEvent).then((_) {
@@ -256,7 +248,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             eventRef.set(newEvent);
           }
 
-          _fetchEvents(); // Refresh UI
+          _fetchEvents();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Event added successfully!")),
           );
@@ -277,14 +269,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: AppBar(
         title: Text(
           "Event Calendar",
-          style: TextStyle(color: Colors.white), // Set text color to white
+          style: TextStyle(color: Colors.white),
         ),
         backgroundColor:Colors.teal,
       ),
 
       body: Column(
         children: [
-          /// 📆 Table Calendar UI
+
           Container(
             margin: EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -316,7 +308,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
 
-          /// 🎯 Create Event Button
           SizedBox(height: 10),
           ElevatedButton.icon(
             onPressed: _showAddEventDialog,
@@ -329,8 +320,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
 
-          /// 📌 Event Display Area
-          /// 📌 Event Display Area
           Expanded(
             child: Container(
               margin: EdgeInsets.all(10),
@@ -341,7 +330,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Scrollbar(
-                thumbVisibility: true, // Makes scrollbar always visible
+                thumbVisibility: true,
                 child: SingleChildScrollView(
                   child: Builder(
                     builder: (context) {
@@ -362,8 +351,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     Text("📖 Description: ${event['description']}", style: TextStyle(fontSize: 16)),
                                     Text(
                                       event['faculty'] != null
-                                          ? "👨‍🏫 From ${event['faculty']} to student"  // Show faculty name if it's a shared note
-                                          : (isFaculty ? "📝 You created this for yourself" : ""),  // If created by faculty, show "You created this", otherwise show nothing
+                                          ? "👨‍🏫 From ${event['faculty']} to student"
+                                          : (isFaculty ? "📝 You created this for yourself" : ""),
                                       style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey),
                                     ),
 
