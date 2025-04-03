@@ -12,97 +12,132 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   late DatabaseReference _dbRef;
-  late DatabaseReference _userRef;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-  Map<DateTime, List<Map<String, String>>> _events = {};
+  Map<DateTime, Map<String, dynamic>> _events = {};
   Set<DateTime> _eventDays = {};
-  bool _isFaculty = false;
-  String? userRole;
+  bool isFaculty = false;
 
   @override
   void initState() {
     super.initState();
-    _dbRef = FirebaseDatabase.instance.ref().child("Users")
-        .child(widget.username)
-        .child("notes");
-    _userRef = FirebaseDatabase.instance.ref().child("Users").child(widget.username);
+    _dbRef = FirebaseDatabase.instance.ref().child("Users").child(widget.username).child("notes");
     _fetchUserRole();
     _fetchEvents();
   }
-  void _fetchUserRole() {
-    _userRef.child("role").once().then((DatabaseEvent event) {
+  void _fetchUserRole() async {
+    DatabaseReference roleRef = FirebaseDatabase.instance.ref().child("Users").child(widget.username).child("role");
+
+    try {
+      DatabaseEvent event = await roleRef.once();
       if (event.snapshot.exists) {
+        String role = event.snapshot.value.toString().toLowerCase();
         setState(() {
-          userRole = event.snapshot.value.toString();
-          _isFaculty = userRole == "faculty";
+          isFaculty = (role == "faculty");
         });
       }
-    }).catchError((error) {
-      print("Error fetching user role: $error");
-    });
+    } catch (error) {
+      print("Error fetching role: $error");
+    }
+  }
+
+
+  /// Format date as YYYY-MM-DD
+  String _formatDate(DateTime date) {
+    return "${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
   void _fetchEvents() {
-    Map<DateTime, List<Map<String, String>>> fetchedEvents = {};
-    Set<DateTime> highlightedDates = {};
+    _events.clear();
+    _eventDays.clear();
 
-    DatabaseReference usersRef = FirebaseDatabase.instance.ref().child("Users");
-
-    usersRef.once().then((DatabaseEvent event) {
+    // Fetch personal notes (Students or Faculty)
+    _dbRef.once().then((DatabaseEvent event) {
       if (event.snapshot.exists) {
-        Map<dynamic, dynamic> usersData = event.snapshot.value as Map<dynamic, dynamic>;
+        Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
+        data.forEach((dateKey, eventData) {
+          try {
+            DateTime eventDate = DateTime.parse(dateKey);
+            _events[eventDate] = {}; // Initialize as empty map
 
-        usersData.forEach((userId, userData) {
-          if (userData is Map && userData.containsKey("notes")) {
-            Map<dynamic, dynamic> notesData = userData["notes"];
-            notesData.forEach((dateKey, noteDetails) {
-              try {
-                DateTime eventDate = DateTime.parse(dateKey);
-                List<Map<String, String>> eventList = fetchedEvents[eventDate] ?? [];
-                bool facNote = noteDetails["fac_note"] ?? false;
-                bool stuNote = noteDetails["stu_note"] ?? false;
-                String facultyName = noteDetails["faculty"] ?? "Unknown";
-                if ((userRole == "student" && stuNote) || userRole == "faculty") {
-                  eventList.add({
-                    "title": noteDetails["title"] ?? "No Title",
-                    "description": noteDetails["description"] ?? "No Description",
-                    "faculty": facultyName,
-                    "fac_note": facNote.toString(),
-                    "stu_note": stuNote.toString(),
+            (eventData as Map<dynamic, dynamic>).forEach((noteKey, noteDetails) {
+              _events[eventDate]![noteKey] = {
+                "title": noteDetails["title"] ?? "No Title",
+                "description": noteDetails["description"] ?? "No Description",
+                // ❌ Remove "faculty": "You" for student-created events
+              };
+            });
+
+            _eventDays.add(eventDate);
+          } catch (e) {
+            print("Error parsing personal notes date: $dateKey - $e");
+          }
+        });
+      }
+    }).catchError((error) {
+      print("Error fetching personal notes: $error");
+    });
+
+    // Fetch faculty-shared notes (only for students)
+    DatabaseReference facultyEventRef = FirebaseDatabase.instance.ref().child("event");
+    facultyEventRef.once().then((DatabaseEvent event) {
+      if (event.snapshot.exists) {
+        Map<dynamic, dynamic> facultyData = event.snapshot.value as Map<dynamic, dynamic>;
+
+        facultyData.forEach((facultyID, notesData) {
+          if (notesData["notes"] != null) {
+            DatabaseReference facultyNameRef = FirebaseDatabase.instance.ref().child("Staff").child("faculty").child(facultyID).child("name");
+
+            facultyNameRef.once().then((DatabaseEvent nameEvent) {
+              String facultyName = nameEvent.snapshot.exists ? nameEvent.snapshot.value.toString() : facultyID;
+
+              Map<dynamic, dynamic> notes = notesData["notes"];
+              notes.forEach((dateKey, eventData) {
+                try {
+                  DateTime eventDate = DateTime.parse(dateKey);
+                  _events.putIfAbsent(eventDate, () => {});
+
+                  (eventData as Map<dynamic, dynamic>).forEach((noteKey, noteDetails) {
+                    _events[eventDate]![noteKey] = {
+                      "title": noteDetails["title"] ?? "No Title",
+                      "description": noteDetails["description"] ?? "No Description",
+                      "faculty": facultyName,  // ✅ Show faculty name only for shared notes
+                    };
                   });
-                }
 
-                fetchedEvents[eventDate] = eventList;
-                highlightedDates.add(eventDate);
-              } catch (e) {
-                print("Error parsing date: $dateKey - $e");
-              }
+                  _eventDays.add(eventDate);
+                } catch (e) {
+                  print("Error parsing faculty notes date: $dateKey - $e");
+                }
+              });
+
+              setState(() {}); // Refresh UI after fetching faculty names
+            }).catchError((error) {
+              print("Error fetching faculty name for $facultyID: $error");
             });
           }
         });
-
-        setState(() {
-          _events = fetchedEvents;
-          _eventDays = highlightedDates;
-        });
       }
+    }).catchError((error) {
+      print("Error fetching faculty notes: $error");
     });
+
+    setState(() {}); // Refresh UI after fetching
   }
+
+
 
 
   void _showAddEventDialog() {
     TextEditingController titleController = TextEditingController();
     TextEditingController descController = TextEditingController();
-    bool sendToStudents = false;
+    String selectedAudience = "Faculty"; // Default selection
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(15))),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -117,10 +152,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      "Create Event - ${_formatDate(_selectedDay)}",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
+                    Text("Create Event - ${_formatDate(_selectedDay)}",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
                     TextField(
                       controller: titleController,
@@ -139,40 +172,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                     ),
                     SizedBox(height: 10),
-                    if (_isFaculty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Send to:",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                          ),
-                          Row(
-                            children: [
-                              Radio(
-                                value: false,
-                                groupValue: sendToStudents,
-                                onChanged: (bool? value) {
-                                  setModalState(() {
-                                    sendToStudents = value!;
-                                  });
-                                },
-                              ),
-                              Text("Faculty Only"),
-                              Radio(
-                                value: true,
-                                groupValue: sendToStudents,
-                                onChanged: (bool? value) {
-                                  setModalState(() {
-                                    sendToStudents = value!;
-                                  });
-                                },
-                              ),
-                              Text("Faculty & Students"),
-                            ],
-                          ),
-                        ],
+
+                    // **🔹 Only show dropdown for faculty members**
+                    if (isFaculty)
+                      DropdownButtonFormField<String>(
+                        value: selectedAudience,
+                        items: ["Faculty", "Student and Faculty"].map((audience) {
+                          return DropdownMenuItem(
+                            value: audience,
+                            child: Text(audience),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setModalState(() {
+                            selectedAudience = value!;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          labelText: "Audience",
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
                       ),
+
                     SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -183,7 +204,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            _saveEvent(titleController.text, descController.text, sendToStudents);
+                            _saveEvent(titleController.text, descController.text, selectedAudience);
                             Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
@@ -204,81 +225,66 @@ class _CalendarScreenState extends State<CalendarScreen> {
       },
     );
   }
-  void _saveEvent(String title, String description, bool sendToStudents) {
-    String formattedDate = _formatDate(_selectedDay);
 
-    DatabaseReference userRef = FirebaseDatabase.instance.ref().child("Users").child(widget.username);
+
+
+  void _saveEvent(String title, String description, String audience) {
+    String formattedDate = _formatDate(_selectedDay);
+    String noteKey = _dbRef.child(formattedDate).push().key!; // Generate unique key
+
+    DatabaseReference userRef = FirebaseDatabase.instance.ref().child("Users").child(widget.username).child("name");
+
     userRef.once().then((DatabaseEvent event) {
       if (event.snapshot.exists) {
-        Map<dynamic, dynamic> userData = event.snapshot.value as Map<dynamic, dynamic>;
-        String role = userData["role"] ?? "";
+        String facultyName = event.snapshot.value.toString(); // Get faculty's real name
 
-        if (role == "faculty") {
-          DatabaseReference facultyNoteRef = FirebaseDatabase.instance.ref()
-              .child("Users/${widget.username}/notes/$formattedDate");
+        Map<String, dynamic> newEvent = {
+          "title": title,
+          "description": description,
+          "faculty": facultyName,  // 🔹 Store actual name
+        };
 
-          facultyNoteRef.set({
-            "title": title,
-            "description": description,
-            "faculty": widget.username,
-            "fac_note": true,
-            "stu_note": false,
-          });
+        _dbRef.child(formattedDate).child(noteKey).set(newEvent).then((_) {
+          if (audience == "Student and Faculty") {
+            DatabaseReference eventRef = FirebaseDatabase.instance.ref()
+                .child("event")
+                .child(widget.username)
+                .child("notes")
+                .child(formattedDate)
+                .child(noteKey);
 
-          if (sendToStudents) {
-            DatabaseReference usersRef = FirebaseDatabase.instance.ref().child("Users");
-            usersRef.once().then((DatabaseEvent event) {
-              if (event.snapshot.exists) {
-                Map<dynamic, dynamic> usersData = event.snapshot.value as Map<dynamic, dynamic>;
-                usersData.forEach((userId, userData) {
-                  if (userData is Map && userData["role"] == "student") {
-                    DatabaseReference studentNoteRef = FirebaseDatabase.instance.ref()
-                        .child("Users/$userId/notes/$formattedDate");
-                    studentNoteRef.set({
-                      "title": title,
-                      "description": description,
-                      "faculty": widget.username,
-                      "fac_note": true,
-                      "stu_note": true,
-                    });
-                  }
-                });
-              }
-            });
+            eventRef.set(newEvent);
           }
 
+          _fetchEvents(); // Refresh UI
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Event added successfully!")),
           );
-        } else if (role == "student") {
-          FirebaseDatabase.instance.ref()
-              .child("Users/${widget.username}/notes/$formattedDate")
-              .set({
-            "title": title,
-            "description": description,
-            "fac_note": false,
-            "stu_note": true,
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Personal note added successfully!")),
-          );
-        }
+        });
       }
+    }).catchError((error) {
+      print("Error fetching faculty name: $error");
     });
   }
-  String _formatDate(DateTime date) {
-    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-  }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Event Calendar"),
-        backgroundColor: Colors.teal,
+        title: Text(
+          "Event Calendar",
+          style: TextStyle(color: Colors.white), // Set text color to white
+        ),
+        backgroundColor:Colors.teal,
       ),
+
       body: Column(
         children: [
+          /// 📆 Table Calendar UI
           Container(
             margin: EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -302,10 +308,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
               calendarStyle: CalendarStyle(
                 todayDecoration: BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
                 selectedDecoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                markerDecoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                markerDecoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
               ),
             ),
           ),
+
+          /// 🎯 Create Event Button
           SizedBox(height: 10),
           ElevatedButton.icon(
             onPressed: _showAddEventDialog,
@@ -317,6 +328,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
             ),
           ),
+
+          /// 📌 Event Display Area
+          /// 📌 Event Display Area
           Expanded(
             child: Container(
               margin: EdgeInsets.all(10),
@@ -326,64 +340,49 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.3), blurRadius: 5, spreadRadius: 1)],
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Builder(
-                builder: (context) {
-                  DateTime normalizedDay = DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
-                  if (_events.containsKey(normalizedDay)) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("📅 Events on ${_formatDate(normalizedDay)}",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        Divider(),
-                        Flexible(
-                          child: ListView.separated(
-                            itemCount: _events[normalizedDay]!
-                                .where((event) => event['stu_note'] == true) // Ensure it's checking boolean `true`
-                                .length,
-                            separatorBuilder: (context, index) => SizedBox(height: 10),
-                            itemBuilder: (context, index) {
-                              var filteredEvents = _events[normalizedDay]!
-                                  .where((event) => event['stu_note'] == true) // Ensure filtering correctly
-                                  .toList();
-
-                              var event = filteredEvents[index];
-
-                              return Container(
-                                padding: EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.teal[50],
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.teal),
-                                ),
+              child: Scrollbar(
+                thumbVisibility: true, // Makes scrollbar always visible
+                child: SingleChildScrollView(
+                  child: Builder(
+                    builder: (context) {
+                      DateTime normalizedDay = DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
+                      if (_events.containsKey(normalizedDay)) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("📅 Events on ${_formatDate(normalizedDay)}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Divider(),
+                            ..._events[normalizedDay]!.values.map((event) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 5),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("📝 Title: ${event['title']}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                    SizedBox(height: 4),
-                                    Text("📖 Description: ${event['description']}", style: TextStyle(fontSize: 15)),
-                                    SizedBox(height: 4),
-                                    if (event['fac_note'] == true) ...[
-                                      Text("👩‍🏫 Faculty Name: ${event['faculty']}", style: TextStyle(fontSize: 15)),
-                                      Text("📌 Note for Faculty", style: TextStyle(fontSize: 14, color: Colors.blueGrey)),
-                                    ],
-                                    if (event['stu_note'] == true) ...[
-                                      Text("👨‍🎓 Shared with Students", style: TextStyle(fontSize: 14, color: Colors.green)),
-                                    ],
+                                    Text("📝 Title: ${event['title']}", style: TextStyle(fontSize: 16)),
+                                    Text("📖 Description: ${event['description']}", style: TextStyle(fontSize: 16)),
+                                    Text(
+                                      event['faculty'] != null
+                                          ? "👨‍🏫 From ${event['faculty']} to student"  // Show faculty name if it's a shared note
+                                          : (isFaculty ? "📝 You created this for yourself" : ""),  // If created by faculty, show "You created this", otherwise show nothing
+                                      style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey),
+                                    ),
+
+                                    Divider(),
                                   ],
                                 ),
                               );
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return Center(child: Text("No Event", style: TextStyle(fontSize: 16, color: Colors.grey)));
-                },
+                            }).toList(),
+                          ],
+                        );
+                      }
+                      return Center(child: Text("No Event", style: TextStyle(fontSize: 16, color: Colors.grey)));
+                    },
+                  ),
+                ),
               ),
             ),
           ),
+
         ],
       ),
     );

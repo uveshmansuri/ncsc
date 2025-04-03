@@ -97,6 +97,9 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
               get_title("Attendance"),
             if(widget.flag==1)
               get_title("Internal Marks"),
+            if(widget.flag==2)
+
+
             Expanded(
               child: ListView.builder(
                   itemCount: sub_list.length,
@@ -127,11 +130,18 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
                                   )
                               );
                             }
-                            if(widget.flag==2){
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder:
-                                      (context)=>AssignmentPage(subjectName: sub_list[i].sname,dept:sub_list[i].dept,faculty: widget.fid,sem: sub_list[i].sem)
-                                  )
+                            if (widget.flag == 2) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AssignmentPage(
+                                    subjectName: sub_list[i].sname,
+                                    dept: sub_list[i].dept,
+                                    faculty: widget.fid,
+                                    sem: sub_list[i].sem,
+                                    ishod: widget.ishod, // ✅ Fix: Pass HOD status
+                                  ),
+                                ),
                               );
                             }
                             if(widget.flag==3){

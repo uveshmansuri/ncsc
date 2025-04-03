@@ -25,24 +25,44 @@ class _HodDepartmentQueryPageState extends State<HodDepartmentQuery> {
     final snapshot = await queryRef.get();
     if (snapshot.exists) {
       final data = snapshot.value as Map<dynamic, dynamic>;
-      data.forEach((semester, semesterData) {
+      for (var semester in data.keys) {
+        var semesterData = data[semester];
         if (semesterData is Map) {
-          semesterData.forEach((studId, queryList) {
+          for (var studId in semesterData.keys) {
+            var queryList = semesterData[studId];
             if (queryList is Map) {
-              queryList.forEach((key, query) {
+              // Fetch student name
+              String studentName = await _getStudentName(studId);
+              for (var key in queryList.keys) {
+                var query = queryList[key];
                 if (query is Map) {
-                  queries.add({...query, 'key': key, 'studId': studId, 'semester': semester});
+                  queries.add({
+                    ...query,
+                    'key': key,
+                    'studId': studId,
+                    'semester': semester,
+                    'studentName': studentName, // Store student name
+                  });
                 }
-              });
+              }
             }
-          });
+          }
         }
-      });
+      }
     }
     setState(() {
       isLoading = false;
     });
   }
+
+  Future<String> _getStudentName(String studId) async {
+    final studentSnapshot = await FirebaseDatabase.instance.ref().child('Students').child(studId).child('name').get();
+    if (studentSnapshot.exists) {
+      return studentSnapshot.value.toString();
+    }
+    return "Unknown Student";
+  }
+
 
   void _markAsResolved(int index) async {
     final query = queries[index];
@@ -120,19 +140,34 @@ class _HodDepartmentQueryPageState extends State<HodDepartmentQuery> {
                     color: isResolved ? Colors.grey[600] : Colors.black,
                   ),
                 ),
-                subtitle: Text(
-                  query['description'] ?? 'No Description',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isResolved ? Colors.grey[600] : Colors.black,
-                  ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Student: ${query['studentName']}", // ✅ Show student name
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      query['description'] ?? 'No Description',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isResolved ? Colors.grey[600] : Colors.black,
+                      ),
+                    ),
+                  ],
                 ),
                 leading: Icon(
                   Icons.check_circle,
                   color: isResolved ? Colors.green : Colors.blueAccent,
                 ),
                 onTap: () => _confirmResolution(index),
-              ),
+              )
+
             );
           },
         ),

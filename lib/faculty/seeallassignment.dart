@@ -7,12 +7,15 @@ import 'assignmentpagelist.dart';
 
 class AssignmentPage extends StatefulWidget {
   final String dept, sem, faculty, subjectName;
+  final bool ishod;
 
   AssignmentPage({
     required this.dept,
     required this.sem,
     required this.faculty,
     required this.subjectName,
+    this.ishod = false,
+
   });
 
   @override
@@ -27,6 +30,7 @@ class _AssignmentPageState extends State<AssignmentPage> {
   void initState() {
     super.initState();
     fetchAssignments();
+
   }
 
   Future<void> fetchAssignments() async {

@@ -17,9 +17,7 @@ class _AddNonTeachingStaffState extends State<AddNonTeachingStaff> {
   final databaseReference = FirebaseDatabase.instance.ref();
 
   List<String> selectedRoles = [];
-  final List<String> roles = ["Clerk", "Science Lab Assistant", "Computer Lab Assistant"];
-
-  // Function to add Non-Teaching Staff to Firebase
+  final List<String> roles = ["Clerk", "Science Lab Assistant", "Computer Lab Assistant","Libraryan"];
   void _addNonTeachingStaff() {
     String id = _idController.text.trim();
     String name = _nameController.text.trim();
