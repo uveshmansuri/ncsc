@@ -1,4 +1,5 @@
 import 'package:NCSC/admin/add_teaching_staff.dart';
+import 'package:NCSC/facultywhole/profilepage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart'; // Import Firebase Database
 import 'package:NCSC/facultywhole/nonteaching.dart';
@@ -126,8 +127,13 @@ class _StaffManagementState extends State<StaffManagement> with SingleTickerProv
                   )
               ),
               title: Text(staff['name'],style: TextStyle(fontSize:15,color: Colors.black,fontWeight: FontWeight.bold)),
-              subtitle: flag==1?Text('Post: ${staff['role']}\n'):Text('Post: ${staff['role'][0]}\n'),
-              trailing: flag==1?Text("${staff['dept']}",style: TextStyle(fontSize:15,color: Colors.black,fontWeight: FontWeight.bold),):Text(""),
+              subtitle: flag==1? Text('Post: ${staff['role']}\n'):Text('Post: ${staff['role'][0]}\n'),
+              trailing: flag==1? Text("${staff['dept']}",style: TextStyle(fontSize:15,color: Colors.black,fontWeight: FontWeight.bold),):Text(""),
+              onTap:(){
+                print(staff);
+                print(staff["id"]);
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileDetailPage(id: staff["id"],flag: flag,)));
+              },
             ),
           ),
         );

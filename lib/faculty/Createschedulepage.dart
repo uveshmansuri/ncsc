@@ -71,7 +71,7 @@ class _CreateschedulepageState extends State<Createschedulepage> {
             ass_faculty_name.add(db.value.toString());
             ed_list.add(_ctr);
           }
-          sub_list.add(subject(sid, sub, ass_faculty_name, dept, sem));
+          sub_list.add(subject(sid, sub, ass_faculty_name, dept, sem,assing_faculties));
         }
       }
     }

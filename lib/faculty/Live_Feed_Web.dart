@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:http/http.dart' as http;
 import 'package:universal_html/html.dart' as html;
@@ -37,7 +38,7 @@ class _Live_feed_webState extends State<Live_feed_web> {
   Timer? _timer;
   bool _isProcessingFrame = false;
   String _reportText="";
-  final String serverIp = "192.168.2.172";  //final String serverIp = "192.168.1.177";
+  final String serverIp = "127.0.0.1";  //final String serverIp = "192.168.1.177";
   html.MediaStream? _mediaStream;
 
   @override
@@ -101,8 +102,7 @@ class _Live_feed_webState extends State<Live_feed_web> {
       html.document.body!.append(_videoElement!);
       html.document.body!.append(_canvas!);
 
-
-      _timer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
+      _timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
         _captureAndSendFrameonWeb();
       });
     } catch (e) {
@@ -123,11 +123,17 @@ class _Live_feed_webState extends State<Live_feed_web> {
       }
       final reader = html.FileReader();
 
-      reader.onLoadEnd.listen((_) {
+      reader.onLoadEnd.listen((_) async{
         if (reader.result != null) {
           try {
             final bytes = Uint8List.fromList(reader.result as List<int>);
-            _channel!.sink.add(bytes);
+            Uint8List compressedBytes = await FlutterImageCompress.compressWithList(
+              bytes,
+              minWidth: 640,
+              minHeight: 480,
+              quality: 50,
+            );
+            _channel!.sink.add(compressedBytes);
           } catch (e) {
             print('Error sending frame: $e');
           }

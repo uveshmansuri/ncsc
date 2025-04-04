@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -206,8 +205,8 @@ class _UploadAssignmentState extends State<UploadAssignment> {
             children: [
               buildTitleField(),
               SizedBox(height: 16),
-              buildQuestionField(),
-              SizedBox(height: 16),
+              //buildQuestionField(),
+              //SizedBox(height: 16),
               buildFileUploadButtons(),
               if (selectedFile != null) SizedBox(height: 16),
               if (selectedFile != null) buildFilePreview(),

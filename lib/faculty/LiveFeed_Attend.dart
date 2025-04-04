@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:NCSC/admin/students.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:camera/camera.dart';
@@ -29,7 +30,7 @@ class _Live_AttendState extends State<Live_Attend> {
   int _selectedCameraIndex = 0;
   Timer? _timer;
   String _reportText = "";
-  final String serverIp = "192.168.2.172";      //Server IP [IPv4 Adddress WIFI of Laptop]
+  final String serverIp = "192.168.101.172";      //Server IP [IPv4 Adddress WIFI of Laptop]
   bool _fetching=false;
 
   @override
@@ -47,7 +48,6 @@ class _Live_AttendState extends State<Live_Attend> {
     }
     await _initializeCamera();
     _connectWebSocket();
-    _startStreaming();
   }
 
   Future<void> _sendEncodings(String sid,String name, List<double> encoding) async {
@@ -75,7 +75,9 @@ class _Live_AttendState extends State<Live_Attend> {
 
     await _cameraController.initialize();
     if (!mounted) return;
-    setState(() {});
+    setState(() {
+      _startStreaming();
+    });
   }
 
   void _switchCamera() async {
@@ -119,7 +121,14 @@ class _Live_AttendState extends State<Live_Attend> {
       try {
         XFile image = await _cameraController.takePicture();
         Uint8List bytes = await image.readAsBytes();
-        _channel.sink.add(bytes);
+        // Compress image before sending
+        Uint8List compressedBytes = await FlutterImageCompress.compressWithList(
+          bytes,
+          minWidth: 640,
+          minHeight: 480,
+          quality: 50,
+        );
+        _channel.sink.add(compressedBytes);
       } catch (e) {
         print("Error capturing image: $e");
       }

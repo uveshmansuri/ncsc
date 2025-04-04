@@ -15,7 +15,6 @@ class AssignmentPage extends StatefulWidget {
     required this.faculty,
     required this.subjectName,
     this.ishod = false,
-
   });
 
   @override
@@ -43,7 +42,6 @@ class _AssignmentPageState extends State<AssignmentPage> {
             .child(widget.sem)
             .child(widget.subjectName);
       } else {
-
         assignmentRef = databaseRef
             .child('Assignments')
             .child(widget.dept)
@@ -235,26 +233,26 @@ class _AssignmentPageState extends State<AssignmentPage> {
               ?
           Image.network(assignments[index]['content'],
             loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-            if (loadingProgress == null) {
-              return child;
-            }
-            return Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
-                    : null,
-              ),
-            );
-          },
+              if (loadingProgress == null) {
+                return child;
+              }
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                      : null,
+                ),
+              );
+            },
             errorBuilder: (context, error, stackTrace) {
               return Center(child: Text("Failed to load image\n${error.toString()}", style: TextStyle(color: Colors.red)));
             },
           )
               :
           flag==1?
-              SfPdfViewer.network(
-                assignments[index]['content'],
-              )
+          SfPdfViewer.network(
+            assignments[index]['content'],
+          )
               :
           null,
         ),

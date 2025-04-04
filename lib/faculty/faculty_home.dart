@@ -105,7 +105,6 @@ class _HomePageState extends State<HomePage> {
         buildCard(context, "Department Internal Marks Report", Icons.grade, faculty_sub_lst(widget.fid, 1,true,dept)),
         buildCard(context, "Department Assignment Report", Icons.assignment_ind_outlined, faculty_sub_lst(widget.fid, 2,true,dept)),
         buildCard(context, "Students Query", Icons.question_answer, HodDepartmentQuery(dept: dept!)),
-
       ],
     );
   }

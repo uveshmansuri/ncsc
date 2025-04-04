@@ -5,6 +5,7 @@ import 'package:NCSC/faculty/internalmarkssend.dart';
 import 'package:NCSC/faculty/seeallassignment.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class faculty_sub_lst extends StatefulWidget{
   var fid,flag,dept;
@@ -20,6 +21,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
   @override
   void initState() {
     super.initState();
+    print("${widget.fid},${widget.flag},${widget.ishod},${widget.dept}");
     fetch_subjects(widget.fid);
   }
 
@@ -36,8 +38,13 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
     var db_ref=await FirebaseDatabase.instance.ref("Subjects").get();
     for(DataSnapshot sp in db_ref.children){
       List<dynamic> assing_faculties = [];
+      List<dynamic> assing_faculty_name=[];
       if(sp.child("ass_faculties").exists){
         assing_faculties.addAll(sp.child("ass_faculties").value as List<dynamic>);
+        for (var fid in assing_faculties){
+          var fname=await FirebaseDatabase.instance.ref("Staff/faculty/$fid").child("name").get();
+          assing_faculty_name.add(fname.value.toString());
+        }
       }
       if(widget.ishod){
         if(sp.child("dept").value.toString()==widget.dept){
@@ -47,7 +54,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
             sub=sp.child("name").value.toString();
             sid=sp.key;
             dept=sp.child("dept").value.toString();
-            sub_list.add(subject(sid, sub,fid, dept, sem));
+            sub_list.add(subject(sid, sub, fid, dept, sem, assing_faculty_name));
           }
           setState(() {
             is_loading=true;
@@ -62,7 +69,7 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
             sub=sp.child("name").value.toString();
             sid=sp.key;
             dept=sp.child("dept").value.toString();
-            sub_list.add(subject(sid, sub, fid, dept, sem));
+            sub_list.add(subject(sid, sub, fid, dept, sem, assing_faculties));
           }
           setState(() {
             is_loading=true;
@@ -98,8 +105,9 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
             if(widget.flag==1)
               get_title("Internal Marks"),
             if(widget.flag==2)
-
-
+              get_title("Assingments"),
+            if(widget.flag==3)
+              get_title("Tests"),
             Expanded(
               child: ListView.builder(
                   itemCount: sub_list.length,
@@ -113,7 +121,12 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
                         child: ListTile(
                           leading: Text(sub_list[i].sid),
                           title: Text(sub_list[i].sname,style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),),
-                          subtitle: Text("Department:"+sub_list[i].dept),
+                          subtitle: widget.ishod?
+                          Text(
+                            "Assign Faculties:-\n-${sub_list[i].ass_faculties.join("\n-")}",
+                          )
+                              :
+                          Text("Department:"+sub_list[i].dept),
                           trailing: Text("Semester:"+sub_list[i].sem),
                           onTap: (){
                             if(widget.flag==0) {
@@ -179,5 +192,6 @@ class _faculty_sub_lstState extends State<faculty_sub_lst> {
 
 class subject{
   var sid,sname,fid,dept,sem;
-  subject(this.sid,this.sname,this.fid,this.dept,this.sem);
+  List<dynamic> ass_faculties;
+  subject(this.sid,this.sname,this.fid,this.dept,this.sem,this.ass_faculties);
 }

@@ -8,10 +8,6 @@ import 'package:lottie/lottie.dart';
 import 'admin/Circulars.dart';
 import 'admin/Subjects.dart';
 import 'fundir/department.dart';
-import 'fundir/leave.dart';
-import 'fundir/log.dart';
-import 'fundir/reco.dart';
-import 'fundir/setting.dart';
 import 'logout.dart';
 
 class DBA_Dashboard extends StatefulWidget {
@@ -20,7 +16,7 @@ class DBA_Dashboard extends StatefulWidget {
 }
 
 class _DBA_DashboardState extends State<DBA_Dashboard> {
-  int dept_count=0,stud_count=0;
+  int dept_count=0,stud_count=0,staff_count=0;
   bool flag=false;
   var crr_sem="";
   DatabaseReference ref=FirebaseDatabase.instance.ref();
@@ -44,6 +40,14 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
       ref.child("Students").onValue.listen((event) {
         if (event.snapshot.value != null) {
           stud_count = event.snapshot.children.length;
+          setState(() {
+          });
+        }
+      });
+      ref.child("Staff").onValue.listen((event) {
+        if (event.snapshot.value != null) {
+          staff_count = event.snapshot.child("faculty").children.length;
+          staff_count += event.snapshot.child("non_teaching").children.length;
           setState(() {
           });
         }
@@ -200,7 +204,7 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
                             child: _buildClickableCard(
                               context: context,
                               title: 'Staff',
-                              value: '120',
+                              value: '$staff_count',
                               page: StaffManagement(),
                             ),
                           ),
@@ -241,9 +245,8 @@ class _DBA_DashboardState extends State<DBA_Dashboard> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      _buildInfoCard('Attendance Trends', 'Graph Placeholder'),
-                      SizedBox(height: 20),
-                      _buildSectionTitle('Notifications & Logs'),
+                      //_buildInfoCard('Attendance Trends', 'Graph Placeholder'),
+                      //SizedBox(height: 20),
                     ],
                   ),
                 ),
