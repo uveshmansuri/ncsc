@@ -221,15 +221,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
 
   void _saveEvent(String title, String description, String audience) {
+    print("Saving Event: $title, $description, $audience");
+
     String formattedDate = _formatDate(_selectedDay);
     String noteKey = _dbRef.child(formattedDate).push().key!;
 
-    DatabaseReference userRef = FirebaseDatabase.instance.ref().child("Users").child(widget.username).child("name");
-
+print("note $noteKey");
+    DatabaseReference userRef = FirebaseDatabase.instance.ref().child("Users").child(widget.username).child("notes");
+    print("$userRef");
     userRef.once().then((DatabaseEvent event) {
+      print("Audience selected: $audience");
       if (event.snapshot.exists) {
         String facultyName = event.snapshot.value.toString();
-
+print("$facultyName");
         Map<String, dynamic> newEvent = {
           "title": title,
           "description": description,
@@ -237,6 +241,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         };
 
         _dbRef.child(formattedDate).child(noteKey).set(newEvent).then((_) {
+
+
+
           if (audience == "Student and Faculty") {
             DatabaseReference eventRef = FirebaseDatabase.instance.ref()
                 .child("event")
@@ -244,7 +251,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 .child("notes")
                 .child(formattedDate)
                 .child(noteKey);
-
+print("database $eventRef");
             eventRef.set(newEvent);
           }
 
