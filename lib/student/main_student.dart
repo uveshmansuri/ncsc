@@ -12,6 +12,7 @@ import 'package:NCSC/student/test.dart';
 import 'package:NCSC/student/timetable.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../Services/Get_Server_key.dart';
 import 'Studentprofile.dart';
 import 'annoucementstudent.dart';
@@ -115,29 +116,30 @@ class _HomeScreenState extends State<HomeScreen> {
       sem = db.child("sem").value.toString();
       email = db.child("email").value.toString();
       _iconList = [
-        {'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage(stud_id: widget.stud_id)},
-        {
-          'icon': Icons.access_time,
-          'label': 'Timetable',
-          'page': TimetablePage(dept: dept,crr_sem:sem)},
-        {'icon': Icons.announcement, 'label': 'Announcement', 'page': StudentCircularsPage()},
-        {'icon': Icons.school, 'label': 'Department', 'page': DepartmentList()},
-        {'icon': Icons.school, 'label': 'Request', 'page': RequestPage(studentId: widget.stud_id, department: dept, semester: sem)},
-        {
-          'icon': Icons.grade,
-          'label': 'Marks',
-          'page': InternalMarksPage(stud_id: widget.stud_id,dept: dept,sem: sem,)
-        },
-        {
-          'icon': Icons.assignment_outlined,
-          'label': 'Assignment',
-          'page':Assingments(dept: dept, sem: sem)
-        },
-        {
-          'icon': Icons.assignment,
-          'label': 'Test',
-          'page': TestPage(stud_id: widget.stud_id, dept: dept, sem: sem),
-        },
+        //{'icon': Icons.help_outline, 'label': 'Query', 'page': QueryPage(stud_id: widget.stud_id)},
+        // {
+        //   'icon': Icons.access_time,
+        //   'label': 'Timetable',
+        //   'page': TimetablePage(dept: dept,crr_sem:sem)
+        // },
+        //{'icon': Icons.announcement, 'label': 'Announcement', 'page': StudentCircularsPage()},
+        //{'icon': Icons.school, 'label': 'Department', 'page': DepartmentList()},
+        //{'icon': Icons.school, 'label': 'Request', 'page': RequestPage(studentId: widget.stud_id, department: dept, semester: sem)},
+        // {
+        //   'icon': Icons.grade,
+        //   'label': 'Marks',
+        //   'page': InternalMarksPage(stud_id: widget.stud_id,dept: dept,sem: sem,)
+        // },
+        // {
+        //   'icon': Icons.assignment_outlined,
+        //   'label': 'Assignment',
+        //   'page':Assingments(dept: dept, sem: sem)
+        // },
+        // {
+        //   'icon': Icons.assignment,
+        //   'label': 'Test',
+        //   'page': TestPage(stud_id: widget.stud_id, dept: dept, sem: sem),
+        // },
         {
           'icon':Icons.account_balance_sharp,
           'label':'Library',
@@ -169,114 +171,163 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return flag
-        ? Column(
-      children: [
-        // Header
-        Stack(
-          children: [
-            Container(
-              height: 160,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blueAccent, Colors.indigo],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      body: flag
+          ? Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 5),
+            child: Column(
                     children: [
-                      Text(
-                        "Welcome, ${stud_name}!",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Stack(
+              children: [
+                Container(
+                  height: 160,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blueAccent, Colors.indigo],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 50, left: 20, right: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Welcome, ${stud_name}!",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            "Let's get started!",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 6),
-                      Text(
-                        "Let's get started!",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundImage: AssetImage('assets/images/student_profile.png'),
                       ),
                     ],
                   ),
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundImage: AssetImage('assets/images/student_profile.png'),
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
+                      SizedBox(height: 15),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          _buildIconCard(icon: Icons.help_outline, label: 'Query',route: QueryPage(stud_id: widget.stud_id)),
+                          _buildIconCard(icon: Icons.access_time, label: "Timetable",route: TimetablePage(dept: dept,crr_sem:sem)),
+                          _buildIconCard(icon: Icons.announcement, label: "Announcement",route: StudentCircularsPage()),
+                          _buildIconCard(icon: Icons.school, label: "Department",route: DepartmentList()),
+                          _buildIconCard(icon: Icons.grade, label: "Internal Marks",route: InternalMarksPage(stud_id: widget.stud_id,dept: dept,sem: sem,)),
+                          _buildIconCard(icon: Icons.assignment_outlined, label: "Assignment",route: Assingments(dept: dept, sem: sem)),
+                          _buildIconCard(icon: Icons.sync_alt, label: "Requests",route: RequestPage(studentId: widget.stud_id, department: dept, semester: sem)),
+                          _buildIconCard(icon: Icons.fact_check, label: "Test",route: TestPage(stud_id: widget.stud_id, dept: dept, sem: sem)),
+                          _buildIconCard(icon: Icons.apartment_sharp, label: "About College",route: About_Collage()),
+                          _buildIconCard(icon: Icons.credit_card, label: "Fees Portal",route: Fees_Portal()),
+                          _buildIconCard(icon: Icons.local_library, label: "Library",route: Students_Library(dept: dept)),
+                          _buildIconCard(icon: Icons.account_balance_sharp, label: "About University",route: About_Univercity()),
+                        ],
+                      ),
+                      // Flexible(
+                      //   child: Padding(
+                      //     padding: EdgeInsets.symmetric(horizontal: 14.0),
+                      //     child: GridView.builder(
+                      //       physics: BouncingScrollPhysics(),
+                      //       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      //         crossAxisCount: 3,
+                      //         crossAxisSpacing: 12.0,
+                      //         mainAxisSpacing: 12.0,
+                      //         childAspectRatio: 1.1,
+                      //       ),
+                      //       itemCount: _iconList.length,
+                      //       itemBuilder: (context, index) {
+                      //         return GestureDetector(
+                      //           onTap: () => Navigator.push(
+                      //             context,
+                      //             MaterialPageRoute(builder: (context) => _iconList[index]['page']),
+                      //           ),
+                      //           child: _buildIconCard(icon: _iconList[index]['icon'], label: _iconList[index]['label']),
+                      //         );},
+                      //     ),
+                      //   ),
+                      // ),
+                    ],
+            ),
+      )
+          :
+      Center(child: CircularProgressIndicator()),
+
+      floatingActionButton: FloatingActionButton(onPressed: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>assistent()));
+      },child: Icon(Icons.smart_toy),),
+    );
+  }
+
+  Widget _buildIconCard({required IconData icon, required String label, var route}) {
+    return InkWell(
+      child: Container(
+        width: 100,
+        height: 100,
+        padding: EdgeInsets.all(10.0),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blueGrey.shade900, Colors.blueGrey.shade700],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            SizedBox(height: 6),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ],
         ),
-        SizedBox(height: 15),
-        // Feature Grid
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14.0),
-            child: GridView.builder(
-              physics: BouncingScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12.0,
-                mainAxisSpacing: 12.0,
-                childAspectRatio: 1.1,
-              ),
-              itemCount: _iconList.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => _iconList[index]['page']),
-                  ),
-                  child: _buildIconCard(_iconList[index]['icon'], _iconList[index]['label']),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    )
-        : Center(child: CircularProgressIndicator());
-  }
-
-  Widget _buildIconCard(IconData icon, String label) {
-    return Container(
-      padding: EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blueGrey.shade900, Colors.blueGrey.shade700],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(10.0),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white, size: 24),
-          SizedBox(height: 6),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>route));
+      },
+    );
+  }
+}
+
+class assistent extends StatelessWidget{
+  var url="https://cdn.botpress.cloud/webchat/v2.3/shareable.html?configUrl=https://files.bpcontent.cloud/2025/04/04/13/20250404135112-EHR814PJ.json";
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: InAppWebView(
+        initialUrlRequest: URLRequest(
+          url: WebUri.uri(
+            Uri.parse(url,),
           ),
-        ],
+        ),
       ),
     );
   }
