@@ -21,6 +21,8 @@ class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
   List<Map<String, dynamic>> students = [];
   Map<String, bool> selectedStudents = {};
 
+  bool is_loading=true;
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +93,9 @@ class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
           }
         });
       }
+      setState(() {
+        is_loading=false;
+      });
     } catch (e) {
       print("❌ Error fetching submission status: $e");
     }
@@ -132,9 +137,8 @@ class _AssignmentDetailPageState extends State<AssignmentDetailPage> {
             Text("📋 Students List",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             Expanded(
-              child: students.isEmpty
-                  ? Center(child: Text(
-                  "No students found for this department and semester."))
+              child: is_loading
+                  ? Center(child: CircularProgressIndicator())
                   : ListView.builder(
                 itemCount: students.length,
                 itemBuilder: (context, index) {

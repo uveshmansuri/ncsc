@@ -18,6 +18,9 @@ class _RequestPageState extends State<RequestPage> {
   List<String> passOptions = ["Bus Pass", "Bonafide", "Train Pass"];
   Map<String, Map<String, dynamic>> requests = {};
 
+  bool is_avil=true;
+  bool is_loading=true;
+
   @override
   void initState() {
     super.initState();
@@ -32,15 +35,22 @@ class _RequestPageState extends State<RequestPage> {
           .child(widget.department)
           .child(widget.semester)
           .child(widget.studentId);
-
       DataSnapshot snapshot = await studentRef.get();
       if (snapshot.exists) {
         String requestDate = snapshot.child("date").value.toString();
         bool isSolved = snapshot.child("solve").value == true;
         setState(() {
           requests[passType] = {"date": requestDate, "solved": isSolved};
+          is_loading=false;
+          is_avil=true;
         });
       }
+    }
+    if(requests.isEmpty){
+      setState(() {
+        is_loading=false;
+        is_avil=false;
+      });
     }
   }
 
@@ -66,12 +76,17 @@ class _RequestPageState extends State<RequestPage> {
     }
 
     String currentDate = DateFormat("yyyy-MM-dd").format(DateTime.now());
-    await studentRef.set({"request": passType, "date": currentDate, "solve": false});
-    fetchRequests();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("$passType requested successfully!"))
-    );
+    await studentRef
+        .set({"request": passType, "date": currentDate, "solve": false})
+        .then((_){
+          setState(() {
+            is_avil=true;
+          });
+          fetchRequests();
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("$passType requested successfully!"))
+          );
+        });
     Navigator.pop(context);
   }
 
@@ -85,9 +100,11 @@ class _RequestPageState extends State<RequestPage> {
 
     await studentRef.remove();
     setState(() {
+      setState(() {
+        is_avil=false;
+      });
       requests.remove(passType);
     });
-
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("$passType request deleted successfully!"))
     );
@@ -153,34 +170,45 @@ class _RequestPageState extends State<RequestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Requests")),
-      body: requests.isEmpty
-          ? const Center(child: Text("No requests found"))
-          : ListView.builder(
-        itemCount: requests.length,
-        itemBuilder: (context, index) {
-          String passType = requests.keys.elementAt(index);
-          String requestDate = requests[passType]!["date"];
-          bool isSolved = requests[passType]!["solved"];
-
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: isSolved ? Colors.lightGreen : Colors.white,
-            child: ListTile(
-              title: Text(
-                passType,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text("Requested on: $requestDate"),
-              leading: const Icon(Icons.card_membership, color: Colors.blue),
-              trailing: isSolved
-                  ? null
-                  : IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () => deleteRequest(passType),
+      body: Stack(
+        children: [
+          is_loading
+              ? const Center(child: CircularProgressIndicator())
+              :
+          ListView.builder(
+            itemCount: requests.length,
+            itemBuilder: (context, index) {
+              String passType = requests.keys.elementAt(index);
+              String requestDate = requests[passType]!["date"];
+              bool isSolved = requests[passType]!["solved"];
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: isSolved ? Colors.lightGreen : Colors.white,
+                child: ListTile(
+                  title: Text(
+                    passType,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text("Requested on: $requestDate"),
+                  leading: const Icon(Icons.card_membership, color: Colors.blue),
+                  trailing: isSolved
+                      ? null
+                      : IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => deleteRequest(passType),
+                  ),
+                ),
+              );
+            },
+          ),
+          if(is_avil==false)
+            Center(
+              child: Text(
+                "No Requests Found",
+                style: TextStyle(color: Colors.black,fontSize: 20),
               ),
             ),
-          );
-        },
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: showRequestDialog,

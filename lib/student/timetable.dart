@@ -30,6 +30,10 @@ class _TimetablePageState extends State<TimetablePage> {
             _timetableData = sp.child("timetable").value as Map<dynamic, dynamic>;
             is_loading=false;
           });
+        }else{
+          setState(() {
+            is_loading=false;
+          });
         }
         break;
       }
@@ -158,7 +162,6 @@ class _TimetablePageState extends State<TimetablePage> {
       }
       return DataRow(cells: cells);
     }).toList();
-
     return Scaffold(
       backgroundColor: Colors.tealAccent.shade100,
       appBar: AppBar(
@@ -167,8 +170,8 @@ class _TimetablePageState extends State<TimetablePage> {
       ),
       body: is_loading
           ? Center(child: CircularProgressIndicator())
-          : _timetableData == null
-          ? const Text("No timetable available, Add Now!")
+          : _timetableData.isEmpty
+          ? Center(child: const Text("Timetable is not published yet",style: TextStyle(color: Colors.black,fontSize: 20),),)
           : Padding(
         padding: const EdgeInsets.all(0),
         child: Card(

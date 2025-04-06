@@ -25,6 +25,9 @@ class _AssignmentPageState extends State<AssignmentPage> {
   List<Map<String, dynamic>> assignments = [];
   final databaseRef = FirebaseDatabase.instance.ref();
 
+  bool is_loading=true;
+  bool is_avil=true;
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +35,7 @@ class _AssignmentPageState extends State<AssignmentPage> {
   }
 
   Future<void> fetchAssignments() async {
+    assignments.clear();
     try {
       DatabaseReference assignmentRef;
 
@@ -41,7 +45,8 @@ class _AssignmentPageState extends State<AssignmentPage> {
             .child(widget.dept)
             .child(widget.sem)
             .child(widget.subjectName);
-      } else {
+      }
+      else {
         assignmentRef = databaseRef
             .child('Assignments')
             .child(widget.dept)
@@ -59,7 +64,6 @@ class _AssignmentPageState extends State<AssignmentPage> {
         Map<String, dynamic> assignmentData = Map<String, dynamic>.from(snapshot.value as Map);
 
         if (widget.ishod) {
-
           assignmentData.forEach((facultyName, facultyAssignments) {
             if (facultyAssignments is Map) {
               facultyAssignments.forEach((key, value) {
@@ -76,7 +80,6 @@ class _AssignmentPageState extends State<AssignmentPage> {
             }
           });
         } else {
-
           assignmentData.forEach((key, value) {
             final data = Map<String, dynamic>.from(value);
             tempAssignments.add({
@@ -90,10 +93,14 @@ class _AssignmentPageState extends State<AssignmentPage> {
         }
 
         setState(() {
+          is_loading=false;
           assignments = tempAssignments;
         });
-      } else {
+      }
+      else {
         setState(() {
+          is_loading=false;
+          is_avil=false;
           assignments = [];
         });
       }
@@ -105,8 +112,6 @@ class _AssignmentPageState extends State<AssignmentPage> {
     }
   }
 
-
-
   void deleteAssignment(String assignmentKey) async {
     try {
       await databaseRef
@@ -117,7 +122,6 @@ class _AssignmentPageState extends State<AssignmentPage> {
           .child(widget.faculty)
           .child(assignmentKey)
           .remove();
-
       fetchAssignments();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Assignment deleted successfully!")),
@@ -154,59 +158,74 @@ class _AssignmentPageState extends State<AssignmentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Assignments")),
-      body: assignments.isEmpty
-          ? Center(child: Text("No assignments uploaded yet."))
-          : ListView.builder(
-        itemCount: assignments.length,
-        itemBuilder: (context, i) {
-          return Card(
-            elevation: 3,
-            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            child: ListTile(
-              title: Text(assignments[i]['title']),
-              subtitle: Text(
-                  "Subject: ${assignments[i]['subject']}\nDue: ${assignments[i]['lastDate']}"),
-              trailing: IconButton(
-                onPressed: (){
-                  if(assignments[i]['fileType']=="pdf"){
-                    preview(i, 1);
-                  }else if(assignments[i]["fileType"]=="image"){
-                    preview(i,0);
-                  }else{
+      body: Stack(
+        children: [
+          is_loading
+              ?
+          Center(child: CircularProgressIndicator())
+              :
+          ListView.builder(
+            itemCount: assignments.length,
+            itemBuilder: (context, i) {
+              return Card(
+                elevation: 3,
+                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child: ListTile(
+                  title: Text(assignments[i]['title']),
+                  subtitle: Text(
+                      "Subject: ${assignments[i]['subject']}\nDue: ${assignments[i]['lastDate']}"),
+                  trailing: IconButton(
+                    onPressed: (){
+                      if(assignments[i]['fileType']=="pdf"){
+                        preview(i, 1);
+                      }else if(assignments[i]["fileType"]=="image"){
+                        preview(i,0);
+                      }else{
 
-                  }
-                },
-                icon: Icon(
-                  assignments[i]['fileType'] == 'pdf'
-                      ? Icons.picture_as_pdf
-                      : assignments[i]['fileType'] == 'image'
-                      ? Icons.image
-                      : Icons.text_snippet,
-                  color: assignments[i]['fileType'] == 'pdf' ? Colors.red : Colors.blue,
-                ),
-                tooltip: "Preview",
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AssignmentDetailPage(
-                      dept: widget.dept,
-                      sem: widget.sem,
-                      faculty: widget.faculty,
-                      subjectName: widget.subjectName,
-                      assignmentKey: assignments[i]['title'],
+                      }
+                    },
+                    icon: Icon(
+                      assignments[i]['fileType'] == 'pdf'
+                          ? Icons.picture_as_pdf
+                          : assignments[i]['fileType'] == 'image'
+                          ? Icons.image
+                          : Icons.text_snippet,
+                      color: assignments[i]['fileType'] == 'pdf' ? Colors.red : Colors.blue,
                     ),
+                    tooltip: "Preview",
                   ),
-                );
-              },
-              onLongPress: () {
-                showDeleteDialog(assignments[i]['title']);
-              },
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AssignmentDetailPage(
+                          dept: widget.dept,
+                          sem: widget.sem,
+                          faculty: widget.faculty,
+                          subjectName: widget.subjectName,
+                          assignmentKey: assignments[i]['title'],
+                        ),
+                      ),
+                    );
+                  },
+                  onLongPress: () {
+                    showDeleteDialog(assignments[i]['title']);
+                  },
+                ),
+              );
+            },
+          ),
+          if(is_avil==false)
+            Center(
+              child: Text(
+                "Assignment is Not Published Yet, \nPublish it Now",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black,fontSize: 20),
+              ),
             ),
-          );
-        },
+        ],
       ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,

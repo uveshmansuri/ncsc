@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:NCSC/faculty/LiveFeed_Attend.dart';
 import 'package:NCSC/faculty/Live_Feed_Web.dart';
 import 'package:NCSC/faculty/mark_attendance.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
@@ -25,9 +26,10 @@ class _AttendancePageState extends State<AttendancePage> {
 
   int total_class=0;
 
+  bool is_loading=true;
+
   @override
   void initState() {
-    // TODO: implement initState
     fect_students();
     super.initState();
   }
@@ -72,7 +74,9 @@ class _AttendancePageState extends State<AttendancePage> {
               atten_pr:pr
           ));
         }
-        setState(() {});
+        setState(() {
+          is_loading=false;
+        });
       }
     }
   }
@@ -81,7 +85,10 @@ class _AttendancePageState extends State<AttendancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("${widget.sub} Attendance")),
-      body: Center(
+      body: is_loading?
+      Center(child: CircularProgressIndicator())
+          :
+      Center(
           child: Column(
             children: [
               Padding(
@@ -145,7 +152,7 @@ class _AttendancePageState extends State<AttendancePage> {
                 child: TextButton.icon(
                     icon: Icon(Icons.assignment_turned_in_outlined),
                     onPressed: () async{
-                      String crr_date = DateFormat("dd-MM-yyyy-HH-mm").format(DateTime.now());
+                      String crr_date = DateFormat("dd-MM-yyyy-HH").format(DateTime.now());
                       var sp=await FirebaseDatabase.instance.ref("Attendance").child(widget.sub).child(crr_date).get();
                       if(sp.exists){
                         Fluttertoast.showToast(msg: "You can Take Attendance After One Hour");
@@ -161,6 +168,20 @@ class _AttendancePageState extends State<AttendancePage> {
                 shadowColor: Colors.lightBlueAccent,
                 child: TextButton.icon(
                   onPressed: () async{
+                    if(total_class==0){
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.transparent,
+                          behavior: SnackBarBehavior.floating,
+                          content: AwesomeSnackbarContent(
+                            title: "Opps!!!",
+                            message: "Zero Classes Taken for this Subject Attendance Report is not Available",
+                            contentType: ContentType.warning,
+                          ),
+                        ),
+                      );
+                      return;
+                    }
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context)=>attend_sheet(widget.dept, widget.sem, widget.sub))
                     );
@@ -191,6 +212,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ElevatedButton(onPressed: (){
                 Navigator.pop(context);
                 if(kIsWeb){
+                  Navigator.pop(context);
                   Navigator.push(context,
                       MaterialPageRoute(
                           builder: (context)=>
@@ -198,6 +220,7 @@ class _AttendancePageState extends State<AttendancePage> {
                       )
                   );
                 }else{
+                  Navigator.pop(context);
                   Navigator.push(context,
                       MaterialPageRoute(
                           builder: (context)=>
@@ -208,6 +231,7 @@ class _AttendancePageState extends State<AttendancePage> {
 
               }, child: Text("Auto")),
               ElevatedButton(onPressed: (){
+                Navigator.pop(context);
                 Navigator.pop(context);
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context)=>

@@ -14,6 +14,9 @@ class Test_list extends StatefulWidget{
 class _Test_listState extends State<Test_list> {
   List<test_model> test_list=[];
 
+  bool is_loading=true;
+  bool is_avil=true;
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +25,13 @@ class _Test_listState extends State<Test_list> {
 
   void fetch_tests() async{
     var ref = FirebaseDatabase.instance.ref("Test/${widget.dept}/${widget.sem}");
+    var sp =await ref.orderByChild("sub").equalTo(widget.sub).get();
+    if(!sp.exists){
+      setState(() {
+        is_loading=false;
+        is_avil=false;
+      });
+    }
     await ref.orderByChild("sub").equalTo(widget.sub)
         .onChildAdded.listen(
             (event){
@@ -38,7 +48,10 @@ class _Test_listState extends State<Test_list> {
                     id: id, title: title, no: no, start: start, end: end,
                     level: level,time_que: time_per_que
                 ));
-                setState(() {});
+                setState(() {
+                  is_loading=false;
+                  is_avil=true;
+                });
               }
             }
     );
@@ -51,42 +64,58 @@ class _Test_listState extends State<Test_list> {
         title: Text("Tests"),
       ),
 
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-          child: ListView.builder(
-              itemCount: test_list.length,
-              itemBuilder: (context,i){
-                return Card(
-                  elevation: 5,
-                  shadowColor: Colors.tealAccent,
-                  child: ListTile(
-                    title: Text(
-                      test_list[i].title,
-                      style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,color: Colors.black),
-                    ),
-                    subtitle: Text(
-                      "Schedule:${test_list[i].start} to ${test_list[i].end}",
-                      style: TextStyle(fontSize: 10,color: Colors.black45),
-                    ),
-                    trailing: Text(
-                      "Total Questions:${test_list[i].no}\nLevel:${test_list[i].level}",
-                      style: TextStyle(fontSize: 15,color: Colors.black45),
-                    ),
-                    onTap: (){
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context)=>
-                              TestReportScreen(dept: widget.dept,sem: widget.sem,test_id: test_list[i].id,)
-                          )
-                      );
-                    },
-                  ),
-                );
-              }
+      body: Stack(
+        children: [
+          is_loading?
+          Center(child: CircularProgressIndicator(),)
+              :
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+              child: ListView.builder(
+                  itemCount: test_list.length,
+                  itemBuilder: (context,i){
+                    return Card(
+                      elevation: 5,
+                      shadowColor: Colors.tealAccent,
+                      child: ListTile(
+                        title: Text(
+                          test_list[i].title,
+                          style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,color: Colors.black),
+                        ),
+                        subtitle: Text(
+                          "Schedule:${test_list[i].start} to ${test_list[i].end}",
+                          style: TextStyle(fontSize: 10,color: Colors.black45),
+                        ),
+                        trailing: Text(
+                          "Total Questions:${test_list[i].no}\nLevel:${test_list[i].level}",
+                          style: TextStyle(fontSize: 15,color: Colors.black45),
+                        ),
+                        onTap: (){
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context)=>
+                                      TestReportScreen(dept: widget.dept,sem: widget.sem,test_id: test_list[i].id,)
+                              )
+                          );
+                        },
+                      ),
+                    );
+                  }
+              ),
+            ),
           ),
-        ),
+
+          if(is_avil==false)
+            Center(
+              child: Text(
+                "Test is Not Published Yet for This Subject, \nPublish it Now",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black,fontSize: 20),
+              ),
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){

@@ -22,6 +22,11 @@ class TestPage extends StatefulWidget {
 class _TestPageState extends State<TestPage> {
   List<test_model> test_list=[];
   var test_result=null;
+
+  bool is_avil=true;
+
+  bool is_loading=true;
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +35,13 @@ class _TestPageState extends State<TestPage> {
 
   void fetch_test() async{
     var db=FirebaseDatabase.instance.ref("Test/${widget.dept}/${widget.sem}");
+    var sp = await db.get();
+    if(!sp.exists){
+      setState(() {
+        is_loading=false;
+        is_avil=false;
+      });
+    }
     await db.onChildAdded.listen((event){
       if (event.snapshot.exists){
         DataSnapshot sp=event.snapshot;
@@ -44,14 +56,17 @@ class _TestPageState extends State<TestPage> {
         var sub=sp.child("sub").value.toString();
         if(sp.child("${sp.key}/Report/${widget.stud_id}").exists){
           test_result=sp.child("Report/${widget.stud_id}").child("result").value.toString();
-          print(test_result);
         }
         test_list.add(test_model(
             id: id, title: title, no: no, start: start, end: end,
             level: level,time_que: time_per_que,topics: topics,sub: sub
         ));
         setState(() {
-
+          print(test_list.length);
+          if(test_list.isEmpty){
+            is_avil=false;
+          }
+          is_loading=false;
         });
       }
     });
@@ -63,44 +78,57 @@ class _TestPageState extends State<TestPage> {
       appBar: AppBar(
         title: Text("Tests"),
       ),
-
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 10),
-          child: ListView.builder(
-              itemCount: test_list.length,
-              itemBuilder: (context,i){
-                return Card(
-                  elevation: 5,
-                  shadowColor: Colors.tealAccent,
-                  child: ListTile(
-                    title: Text(
-                        "Subject:"+test_list[i].sub,
-                        style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,color: Colors.blue)
-                    ),
-                    subtitle: Text(
-                      test_list[i].title,
-                      style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,color: Colors.black),
-                    ),
-                    trailing: Text(
-                      "Questions:${test_list[i].no}",
-                      style: TextStyle(fontSize: 15,color: Colors.black45),
-                    ),
-                    onTap: (){
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context)=>Test_details(
-                                  widget.stud_id,test_list[i],widget.dept,widget.sem,test_result
+      body: Stack(
+        children: [
+          is_loading?
+          Center(child: CircularProgressIndicator(),)
+              :
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 10),
+              child: ListView.builder(
+                  itemCount: test_list.length,
+                  itemBuilder: (context,i){
+                    return Card(
+                      elevation: 5,
+                      shadowColor: Colors.tealAccent,
+                      child: ListTile(
+                        title: Text(
+                            "Subject:"+test_list[i].sub,
+                            style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,color: Colors.blue)
+                        ),
+                        subtitle: Text(
+                          test_list[i].title,
+                          style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20,color: Colors.black),
+                        ),
+                        trailing: Text(
+                          "Questions:${test_list[i].no}",
+                          style: TextStyle(fontSize: 15,color: Colors.black45),
+                        ),
+                        onTap: (){
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context)=>Test_details(
+                                      widget.stud_id,test_list[i],widget.dept,widget.sem,test_result
+                                  )
                               )
-                          )
-                      );
-                    },
-                  ),
-                );
-              }
+                          );
+                        },
+                      ),
+                    );
+                  }
+              ),
+            ),
           ),
-        ),
+          if(is_avil==false)
+            Center(
+              child: Text(
+                "Test is Not Published Yet",
+                style: TextStyle(color: Colors.black,fontSize: 20),
+              ),
+            ),
+        ],
       ),
     );
   }

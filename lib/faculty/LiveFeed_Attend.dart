@@ -30,7 +30,7 @@ class _Live_AttendState extends State<Live_Attend> {
   int _selectedCameraIndex = 0;
   Timer? _timer;
   String _reportText = "";
-  final String serverIp = "192.168.101.172";      //Server IP [IPv4 Adddress WIFI of Laptop]
+  final String serverIp = "192.168.98.172"; //Server IP [IPv4 Adddress WIFI of Laptop]
   bool _fetching=false;
 
   @override
@@ -216,19 +216,24 @@ class _Live_AttendState extends State<Live_Attend> {
                 //   onPressed: _startStreaming,
                 //   child: Text("Start"),
                 // ),
-                if(_fetching==false)
-                  ElevatedButton(
-                  onPressed: _stopStreaming,
-                  child: Text("Stop"),
-                ),
               ],
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _switchCamera,
-        child: Icon(Icons.switch_camera),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            onPressed: _switchCamera,
+            child: Icon(Icons.switch_camera),
+          ),
+          if(_fetching==false)
+            ElevatedButton(
+              onPressed: _stopStreaming,
+              child: Text("Stop"),
+            ),
+        ],
       ),
     );
   }

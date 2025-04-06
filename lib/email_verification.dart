@@ -5,6 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'Services/Notification_Service.dart';
 
 class email_verification extends StatefulWidget {
   final email_id;
@@ -28,7 +31,7 @@ class _email_verificationState extends State<email_verification> {
   @override
   void initState() {
     super.initState();
-    timer1 = Timer.periodic(Duration(seconds: 2), (timer) {
+    timer1 = Timer.periodic(Duration(seconds: 1), (timer) {
       FirebaseAuth.instance.currentUser?.reload();
       if (FirebaseAuth.instance.currentUser!.emailVerified) {
         add_user_details(user_name, pass, role);
@@ -94,13 +97,18 @@ class _email_verificationState extends State<email_verification> {
   }
 
   void add_user_details(user_name, pass, role) async {
+    var token=await Notification_Service.getDeviceToken();
     await FirebaseDatabase.instance.ref().child("Users").child(user_name).set({
       "user_name": user_name,
       "password": pass,
-      "role": role
+      "role": role,
+      "token":token
     }).then((_) async {
       Fluttertoast.showToast(msg: "Registration Successful!!!");
-
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool('login_flag', true);
+      prefs.setString('uname', user_name);
+      prefs.setString('role', role);
       // Navigate based on the user role
       if (role == "faculty") {
         Navigator.pushAndRemoveUntil(
@@ -118,10 +126,6 @@ class _email_verificationState extends State<email_verification> {
     });
   }
 }
-
-
-
-
 
 
 // import 'dart:async';

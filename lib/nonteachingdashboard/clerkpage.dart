@@ -60,6 +60,9 @@ class _RequestListPageState extends State<RequestListPage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   Map<String, Map<String, dynamic>> studentRequests = {};
 
+  bool is_loading=true;
+  bool is_avil=true;
+
   @override
   void initState() {
     super.initState();
@@ -104,6 +107,14 @@ class _RequestListPageState extends State<RequestListPage> {
 
       setState(() {
         studentRequests = tempRequests;
+        is_loading=false;
+        is_avil=true;
+      });
+    }
+    else{
+      setState(() {
+        is_loading=false;
+        is_avil=false;
       });
     }
   }
@@ -157,41 +168,55 @@ class _RequestListPageState extends State<RequestListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("${widget.passType} Requests")),
-      body: studentRequests.isEmpty
-          ? const Center(child: Text("No requests found"))
-          : ListView.builder(
-        itemCount: studentRequests.length,
-        itemBuilder: (context, index) {
-          String path = studentRequests.keys.elementAt(index);
-          String requestDate = studentRequests[path]?["date"] ?? "Unknown Date";
-          String name = studentRequests[path]?["name"] ?? "Unknown";
-          bool isSolved = studentRequests[path]?["solved"] ?? false;
-          String dept= studentRequests[path]?["dept"];
-          String sem= studentRequests[path]?["sem"];
+      body:Stack(
+        children: [
+          is_loading
+              ?
+          const Center(child: CircularProgressIndicator(),)
+              :
+          ListView.builder(
+            itemCount: studentRequests.length,
+            itemBuilder: (context, index) {
+              String path = studentRequests.keys.elementAt(index);
+              String requestDate = studentRequests[path]?["date"] ?? "Unknown Date";
+              String name = studentRequests[path]?["name"] ?? "Unknown";
+              bool isSolved = studentRequests[path]?["solved"] ?? false;
+              String dept= studentRequests[path]?["dept"];
+              String sem= studentRequests[path]?["sem"];
 
-          return Card(
-            margin: const EdgeInsets.all(8),
-            color: isSolved ? Colors.lightGreen[200] : Colors.white,
-            child: ListTile(
-              title: Text("$path\n$name"),
-              subtitle: Text("Requested on: $requestDate"),
-              trailing: Text("$dept\nSem:$sem"),
-              onTap: () {
-                if(isSolved==false)
-                showConfirmationDialog(path);
-                else{
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("${widget.passType} Request Solved"),
-                      duration: Duration(seconds: 1),
-                    )
-                  );
-                }
-              },
+              return Card(
+                margin: const EdgeInsets.all(8),
+                color: isSolved ? Colors.lightGreen[200] : Colors.white,
+                child: ListTile(
+                  title: Text("$path\n$name"),
+                  subtitle: Text("Requested on: $requestDate"),
+                  trailing: Text("$dept\nSem:$sem"),
+                  onTap: () {
+                    if(isSolved==false)
+                      showConfirmationDialog(path);
+                    else{
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("${widget.passType} Request Solved"),
+                            duration: Duration(seconds: 1),
+                          )
+                      );
+                    }
+                  },
+                ),
+              );
+            },
+          ),
+          if(is_avil==false)
+            Center(
+              child: Text(
+                "No Request Found",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black,fontSize: 20),
+              ),
             ),
-          );
-        },
-      ),
+        ],
+      )
     );
   }
 }

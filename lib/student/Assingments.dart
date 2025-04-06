@@ -12,6 +12,9 @@ class Assingments extends StatefulWidget {
 
 class _AssingmentsState extends State<Assingments> {
   List<Assignment> assignments = [];
+  bool is_avil=true;
+  bool is_loading=true;
+
   @override
   void initState() {
     fetch_assingment();
@@ -40,9 +43,17 @@ class _AssingmentsState extends State<Assingments> {
               sub: subjectKey.toString(), 
               faculty: faculty_name.value.toString(), 
             ));
-            setState(() {});
+            setState(() {
+              is_loading=false;
+            });
           });
         });
+      });
+    }
+    else{
+      setState(() {
+        is_loading=false;
+        is_avil=false;
       });
     }
   }
@@ -54,42 +65,58 @@ class _AssingmentsState extends State<Assingments> {
       appBar: AppBar(
         title: Text("Assingments"),
       ),
-      body: Center(
-        child: ListView.builder(
-          itemCount: assignments.length,
-          itemBuilder: (context, index) {
-            final assignment = assignments[index];
-            IconData iconData;
-            Color color;
-            if (assignment.fileType.toLowerCase() == "image") {
-              iconData = Icons.image;
-              color=Colors.blue;
-            } else if (assignment.fileType.toLowerCase() == "pdf") {
-              iconData = Icons.picture_as_pdf;
-              color=Colors.red;
-            } else {
-              iconData = Icons.insert_drive_file;
-              color=Colors.blue;
-            }
-            return Card(
-              child: ListTile(
-                title: Text(assignment.title),
-                subtitle: Text(
-                    "Subject:${assignment.sub}\nFaculty:${assignment.faculty}\nLast Date: ${assignment.lastDate}"
-                ),
-                trailing: IconButton(
-                  onPressed: (){
-                    int flag=0;
-                    assignment.fileType=="image"?flag=0:flag=1;
-                    preview(index, flag);
-                  },
-                  icon: Icon(iconData),
-                  color: color,
-                ),
+      body: Stack(
+        children: [
+          is_loading?
+          Center(
+            child: CircularProgressIndicator(),
+          )
+              :
+          Center(
+            child: ListView.builder(
+              itemCount: assignments.length,
+              itemBuilder: (context, index) {
+                final assignment = assignments[index];
+                IconData iconData;
+                Color color;
+                if (assignment.fileType.toLowerCase() == "image") {
+                  iconData = Icons.image;
+                  color=Colors.blue;
+                } else if (assignment.fileType.toLowerCase() == "pdf") {
+                  iconData = Icons.picture_as_pdf;
+                  color=Colors.red;
+                } else {
+                  iconData = Icons.insert_drive_file;
+                  color=Colors.blue;
+                }
+                return Card(
+                  child: ListTile(
+                    title: Text(assignment.title),
+                    subtitle: Text(
+                        "Subject:${assignment.sub}\nFaculty:${assignment.faculty}\nLast Date: ${assignment.lastDate}"
+                    ),
+                    trailing: IconButton(
+                      onPressed: (){
+                        int flag=0;
+                        assignment.fileType=="image"?flag=0:flag=1;
+                        preview(index, flag);
+                      },
+                      icon: Icon(iconData),
+                      color: color,
+                    ),
+                  ),
+                );
+              },
+            )
+          ),
+          if(is_avil==false)
+            Center(
+              child: Text(
+                "Assignment is Not Published Yet",
+                style: TextStyle(color: Colors.black,fontSize: 20),
               ),
-            );
-          },
-        )
+            ),
+        ],
       ),
     );
   }

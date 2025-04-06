@@ -140,26 +140,26 @@ class _HomeScreenState extends State<HomeScreen> {
         //   'label': 'Test',
         //   'page': TestPage(stud_id: widget.stud_id, dept: dept, sem: sem),
         // },
-        {
-          'icon':Icons.account_balance_sharp,
-          'label':'Library',
-          'page':Students_Library(dept: dept),
-        },
-        {
-          'icon':Icons.business_rounded,
-          'label':'About College',
-          'page':About_Collage()
-        },
-        {
-          'icon':Icons.credit_card,
-          'label':'Fees Portal',
-          'page':Fees_Portal()
-        },
-        {
-          'icon':Icons.account_balance,
-          'label':'About University',
-          'page':About_Univercity()
-        },
+        // {
+        //   'icon':Icons.account_balance_sharp,
+        //   'label':'Library',
+        //   'page':Students_Library(dept: dept),
+        // },
+        // {
+        //   'icon':Icons.business_rounded,
+        //   'label':'About College',
+        //   'page':About_Collage()
+        // },
+        // {
+        //   'icon':Icons.credit_card,
+        //   'label':'Fees Portal',
+        //   'page':Fees_Portal()
+        // },
+        // {
+        //   'icon':Icons.account_balance,
+        //   'label':'About University',
+        //   'page':About_Univercity()
+        // },
       ];
       setState(() {
         flag = true;
@@ -173,63 +173,63 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: flag
-          ? Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 5),
-            child: Column(
-                    children: [
-                      Stack(
-              children: [
-                Container(
-                  height: 160,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blueAccent, Colors.indigo],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
-                    ),
+          ? Column(
+                  children: [
+                    Stack(
+            children: [
+              Container(
+                height: 160,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blueAccent, Colors.indigo],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Welcome, ${stud_name}!",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 50, left: 20, right: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Welcome, ${stud_name}!",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
-                          SizedBox(height: 6),
-                          Text(
-                            "Let's get started!",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          "Let's get started!",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
                           ),
-                        ],
-                      ),
-                      CircleAvatar(
-                        radius: 25,
-                        backgroundImage: AssetImage('assets/images/student_profile.png'),
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                    CircleAvatar(
+                      radius: 25,
+                      backgroundImage: AssetImage('assets/images/student_profile.png'),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-                      SizedBox(height: 15),
-                      Wrap(
+              ),
+            ],
+          ),
+                    SizedBox(height: 15),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Wrap(
                         spacing: 12,
                         runSpacing: 12,
                         alignment: WrapAlignment.center,
@@ -248,32 +248,32 @@ class _HomeScreenState extends State<HomeScreen> {
                           _buildIconCard(icon: Icons.account_balance_sharp, label: "About University",route: About_Univercity()),
                         ],
                       ),
-                      // Flexible(
-                      //   child: Padding(
-                      //     padding: EdgeInsets.symmetric(horizontal: 14.0),
-                      //     child: GridView.builder(
-                      //       physics: BouncingScrollPhysics(),
-                      //       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      //         crossAxisCount: 3,
-                      //         crossAxisSpacing: 12.0,
-                      //         mainAxisSpacing: 12.0,
-                      //         childAspectRatio: 1.1,
-                      //       ),
-                      //       itemCount: _iconList.length,
-                      //       itemBuilder: (context, index) {
-                      //         return GestureDetector(
-                      //           onTap: () => Navigator.push(
-                      //             context,
-                      //             MaterialPageRoute(builder: (context) => _iconList[index]['page']),
-                      //           ),
-                      //           child: _buildIconCard(icon: _iconList[index]['icon'], label: _iconList[index]['label']),
-                      //         );},
-                      //     ),
-                      //   ),
-                      // ),
-                    ],
-            ),
-      )
+                    ),
+                    // Flexible(
+                    //   child: Padding(
+                    //     padding: EdgeInsets.symmetric(horizontal: 14.0),
+                    //     child: GridView.builder(
+                    //       physics: BouncingScrollPhysics(),
+                    //       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    //         crossAxisCount: 3,
+                    //         crossAxisSpacing: 12.0,
+                    //         mainAxisSpacing: 12.0,
+                    //         childAspectRatio: 1.1,
+                    //       ),
+                    //       itemCount: _iconList.length,
+                    //       itemBuilder: (context, index) {
+                    //         return GestureDetector(
+                    //           onTap: () => Navigator.push(
+                    //             context,
+                    //             MaterialPageRoute(builder: (context) => _iconList[index]['page']),
+                    //           ),
+                    //           child: _buildIconCard(icon: _iconList[index]['icon'], label: _iconList[index]['label']),
+                    //         );},
+                    //     ),
+                    //   ),
+                    // ),
+                  ],
+          )
           :
       Center(child: CircularProgressIndicator()),
 
@@ -318,8 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class assistent extends StatelessWidget{
-  var url="https://cdn.botpress.cloud/webchat/v2.3/shareable.html?configUrl=https://files.bpcontent.cloud/2025/04/04/13/20250404135112-EHR814PJ.json";
-  @override
+  var url="https://cdn.botpress.cloud/webchat/v2.3/shareable.html?configUrl=https://files.bpcontent.cloud/2025/04/05/08/20250405080129-5JH3X9OD.json";
   Widget build(BuildContext context) {
     return Scaffold(
       body: InAppWebView(

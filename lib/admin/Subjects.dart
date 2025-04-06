@@ -107,7 +107,8 @@ class _SubjectsState extends State<Subjects> {
           ),
         ),
         child: flag
-            ? Column(
+            ?
+        Column(
           children: [
             Row(
               children: [
@@ -228,7 +229,9 @@ class _SubjectsState extends State<Subjects> {
           ],
         )
             :
-            Center(child: CircularProgressIndicator(),)
+        Center(
+          child: CircularProgressIndicator(),
+        )
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async{
@@ -316,7 +319,6 @@ class _assing_faultyState extends State<assing_faulty> {
     super.initState();
     dept_lst.addAll(widget.dept_lst);
     fetch_ass_faculty();
-    fetch_fcaulty();
   }
 
   void applyFilters() {
@@ -337,27 +339,24 @@ class _assing_faultyState extends State<assing_faulty> {
     if (sp.exists) {
       assing_faculties.addAll(sp.value as List<dynamic>);
     }
+    fetch_fcaulty();
   }
 
   void fetch_fcaulty() async {
     var db_ref = await FirebaseDatabase.instance.ref("Staff/faculty").get();
     for (DataSnapshot sp in db_ref.children) {
       if (assing_faculties.contains(sp.key)) {
-        ass_faculty_list.add(faculty(sp.key, sp
-            .child("name")
-            .value
-            .toString(), sp
-            .child("department")
-            .value
-            .toString()));
+        ass_faculty_list.add(faculty(
+            sp.key,
+            sp.child("name").value.toString(),
+            sp.child("department").value.toString()
+        ));
       } else {
-        faculty_list.add(faculty(sp.key, sp
-            .child("name")
-            .value
-            .toString(), sp
-            .child("department")
-            .value
-            .toString()));
+        faculty_list.add(faculty(
+            sp.key,
+            sp.child("name").value.toString(),
+            sp.child("department").value.toString()
+        ));
       }
     }
     setState(() {
