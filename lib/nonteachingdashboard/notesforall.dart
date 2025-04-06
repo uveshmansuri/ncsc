@@ -56,7 +56,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         data.forEach((dateKey, eventData) {
           try {
             DateTime eventDate = DateTime.parse(dateKey);
-            _events[eventDate] = {}; // Initialize as empty map
+            _events[eventDate] = {};
 
             (eventData as Map<dynamic, dynamic>).forEach((noteKey, noteDetails) {
               _events[eventDate]![noteKey] = {
@@ -220,51 +220,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
 
 
-  void _saveEvent(String title, String description, String audience) {
-    print("Saving Event: $title, $description, $audience");
-
+  void _saveEvent(String title, String description, String audience) async {
     String formattedDate = _formatDate(_selectedDay);
     String noteKey = _dbRef.child(formattedDate).push().key!;
 
-print("note $noteKey");
-    DatabaseReference userRef = FirebaseDatabase.instance.ref().child("Users").child(widget.username).child("notes");
-    print("$userRef");
-    userRef.once().then((DatabaseEvent event) {
-      print("Audience selected: $audience");
-      if (event.snapshot.exists) {
-        String facultyName = event.snapshot.value.toString();
-print("$facultyName");
-        Map<String, dynamic> newEvent = {
-          "title": title,
-          "description": description,
-          "faculty": facultyName,
-        };
+    // Get faculty name from the correct path
+    DatabaseReference nameRef = FirebaseDatabase.instance.ref()
+        .child("Staff")
+        .child("faculty")
+        .child(widget.username)
+        .child("name");
 
-        _dbRef.child(formattedDate).child(noteKey).set(newEvent).then((_) {
+    try {
+      DatabaseEvent nameEvent = await nameRef.once();
+      String facultyName = nameEvent.snapshot.exists ? nameEvent.snapshot.value.toString() : "Unknown";
 
+      Map<String, dynamic> newEvent = {
+        "title": title,
+        "description": description,
+        "faculty": facultyName,
+      };
 
+      await _dbRef.child(formattedDate).child(noteKey).set(newEvent);
 
-          if (audience == "Student and Faculty") {
-            DatabaseReference eventRef = FirebaseDatabase.instance.ref()
-                .child("event")
-                .child(widget.username)
-                .child("notes")
-                .child(formattedDate)
-                .child(noteKey);
-print("database $eventRef");
-            eventRef.set(newEvent);
-          }
+      if (audience == "Student and Faculty") {
+        DatabaseReference eventRef = FirebaseDatabase.instance.ref()
+            .child("event")
+            .child(widget.username)
+            .child("notes")
+            .child(formattedDate)
+            .child(noteKey);
 
-          _fetchEvents();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Event added successfully!")),
-          );
-        });
+        await eventRef.set(newEvent);
       }
-    }).catchError((error) {
-      print("Error fetching faculty name: $error");
-    });
+
+      _fetchEvents();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Event added successfully!")),
+      );
+    } catch (error) {
+      print("Error saving event: $error");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to add event.")),
+      );
+    }
   }
+
 
 
 
